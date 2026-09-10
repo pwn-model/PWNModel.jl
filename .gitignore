@@ -1,0 +1,15 @@
+*.jl.*.cov
+*.jl.cov
+*.jl.mem
+*.json
+*.json.tmp
+*.mem
+
+*.csv
+*.html
+/*.svg
+/test.jl
+
+/Manifest*.toml
+/test/Manifest*.toml
+.vscode
