@@ -1,14 +1,4 @@
-using Ark
-using PWNModel
+using Pkg
+Pkg.activate("scripts")
 
-world = World(Position)
-add_resource!(world, TreeGrid(100, 50))
-
-scheduler = Scheduler(
-    world,
-    (
-        InitTrees(0.1),
-    ),
-)
-
-run!(scheduler, 100)
+include("scripts/run.jl")
