@@ -2,6 +2,7 @@
     world = World(PWNModel.Position)
     grid = PWNModel.TreeGrid(100, 50)
     add_resource!(world, grid)
+    add_resource!(world, PWNModel.Rng(1))
 
     s = PWNModel.InitTrees(0.9)
     PWNModel.initialize!(s, world)
