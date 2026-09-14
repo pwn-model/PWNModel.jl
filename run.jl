@@ -1,7 +1,7 @@
 using Ark
 using PWNModel
 
-world = World()
+world = World(Position)
 add_resource!(world, TreeGrid(100, 50))
 
 scheduler = Scheduler(

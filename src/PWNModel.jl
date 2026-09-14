@@ -11,6 +11,7 @@ include("sys/init_trees.jl")
 export Scheduler, run!
 
 export TreeGrid
+export Position
 export InitTrees
 
 end
