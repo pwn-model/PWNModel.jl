@@ -1,4 +1,5 @@
 using Test
+using Ark
 using PWNModel
 
 include("comps/tree.jl")
