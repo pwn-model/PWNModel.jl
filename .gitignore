@@ -13,4 +13,5 @@
 /Manifest*.toml
 /test/Manifest*.toml
 /scripts/Manifest*.toml
+/benchmark/Manifest*.toml
 .vscode
