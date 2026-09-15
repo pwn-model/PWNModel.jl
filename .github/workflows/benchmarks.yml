@@ -102,6 +102,8 @@ jobs:
       with:
         julia-version: '1'
         project-file: 'benchmark/Project.toml'
+    - name: View files
+      run: ls
     - name: Run comparison
       run: julia benchmark/compare_benchmarks.jl | tee compare.md
     - name: Archive results CSV
