@@ -20,6 +20,7 @@ export EntityGrid
 export SpaceGrid
 export WorldSize
 export Position
+export InCell
 export GridCoords
 export Rng
 export InitGrids

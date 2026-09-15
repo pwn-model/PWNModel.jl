@@ -1,17 +1,17 @@
 @testset "InitGrids" begin
     world = World(PWNModel.GridCoords)
-    add_resource!(world, PWNModel.WorldSize(25, 12, 10))
+    add_resource!(world, PWNModel.WorldSize(30, 20, 10))
 
     s = PWNModel.InitGrids()
     PWNModel.initialize!(s, world)
 
     trees = get_resource(world, PWNModel.EntityGrid)
-    @test trees.width == 25
-    @test trees.height == 12
+    @test trees.width == 30
+    @test trees.height == 20
 
     space = get_resource(world, PWNModel.SpaceGrid)
-    @test space.grid.width == 3  # ceil(25/10)
-    @test space.grid.height == 2 # ceil(12/10)
+    @test space.grid.width == 3  # 30/10
+    @test space.grid.height == 2 # 20/10
 
     count = count_entities(Filter(world, (PWNModel.GridCoords,)))
     @test count == space.grid.width * space.grid.height
@@ -22,4 +22,12 @@
             @test space.grid[gc.x, gc.y] == entities[i]
         end
     end
+end
+
+@testset "InitGrids throws on size not multiple of resolution" begin
+    world = World(PWNModel.GridCoords)
+    add_resource!(world, PWNModel.WorldSize(25, 12, 10))
+
+    s = PWNModel.InitGrids()
+    @test_throws ArgumentError PWNModel.initialize!(s, world)
 end

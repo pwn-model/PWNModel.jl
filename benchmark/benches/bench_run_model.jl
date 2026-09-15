@@ -1,6 +1,6 @@
 
 function do_setup_world(n)
-    world = World(Position, GridCoords)
+    world = World(Position, GridCoords, Relation{InCell})
     add_resource!(world, WorldSize(1000, 1000, 50))
     add_resource!(world, Rng(rand(UInt64)))
 
