@@ -43,3 +43,16 @@ end
 
 SUITE["benchmark_only_run n=1"] =
     @be setup_only_run_world($1) benchmark_only_run_world(_, $1) seconds = SECONDS
+
+
+function setup_only_setup_world(n)
+end
+
+function benchmark_only_setup_world(args, n)
+    scheduler = do_setup_world(n)
+
+    return scheduler
+end
+
+SUITE["benchmark_only_setup n=1"] =
+    @be setup_only_setup_world($1) benchmark_only_setup_world(_, $1) seconds = SECONDS
