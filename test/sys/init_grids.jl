@@ -1,5 +1,5 @@
 @testset "InitGrids" begin
-    world = World()
+    world = World(PWNModel.GridCoords)
     add_resource!(world, PWNModel.WorldSize(25, 12, 10))
 
     s = PWNModel.InitGrids()
@@ -12,4 +12,14 @@
     space = get_resource(world, PWNModel.SpaceGrid)
     @test space.grid.width == 3  # ceil(25/10)
     @test space.grid.height == 2 # ceil(12/10)
+
+    count = count_entities(Filter(world, (PWNModel.GridCoords,)))
+    @test count == space.grid.width * space.grid.height
+
+    for (entities, coords) in Query(world, (PWNModel.GridCoords,))
+        for i in eachindex(entities)
+            gc = coords[i]
+            @test space.grid[gc.x, gc.y] == entities[i]
+        end
+    end
 end

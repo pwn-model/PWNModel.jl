@@ -1,7 +1,7 @@
 using Ark
 using PWNModel
 
-world = World(Position)
+world = World(Position, GridCoords)
 add_resource!(world, WorldSize(100, 50, 10))
 add_resource!(world, Rng(rand(UInt64)))
 
