@@ -1,7 +1,7 @@
 
 function do_setup_world(n)
     world = World(Position)
-    add_resource!(world, TreeGrid(100, 100))
+    add_resource!(world, TreeGrid(1000, 1000))
     add_resource!(world, Rng(rand(UInt64)))
 
     scheduler = Scheduler(
@@ -10,6 +10,8 @@ function do_setup_world(n)
             InitTrees(0.9),
         ),
     )
+    
+    initialize!(scheduler)
 
     return scheduler
 end
@@ -41,3 +43,16 @@ end
 
 SUITE["benchmark_only_run n=1"] =
     @be setup_only_run_world($1) benchmark_only_run_world(_, $1) seconds = SECONDS
+
+
+function setup_only_setup_world(n)
+end
+
+function benchmark_only_setup_world(args, n)
+    scheduler = do_setup_world(n)
+
+    return scheduler
+end
+
+SUITE["benchmark_only_setup n=1"] =
+    @be setup_only_setup_world($1) benchmark_only_setup_world(_, $1) seconds = SECONDS
