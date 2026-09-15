@@ -1,7 +1,7 @@
 
 function do_setup_world(n)
     world = World(Position)
-    add_resource!(world, TreeGrid(100, 100))
+    add_resource!(world, TreeGrid(1000, 1000))
     add_resource!(world, Rng(rand(UInt64)))
 
     scheduler = Scheduler(
