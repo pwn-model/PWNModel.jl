@@ -10,7 +10,7 @@ include("scheduler.jl")
 
 include("sys/init_trees.jl")
 
-export Scheduler, run!
+export Scheduler, initialize!, step!, finalize!, run!
 
 export TreeGrid
 export Position

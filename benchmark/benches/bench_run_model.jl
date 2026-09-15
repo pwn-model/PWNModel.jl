@@ -10,6 +10,8 @@ function do_setup_world(n)
             InitTrees(0.9),
         ),
     )
+    
+    initialize!(scheduler)
 
     return scheduler
 end

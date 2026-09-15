@@ -14,7 +14,7 @@ PWNModel.finalize!(sys::RecordingSystem, ::World) = (sys.finalized += 1)
     sys1 = RecordingSystem()
     sys2 = RecordingSystem()
     scheduler = PWNModel.Scheduler(
-        World(), 
+        World(),
         (sys1, sys2),
     )
 
@@ -25,4 +25,44 @@ PWNModel.finalize!(sys::RecordingSystem, ::World) = (sys.finalized += 1)
         @test sys.updated == 5
         @test sys.finalized == 1
     end
+end
+
+@testset "Scheduler constructor" begin
+    sys1 = RecordingSystem()
+    scheduler = PWNModel.Scheduler(World(), (sys1,))
+
+    @test scheduler._is_initialized == false
+    @test scheduler.systems == (sys1,)
+end
+
+@testset "Scheduler initialize! is idempotent" begin
+    sys1 = RecordingSystem()
+    scheduler = PWNModel.Scheduler(World(), (sys1,))
+
+    PWNModel.initialize!(scheduler)
+    PWNModel.initialize!(scheduler)
+
+    @test scheduler._is_initialized == true
+    @test sys1.initialized == 1
+end
+
+@testset "Scheduler step!" begin
+    sys1 = RecordingSystem()
+    scheduler = PWNModel.Scheduler(World(), (sys1,))
+
+    PWNModel.step!(scheduler)
+    PWNModel.step!(scheduler)
+
+    @test sys1.updated == 2
+    @test sys1.initialized == 0
+    @test sys1.finalized == 0
+end
+
+@testset "Scheduler finalize!" begin
+    sys1 = RecordingSystem()
+    scheduler = PWNModel.Scheduler(World(), (sys1,))
+
+    PWNModel.finalize!(scheduler)
+
+    @test sys1.finalized == 1
 end
