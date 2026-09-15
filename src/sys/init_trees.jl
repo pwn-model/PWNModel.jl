@@ -3,7 +3,7 @@ struct InitTrees <: System
 end
 
 function initialize!(s::InitTrees, w::World)
-    grid = get_resource(w, TreeGrid)
+    grid = get_resource(w, EntityGrid)
     rng = get_resource(w, Rng)
 
     positions = [

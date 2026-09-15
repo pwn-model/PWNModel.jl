@@ -1,5 +1,5 @@
-@testset "TreeGrid" begin
-    grid = PWNModel.TreeGrid(4, 3)
+@testset "EntityGrid" begin
+    grid = PWNModel.EntityGrid(4, 3)
     @test grid.width == 4
     @test grid.height == 3
 

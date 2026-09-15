@@ -1,6 +1,6 @@
 @testset "InitTrees" begin
     world = World(PWNModel.Position)
-    grid = PWNModel.TreeGrid(100, 50)
+    grid = PWNModel.EntityGrid(100, 50)
     add_resource!(world, grid)
     add_resource!(world, PWNModel.Rng(1))
 
