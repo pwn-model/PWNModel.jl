@@ -25,3 +25,20 @@ end
         @test rand(rng) == exp
     end
 end
+
+@testset "Random.shuffle! sequence matches Go implementation" begin
+    # Hard-coded permutation produced by seeding the sibling Go
+    # implementation's util.Shuffle (pwn/util/shuffle_test.go) with the same
+    # seed and shuffling the same slice:
+    #   Shuffle(res.NewXoshiro256pp(1), []int{1, ..., 10})
+    # util.Shuffle is a deliberate Go port of Julia's Random.shuffle!
+    # algorithm (see its doc comment), so both implementations must select
+    # the same permutation from the same seed.
+    expected = [4, 3, 5, 10, 6, 1, 7, 9, 8, 2]
+
+    rng = PWNModel.Rng(1)
+    values = collect(1:10)
+    Random.shuffle!(rng.xoshiro, values)
+
+    @test values == expected
+end

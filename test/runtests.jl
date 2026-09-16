@@ -1,5 +1,6 @@
 using Test
 using Ark
+using Random
 using PWNModel
 
 include("comps/tree.jl")
