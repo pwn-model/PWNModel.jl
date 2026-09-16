@@ -1,12 +1,13 @@
 
 function do_setup_world(n)
-    world = World(Position)
-    add_resource!(world, TreeGrid(1000, 1000))
+    world = World(Position, GridCoords, Relation{InCell})
+    add_resource!(world, WorldSize(1000, 1000, 50))
     add_resource!(world, Rng(rand(UInt64)))
 
     scheduler = Scheduler(
         world,
         (
+            InitGrids(),
             InitTrees(0.9),
         ),
     )
