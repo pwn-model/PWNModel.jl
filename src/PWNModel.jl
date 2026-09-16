@@ -1,7 +1,7 @@
 module PWNModel
 
 using Ark
-using RandomNumbers.PCG
+using Random
 
 include("comps/tree.jl")
 include("comps/cell.jl")

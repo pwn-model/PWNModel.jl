@@ -1,0 +1,122 @@
+name: Benchmark (internal)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  BASE_REF: main
+
+jobs:
+  benchmark:
+    name: Benchmarks (internal)
+    runs-on: ubuntu-latest
+    permissions: # required for caching
+      actions: write
+      contents: read
+    strategy:
+      matrix:
+        repetition: [1, 2, 3]
+        
+    steps:
+    - name: Cancel ongoing test runs for previous commits
+      uses: styfle/cancel-workflow-action@0.13.1
+      with:
+        access_token: ${{ github.token }}
+    - name: Checkout code
+      uses: actions/checkout@v6
+    - name: Set up Julia
+      uses: ./.github/actions/setup-julia
+      with:
+        julia-version: '1'
+        project-file: 'benchmark/Project.toml'
+        key-suffix: ${{ matrix.repetition }}
+    - name: Install dependencies
+      run: julia --project=benchmark -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
+    - name: Run benchmarks for current
+      run: julia --project=benchmark benchmark/run_internal.jl
+    - name: Rename file
+      run: mv bench.csv bench_current_${{ matrix.repetition }}.csv
+    - name: Archive results
+      uses: actions/upload-artifact@v7
+      with:
+        name: bench_current_${{ matrix.repetition }}
+        path: bench_current_${{ matrix.repetition }}.csv
+
+    - name: Checkout code
+      if: github.event_name == 'pull_request'
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+    - name: Switch to base commit
+      if: github.event_name == 'pull_request'
+      run: git checkout ${{ env.BASE_REF }}
+    - name: Install dependencies
+      if: github.event_name == 'pull_request'
+      run: julia --project=benchmark -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
+    - name: Run benchmarks for main
+      if: github.event_name == 'pull_request'
+      run: julia --project=benchmark benchmark/run_internal.jl
+    - name: Rename file
+      if: github.event_name == 'pull_request'
+      run: mv bench.csv bench_main_${{ matrix.repetition }}.csv
+    - name: Archive results
+      if: github.event_name == 'pull_request'
+      uses: actions/upload-artifact@v7
+      with:
+        name: bench_main_${{ matrix.repetition }}
+        path: bench_main_${{ matrix.repetition }}.csv
+
+  compare:
+    name: Compare benchmarks (internal)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    needs:
+    - benchmark
+    steps:
+    - uses: actions/checkout@v6
+    - uses: actions/download-artifact@v8
+      with:
+        name: bench_main_1
+    - uses: actions/download-artifact@v8
+      with:
+        name: bench_main_2
+    - uses: actions/download-artifact@v8
+      with:
+        name: bench_main_3
+    - uses: actions/download-artifact@v8
+      with:
+        name: bench_current_1
+    - uses: actions/download-artifact@v8
+      with:
+        name: bench_current_2
+    - uses: actions/download-artifact@v8
+      with:
+        name: bench_current_3
+    - name: Set up Julia
+      uses: julia-actions/setup-julia@v3
+      with:
+        version: '1'
+    - name: Run comparison
+      run: julia benchmark/compare_benchmarks.jl | tee compare.md
+    - name: Archive results CSV
+      uses: actions/upload-artifact@v7
+      with:
+        name: compare
+        path: compare.csv
+    - name: Archive results MD
+      uses: actions/upload-artifact@v7
+      with:
+        name: compare_md
+        path: compare.md
+    - name: Archive results HTML
+      uses: actions/upload-artifact@v7
+      with:
+        name: compare_html
+        path: compare.html
