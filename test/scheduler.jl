@@ -35,6 +35,20 @@ end
     @test scheduler.systems == (sys1,)
 end
 
+@testset "Scheduler adds and increments a Tick resource" begin
+    sys1 = RecordingSystem()
+    scheduler = PWNModel.Scheduler(World(), (sys1,))
+
+    @test get_resource(scheduler.world, PWNModel.Tick).value == 0
+
+    PWNModel.step!(scheduler)
+    @test get_resource(scheduler.world, PWNModel.Tick).value == 1
+
+    PWNModel.step!(scheduler)
+    PWNModel.step!(scheduler)
+    @test get_resource(scheduler.world, PWNModel.Tick).value == 3
+end
+
 @testset "Scheduler initialize! is idempotent" begin
     sys1 = RecordingSystem()
     scheduler = PWNModel.Scheduler(World(), (sys1,))

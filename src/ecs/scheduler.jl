@@ -4,7 +4,10 @@ mutable struct Scheduler{ST<:Tuple}
     _is_initialized::Bool
 end
 
-Scheduler(world::World, systems::ST) where {ST<:Tuple} = Scheduler{ST}(world, systems, false)
+function Scheduler(world::World, systems::ST) where {ST<:Tuple}
+    add_resource!(world, Tick())
+    return Scheduler{ST}(world, systems, false)
+end
 
 @inline _initialize_systems!(::Tuple{}, ::World) = nothing
 @inline function _initialize_systems!(systems::Tuple, world::World)
@@ -34,6 +37,7 @@ end
 
 function step!(s::Scheduler)
     _update_systems!(s.systems, s.world)
+    get_resource(s.world, Tick).value += 1
 end
 
 function finalize!(s::Scheduler)

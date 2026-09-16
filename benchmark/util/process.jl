@@ -12,8 +12,11 @@ function process_benches(suite::BenchmarkGroup)::Vector{Row}
         mean_secs = median(map(s -> s.time, bench.samples))
         ns_per_n = 1e9 * mean_secs / n
 
-        total_allocs = median(map(s -> s.allocs, bench.samples))
-        total_bytes = median(map(s -> s.bytes, bench.samples))
+        # Chairmarks' Sample.allocs/bytes are per-evaluation averages (a
+        # sample may batch several evaluations), so they are legitimately
+        # fractional; Row requires whole counts.
+        total_allocs = round(Int, median(map(s -> s.allocs, bench.samples)))
+        total_bytes = round(Int, median(map(s -> s.bytes, bench.samples)))
         push!(data, Row(parts[1], n, ns_per_n, total_allocs, total_bytes))
     end
 

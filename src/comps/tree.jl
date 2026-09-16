@@ -11,4 +11,6 @@ struct InCell end
 struct Damaged end
 
 # NematodeInfected marks a tree as infested with PWN.
-struct NematodeInfected end
+struct NematodeInfected
+    infection_tick::Int
+end
