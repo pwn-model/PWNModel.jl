@@ -3,8 +3,10 @@ module PWNModel
 using Ark
 using Random
 
+include("ecs/observers.jl")
 include("ecs/scheduler.jl")
 include("ecs/system.jl")
+include("ecs/reporter/csv_reporter.jl")
 
 include("comps/tree.jl")
 include("comps/cell.jl")
@@ -17,6 +19,7 @@ include("sys/init_grids.jl")
 include("sys/init_trees.jl")
 
 export Scheduler, initialize!, step!, finalize!, run!
+export RowObserver, header, row, CSV
 
 export EntityGrid
 export SpaceGrid
