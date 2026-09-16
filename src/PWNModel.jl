@@ -18,6 +18,8 @@ include("res/rng.jl")
 include("sys/init_grids.jl")
 include("sys/init_trees.jl")
 
+include("obs/tree_population.jl")
+
 export Scheduler, initialize!, step!, finalize!, run!
 export RowObserver, header, row, CSV
 
@@ -32,5 +34,6 @@ export GridCoords
 export Rng
 export InitGrids
 export InitTrees
+export TreePopulationObserver
 
 end
