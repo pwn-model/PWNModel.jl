@@ -3,13 +3,15 @@ module PWNModel
 using Ark
 using Random
 
+include("ecs/scheduler.jl")
+include("ecs/system.jl")
+
 include("comps/tree.jl")
 include("comps/cell.jl")
 include("res/entity_grid.jl")
 include("res/space_grid.jl")
 include("res/world_size.jl")
 include("res/rng.jl")
-include("scheduler.jl")
 
 include("sys/init_grids.jl")
 include("sys/init_trees.jl")
