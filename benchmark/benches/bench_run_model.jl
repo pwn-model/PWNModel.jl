@@ -1,6 +1,6 @@
 
 function do_setup_world(n)
-    world = World(Position, GridCoords, Relation{InCell})
+    world = World(Position, GridCoords, Damaged, Relation{InCell})
     add_resource!(world, WorldSize(1000, 1000, 50))
     add_resource!(world, Rng(rand(UInt64)))
 
@@ -8,7 +8,7 @@ function do_setup_world(n)
         world,
         (
             InitGrids(),
-            InitTrees(0.9),
+            InitTrees(tree_probability=0.9, damage_prevalence=0.03),
         ),
     )
     
