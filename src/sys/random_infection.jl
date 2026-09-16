@@ -1,14 +1,9 @@
 
 # RandomInfection infects the given number of trees in the given grid cell.
 #
-# Selection uses Julia's default `Random.shuffle!` on a plain `Vector{Entity}`
-# collected from the query. This deliberately does not attempt to reproduce
-# the exact same shuffle algorithm as the sibling Go implementation (which
-# uses `math/rand/v2`'s `Rand.Shuffle`, based on Lemire's method): the two
-# languages' bounded-integer sampling from a raw RNG stream differ, so a
-# from-scratch reimplementation would be needed for bit-identical selection.
-# Given the same seed, both implementations infect the same *number* of
-# trees in the same cell, but not necessarily the same trees.
+# Selection uses frozen_shuffle! (see src/util/shuffle.jl) rather than
+# Random.shuffle!, so that tree selection is bit-identical with the sibling
+# Go implementation's util.Shuffle for the same seed.
 Base.@kwdef struct RandomInfection <: System
     tick_of_infection::Int
     num_trees::Int
@@ -32,7 +27,7 @@ function update!(s::RandomInfection, w::World)
         append!(to_infect, entities)
     end
 
-    Random.shuffle!(rng.xoshiro, to_infect)
+    frozen_shuffle!(rng.xoshiro, to_infect)
 
     n = min(length(to_infect), s.num_trees)
     for e in view(to_infect, 1:n)

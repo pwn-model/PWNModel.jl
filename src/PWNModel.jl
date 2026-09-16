@@ -3,6 +3,8 @@ module PWNModel
 using Ark
 using Random
 
+include("util/shuffle.jl")
+
 include("ecs/tick.jl")
 include("ecs/observers.jl")
 include("ecs/scheduler.jl")
