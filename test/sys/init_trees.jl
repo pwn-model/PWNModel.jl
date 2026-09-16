@@ -8,7 +8,7 @@
     gs = PWNModel.InitGrids()
     PWNModel.initialize!(gs, world)
 
-    s = PWNModel.InitTrees(0.9)
+    s = PWNModel.InitTrees(tree_probability=0.9, damage_prevalence=0.0)
     PWNModel.initialize!(s, world)
 
     grid = get_resource(world, PWNModel.EntityGrid)
@@ -39,7 +39,7 @@ end
     gs = PWNModel.InitGrids()
     PWNModel.initialize!(gs, world)
 
-    s = PWNModel.InitTrees(1.0, 0.2)
+    s = PWNModel.InitTrees(tree_probability=1.0, damage_prevalence=0.2)
     PWNModel.initialize!(s, world)
 
     grid = get_resource(world, PWNModel.EntityGrid)

@@ -9,7 +9,7 @@ scheduler = Scheduler(
     world,
     (
         InitGrids(),
-        InitTrees(0.9, 0.03),
+        InitTrees(tree_probability=0.9, damage_prevalence=0.03),
     ),
 )
 

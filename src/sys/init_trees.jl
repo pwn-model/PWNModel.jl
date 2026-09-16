@@ -1,9 +1,7 @@
-struct InitTrees <: System
+Base.@kwdef struct InitTrees <: System
     tree_probability::Float64
     damage_prevalence::Float64
 end
-
-InitTrees(tree_probability::Float64) = InitTrees(tree_probability, 0.0)
 
 function initialize!(s::InitTrees, w::World)
     ws = get_resource(w, WorldSize)
