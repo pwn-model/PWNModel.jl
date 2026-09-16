@@ -21,6 +21,8 @@ export SpaceGrid
 export WorldSize
 export Position
 export InCell
+export Damaged
+export NematodeInfected
 export GridCoords
 export Rng
 export InitGrids
