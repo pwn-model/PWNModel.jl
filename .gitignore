@@ -10,6 +10,8 @@
 /*.svg
 /test.jl
 
+/out/
+
 /Manifest*.toml
 /test/Manifest*.toml
 /scripts/Manifest*.toml
