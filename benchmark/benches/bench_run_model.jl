@@ -4,7 +4,7 @@ function do_setup_world(n)
 
     # Resources
     add_resource!(world, WorldSize(1000, 1000, 50))
-    add_resource!(world, Rng(rand(UInt64)))
+    add_resource!(world, Rng(1))
 
     scheduler = Scheduler(
         world,

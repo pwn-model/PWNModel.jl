@@ -6,8 +6,8 @@ include("plot/time_series.jl")
 world = World(Position, GridCoords, Damaged, Infected, Relation{InCell})
 
 # Resources
-add_resource!(world, WorldSize(100, 50, 10))
-add_resource!(world, Rng(rand(UInt64)))
+add_resource!(world, WorldSize(200, 200, 50))
+add_resource!(world, Rng(1))
 
 tree_pop_plot = TimeSeries(
     observer=TreePopulationObserver(),
