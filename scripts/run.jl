@@ -10,11 +10,11 @@ add_resource!(world, WorldSize(100, 50, 10))
 add_resource!(world, Rng(rand(UInt64)))
 
 tree_pop_plot = LinePlot(
-            observer=TreePopulationObserver(),
-            title="Tree population",
-            xlabel="Tick",
-            ylabel="Trees",
-        )
+    observer=TreePopulationObserver(),
+    title="Tree population",
+    xlabel="Tick",
+    ylabel="Trees",
+)
 
 scheduler = Scheduler(
     world,

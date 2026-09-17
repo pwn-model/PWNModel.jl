@@ -40,15 +40,15 @@ end
     LinePlot(; observer, x=nothing, y=nothing, xlim=nothing, ylim=nothing,
                title="", xlabel="", ylabel="", update_interval=1, max_values=nothing)
 
-- `observer`: the [`RowObserver`](@ref) supplying column headers and rows.
-- `x`: column name for the x axis. Defaults to the tick count.
-- `y`: column names to plot as separate lines. Defaults to all columns but `x`.
-- `xlim`/`ylim`: fixed axis limits as `(low, high)`. Default to auto-scaling;
-  giving only one of the two still triggers auto-scaling on both, since a
-  single Makie `autolimits!` call recomputes both axes at once.
-- `update_interval`: sample and redraw every this many ticks, like [`CSV`](@ref).
-- `max_values`: if given, keep only the most recent `max_values` points per
-  line (rolling window) instead of the full unbounded history.
+  - `observer`: the [`RowObserver`](@ref) supplying column headers and rows.
+  - `x`: column name for the x axis. Defaults to the tick count.
+  - `y`: column names to plot as separate lines. Defaults to all columns but `x`.
+  - `xlim`/`ylim`: fixed axis limits as `(low, high)`. Default to auto-scaling;
+    giving only one of the two still triggers auto-scaling on both, since a
+    single Makie `autolimits!` call recomputes both axes at once.
+  - `update_interval`: sample and redraw every this many ticks, like [`CSV`](@ref).
+  - `max_values`: if given, keep only the most recent `max_values` points per
+    line (rolling window) instead of the full unbounded history.
 """
 function LinePlot(;
     observer::PWNModel.RowObserver,
