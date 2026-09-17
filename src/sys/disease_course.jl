@@ -9,7 +9,7 @@ end
 function update!(s::DiseaseCourse, w::World)
     tick = get_resource(w, Tick).value
 
-    for (entities, infected) in Query(w, (NematodeInfected,); without=(Damaged,))
+    for (entities, infected) in Query(w, (Infected,); without=(Damaged,))
         for i in eachindex(entities)
             if infected[i].infection_tick + s.ticks_to_damage <= tick
                 push!(s._to_damage, entities[i])

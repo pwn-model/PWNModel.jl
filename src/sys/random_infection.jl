@@ -23,7 +23,7 @@ function update!(s::RandomInfection, w::World)
     rng = get_resource(w, Rng)
 
     to_infect = Entity[]
-    for (entities, _) in Query(w, (Position, InCell => cell); without=(Damaged, NematodeInfected))
+    for (entities, _) in Query(w, (Position, InCell => cell); without=(Damaged, Infected))
         append!(to_infect, entities)
     end
 
@@ -31,6 +31,6 @@ function update!(s::RandomInfection, w::World)
 
     n = min(length(to_infect), s.num_trees)
     for e in view(to_infect, 1:n)
-        add_components!(w, e, (NematodeInfected(tick),))
+        add_components!(w, e, (Infected(tick),))
     end
 end

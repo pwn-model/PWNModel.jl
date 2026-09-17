@@ -1,0 +1,38 @@
+name: Linters
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  linters:
+    name: Linters
+    runs-on: ubuntu-latest
+    steps:
+    - name: Cancel ongoing test runs for previous commits
+      uses: styfle/cancel-workflow-action@0.13.1
+      with:
+        access_token: ${{ github.token }}
+    - uses: actions/checkout@v6
+    - name: Set up Julia
+      uses: julia-actions/setup-julia@v3
+      with:
+        version: '1'
+    - uses: julia-actions/cache@v3
+    # - name: Install ReLint.jl
+    #   run: julia -e 'using Pkg; Pkg.add(url="https://github.com/RelationalAI-oss/ReLint.jl")'
+    # - name: Run ReLint
+    #   run: |
+    #     julia -e '
+    #       using ReLint
+    #       lint_result = ReLint.run_lint(".")
+    #       if lint_result.fatalviolations_count > 0
+    #         println("ReLint found fatal violations")
+    #         exit(1)
+    #       end
+    #     '
+        
+    - uses: julia-actions/julia-format@v4
+      with:
+        version: '2.14.0'

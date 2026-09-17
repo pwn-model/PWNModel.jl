@@ -1,21 +1,21 @@
 @testset "DiseaseCourse" begin
-    world = World(PWNModel.NematodeInfected, PWNModel.Damaged)
+    world = World(PWNModel.Infected, PWNModel.Damaged)
     tick = add_resource!(world, PWNModel.Tick())
 
     long_infected = nothing
     at_threshold = nothing
     recently_infected = nothing
 
-    new_entities!(world, 1, (PWNModel.NematodeInfected,)) do (entities, infected)
-        infected[1] = PWNModel.NematodeInfected(0)
+    new_entities!(world, 1, (PWNModel.Infected,)) do (entities, infected)
+        infected[1] = PWNModel.Infected(0)
         long_infected = entities[1]
     end
-    new_entities!(world, 1, (PWNModel.NematodeInfected,)) do (entities, infected)
-        infected[1] = PWNModel.NematodeInfected(5)
+    new_entities!(world, 1, (PWNModel.Infected,)) do (entities, infected)
+        infected[1] = PWNModel.Infected(5)
         at_threshold = entities[1]
     end
-    new_entities!(world, 1, (PWNModel.NematodeInfected,)) do (entities, infected)
-        infected[1] = PWNModel.NematodeInfected(8)
+    new_entities!(world, 1, (PWNModel.Infected,)) do (entities, infected)
+        infected[1] = PWNModel.Infected(8)
         recently_infected = entities[1]
     end
 
@@ -31,12 +31,12 @@
 end
 
 @testset "DiseaseCourse skips already damaged" begin
-    world = World(PWNModel.NematodeInfected, PWNModel.Damaged)
+    world = World(PWNModel.Infected, PWNModel.Damaged)
     tick = add_resource!(world, PWNModel.Tick())
 
     entity = nothing
-    new_entities!(world, 1, (PWNModel.NematodeInfected, PWNModel.Damaged)) do (entities, infected, _)
-        infected[1] = PWNModel.NematodeInfected(0)
+    new_entities!(world, 1, (PWNModel.Infected, PWNModel.Damaged)) do (entities, infected, _)
+        infected[1] = PWNModel.Infected(0)
         entity = entities[1]
     end
 
