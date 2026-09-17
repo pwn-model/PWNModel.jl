@@ -1,6 +1,6 @@
 
 function do_setup_world(n)
-    world = World(Position, GridCoords, Damaged, NematodeInfected, Relation{InCell})
+    world = World(Position, GridCoords, Damaged, Infected, Relation{InCell})
     add_resource!(world, WorldSize(1000, 1000, 50))
     add_resource!(world, Rng(rand(UInt64)))
 

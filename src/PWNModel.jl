@@ -35,7 +35,7 @@ export WorldSize
 export Position
 export InCell
 export Damaged
-export NematodeInfected
+export Infected
 export GridCoords
 export Rng
 export InitGrids

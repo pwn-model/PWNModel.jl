@@ -3,7 +3,7 @@ function _setup_random_infection_world()
         PWNModel.Position,
         PWNModel.GridCoords,
         PWNModel.Damaged,
-        PWNModel.NematodeInfected,
+        PWNModel.Infected,
         Relation{PWNModel.InCell},
     )
 
@@ -30,7 +30,7 @@ end
     for _ in 0:2
         PWNModel.update!(s, world)
         tick.value += 1
-        @test count_entities(Filter(world, (PWNModel.NematodeInfected,))) == 0
+        @test count_entities(Filter(world, (PWNModel.Infected,))) == 0
     end
 
     # At tick 3, exactly num_trees trees get infected.
@@ -43,7 +43,7 @@ end
 
     count = 0
     for (entities, positions, infected) in
-        Query(world, (PWNModel.Position, PWNModel.NematodeInfected); with=(PWNModel.InCell => target,))
+        Query(world, (PWNModel.Position, PWNModel.Infected); with=(PWNModel.InCell => target,))
         for i in eachindex(entities)
             @test infected[i].infection_tick == 3
             @test positions[i].x <= ws.resolution
@@ -52,12 +52,12 @@ end
         end
     end
     @test count == 10
-    @test count_entities(Filter(world, (PWNModel.NematodeInfected,))) == 10
+    @test count_entities(Filter(world, (PWNModel.Infected,))) == 10
 
     # Later ticks must not infect further trees.
     PWNModel.update!(s, world)
     tick.value += 1
-    @test count_entities(Filter(world, (PWNModel.NematodeInfected,))) == 10
+    @test count_entities(Filter(world, (PWNModel.Infected,))) == 10
 end
 
 @testset "RandomInfection skips ineligible trees" begin
@@ -80,7 +80,7 @@ end
         end
     end
     for e in to_pre_infect
-        add_components!(world, e, (PWNModel.NematodeInfected(-1),))
+        add_components!(world, e, (PWNModel.Infected(-1),))
     end
 
     s = PWNModel.RandomInfection(tick_of_infection=0, num_trees=5, cell_x=1, cell_y=1)
@@ -88,7 +88,7 @@ end
     tick.value += 1
 
     newly_infected = 0
-    for (entities, infected) in Query(world, (PWNModel.NematodeInfected,))
+    for (entities, infected) in Query(world, (PWNModel.Infected,))
         for i in eachindex(entities)
             if infected[i].infection_tick == 0
                 newly_infected += 1
@@ -107,7 +107,7 @@ end
     PWNModel.update!(s, world)
     tick.value += 1
 
-    @test count_entities(Filter(world, (PWNModel.NematodeInfected,))) == 100
+    @test count_entities(Filter(world, (PWNModel.Infected,))) == 100
 end
 
 @testset "RandomInfection only targets specified cell" begin
@@ -118,7 +118,7 @@ end
     PWNModel.update!(s, world)
     tick.value += 1
 
-    for (_, positions) in Query(world, (PWNModel.Position,); with=(PWNModel.NematodeInfected,))
+    for (_, positions) in Query(world, (PWNModel.Position,); with=(PWNModel.Infected,))
         for pos in positions
             @test pos.x > ws.resolution
             @test pos.y > ws.resolution
