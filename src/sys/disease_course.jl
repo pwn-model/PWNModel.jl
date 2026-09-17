@@ -7,7 +7,7 @@ Base.@kwdef struct DiseaseCourse <: System
 end
 
 function update!(s::DiseaseCourse, w::World)
-    tick = get_resource(w, Tick).value
+    tick = get_resource(w, Time).tick
 
     for (entities, infected) in Query(w, (Infected,); without=(Damaged,))
         for i in eachindex(entities)

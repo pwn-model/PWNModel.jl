@@ -12,7 +12,7 @@ Base.@kwdef struct RandomInfection <: System
 end
 
 function update!(s::RandomInfection, w::World)
-    tick = get_resource(w, Tick).value
+    tick = get_resource(w, Time).tick
 
     if tick != s.tick_of_infection
         return

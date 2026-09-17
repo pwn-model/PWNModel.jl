@@ -27,8 +27,10 @@ scheduler = Scheduler(
         ),
 
         # Systems
+        UpdateTime(weeks_per_year=52),
         DiseaseCourse(ticks_to_damage=8),
         RandomInfection(tick_of_infection=0, num_trees=100, cell_x=5, cell_y=3),
+        DamageTrees(tick_of_year=35, damage_probability=0.01, removal_probability=0.333),
 
         # Observers
         CSV(
