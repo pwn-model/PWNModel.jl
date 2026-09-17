@@ -29,7 +29,7 @@ end
 
 function benchmark_setup_and_run_world(args, n)
     scheduler = do_setup_world(n)
-    run!(scheduler, 100)
+    run!(scheduler, 520)
 
     return scheduler
 end
@@ -43,7 +43,7 @@ end
 
 function benchmark_only_run_world(args, n)
     scheduler = args
-    run!(scheduler, 100)
+    run!(scheduler, 520)
 
     return scheduler
 end
