@@ -14,6 +14,7 @@ function do_setup_world(n)
             InitTrees(tree_probability=0.9, damage_prevalence=0.03),
 
             # Systems
+            UpdateTime(ticks_per_year=52),
             DiseaseCourse(ticks_to_damage=8),
             RandomInfection(tick_of_infection=0, num_trees=100, cell_x=11, cell_y=11),
         ),

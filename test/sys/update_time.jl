@@ -2,7 +2,7 @@
     world = World()
     tick = add_resource!(world, PWNModel.Tick())
 
-    s = PWNModel.UpdateTime(weeks_per_year=52)
+    s = PWNModel.UpdateTime(ticks_per_year=52)
     PWNModel.initialize!(s, world)
     time = get_resource(world, PWNModel.Time)
 
