@@ -5,7 +5,7 @@ Base.@kwdef struct DamageTrees <: System
     damage_probability::Float64
     removal_probability::Float64
 
-    _to_remove::Vector{Entity} = Entity[]
+    _to_remove::Vector{Position} = Position[]
     _to_damage::Vector{Entity} = Entity[]
 end
 
@@ -17,17 +17,21 @@ function update!(s::DamageTrees, w::World)
     end
 
     rng = get_resource(w, Rng)
+    grid = get_resource(w, EntityGrid)
 
-    for (entities,) in Query(w, (); with=(Damaged,))
-        for e in entities
+    for (_, positions) in Query(w, (Position,); with=(Damaged,))
+        for pos in positions
             if rand(rng) < s.removal_probability
-                push!(s._to_remove, e)
+                push!(s._to_remove, pos)
             end
         end
     end
 
-    for e in s._to_remove
+    for pos in s._to_remove
+        e = grid[pos.x, pos.y]
+
         remove_entity!(w, e)
+        grid[pos.x, pos.y] = zero_entity
     end
     empty!(s._to_remove)
 
