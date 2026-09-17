@@ -28,6 +28,8 @@ include("sys/damage_trees.jl")
 
 include("obs/tree_population.jl")
 
+include("util/print.jl")
+
 export Scheduler, initialize!, step!, finalize!, run!
 export Tick
 export RowObserver, header, row, CSV
@@ -49,5 +51,6 @@ export DiseaseCourse
 export RandomInfection
 export DamageTrees
 export TreePopulationObserver
+export trees_to_string
 
 end
