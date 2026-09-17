@@ -4,7 +4,7 @@ function do_setup_world(n)
 
     # Resources
     add_resource!(world, WorldSize(1000, 1000, 50))
-    add_resource!(world, Rng(rand(UInt64)))
+    add_resource!(world, Rng(1))
 
     scheduler = Scheduler(
         world,
@@ -14,8 +14,10 @@ function do_setup_world(n)
             InitTrees(tree_probability=0.9, damage_prevalence=0.03),
 
             # Systems
+            UpdateTime(ticks_per_year=52),
             DiseaseCourse(ticks_to_damage=8),
             RandomInfection(tick_of_infection=0, num_trees=100, cell_x=11, cell_y=11),
+            DamageTrees(tick_of_year=35, damage_probability=0.01, removal_probability=0.333),
         ),
     )
 
@@ -29,7 +31,7 @@ end
 
 function benchmark_setup_and_run_world(args, n)
     scheduler = do_setup_world(n)
-    run!(scheduler, 100)
+    run!(scheduler, 520)
 
     return scheduler
 end
@@ -43,7 +45,7 @@ end
 
 function benchmark_only_run_world(args, n)
     scheduler = args
-    run!(scheduler, 100)
+    run!(scheduler, 520)
 
     return scheduler
 end

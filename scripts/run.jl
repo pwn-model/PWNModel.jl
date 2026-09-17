@@ -6,8 +6,12 @@ include("plot/time_series.jl")
 world = World(Position, GridCoords, Damaged, Infected, Relation{InCell})
 
 # Resources
-add_resource!(world, WorldSize(100, 50, 10))
-add_resource!(world, Rng(rand(UInt64)))
+add_resource!(world, WorldSize(
+    120,
+    120,
+    20,
+))
+add_resource!(world, Rng(1))
 
 tree_pop_plot = TimeSeries(
     observer=TreePopulationObserver(),
@@ -27,8 +31,22 @@ scheduler = Scheduler(
         ),
 
         # Systems
-        DiseaseCourse(ticks_to_damage=8),
-        RandomInfection(tick_of_infection=0, num_trees=100, cell_x=5, cell_y=3),
+        UpdateTime(
+            ticks_per_year=52,
+        ),
+        DiseaseCourse(
+            ticks_to_damage=8,
+        ),
+        RandomInfection(
+            tick_of_infection=0,
+            num_trees=100,
+            cell_x=3, cell_y=3,
+        ),
+        DamageTrees(
+            tick_of_year=35,
+            damage_probability=0.01,
+            removal_probability=0.333,
+        ),
 
         # Observers
         CSV(
@@ -39,6 +57,8 @@ scheduler = Scheduler(
     ),
 )
 
-run!(scheduler, 100)
+run!(scheduler, 520)
 
 wait(screen(tree_pop_plot))
+
+println(trees_to_string(world))

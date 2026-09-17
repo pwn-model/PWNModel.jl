@@ -1,6 +1,6 @@
 @testset "DiseaseCourse" begin
     world = World(PWNModel.Infected, PWNModel.Damaged)
-    tick = add_resource!(world, PWNModel.Tick())
+    time = add_resource!(world, PWNModel.Time())
 
     long_infected = nothing
     at_threshold = nothing
@@ -20,10 +20,8 @@
     end
 
     s = PWNModel.DiseaseCourse(ticks_to_damage=5)
-    for _ in 0:10
-        PWNModel.update!(s, world)
-        tick.value += 1
-    end
+    time.tick = 10
+    PWNModel.update!(s, world)
 
     @test has_components(world, long_infected, (PWNModel.Damaged,))
     @test has_components(world, at_threshold, (PWNModel.Damaged,))
@@ -32,7 +30,7 @@ end
 
 @testset "DiseaseCourse skips already damaged" begin
     world = World(PWNModel.Infected, PWNModel.Damaged)
-    tick = add_resource!(world, PWNModel.Tick())
+    time = add_resource!(world, PWNModel.Time())
 
     entity = nothing
     new_entities!(world, 1, (PWNModel.Infected, PWNModel.Damaged)) do (entities, infected, _)
@@ -41,10 +39,8 @@ end
     end
 
     s = PWNModel.DiseaseCourse(ticks_to_damage=5)
-    for _ in 0:10
-        PWNModel.update!(s, world)
-        tick.value += 1
-    end
+    time.tick = 10
+    PWNModel.update!(s, world)
 
     @test has_components(world, entity, (PWNModel.Damaged,))
 end
