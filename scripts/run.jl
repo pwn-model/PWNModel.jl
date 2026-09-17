@@ -1,7 +1,7 @@
 using Ark
 using PWNModel
 
-include("plot/line_plot.jl")
+include("plot/time_series.jl")
 
 world = World(Position, GridCoords, Damaged, Infected, Relation{InCell})
 
@@ -9,7 +9,7 @@ world = World(Position, GridCoords, Damaged, Infected, Relation{InCell})
 add_resource!(world, WorldSize(100, 50, 10))
 add_resource!(world, Rng(rand(UInt64)))
 
-tree_pop_plot = LinePlot(
+tree_pop_plot = TimeSeries(
     observer=TreePopulationObserver(),
     title="Tree population",
     xlabel="Tick",
