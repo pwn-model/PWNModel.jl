@@ -15,8 +15,12 @@ abstract type RowObserver end
 initialize!(::RowObserver, ::World) = nothing
 update!(::RowObserver, ::World) = nothing
 
-"""Column names for a [`RowObserver`](@ref), in the same order as [`row`](@ref)."""
+"""
+Column names for a [`RowObserver`](@ref), in the same order as [`row`](@ref).
+"""
 function header end
 
-"""Values for a [`RowObserver`](@ref) at the current model tick, in the order given by [`header`](@ref)."""
+"""
+Values for a [`RowObserver`](@ref) at the current model tick, in the order given by [`header`](@ref).
+"""
 function row end

@@ -14,7 +14,6 @@ end
 SUITE["benchmark_rng_default n=100000"] =
     @be setup_rng_default(100000) benchmark_rng_default(_, 100000) seconds = SECONDS
 
-
 function setup_rng_go(n::Int)
     return PWNModel.Rng(1)
 end
