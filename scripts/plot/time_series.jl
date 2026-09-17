@@ -36,11 +36,11 @@ end
     TimeSeries(; observer, columns=nothing, title="", xlabel="", ylabel="",
                  update_interval=1, max_rows=nothing)
 
-- `observer`: the [`RowObserver`](@ref) supplying column headers and rows.
-- `columns`: column names to plot as separate lines. Defaults to all columns.
-- `update_interval`: sample and redraw every this many ticks, like [`CSV`](@ref).
-- `max_rows`: if given, keep only the most recent `max_rows` points per line
-  (rolling window) instead of the full unbounded history.
+  - `observer`: the [`RowObserver`](@ref) supplying column headers and rows.
+  - `columns`: column names to plot as separate lines. Defaults to all columns.
+  - `update_interval`: sample and redraw every this many ticks, like [`CSV`](@ref).
+  - `max_rows`: if given, keep only the most recent `max_rows` points per line
+    (rolling window) instead of the full unbounded history.
 """
 function TimeSeries(;
     observer::PWNModel.RowObserver,
@@ -77,8 +77,9 @@ function PWNModel.initialize!(s::TimeSeries, w::World)
     PWNModel.initialize!(s.observer, w)
     headers = PWNModel.header(s.observer)
 
-    s._indices = isnothing(s.columns) ? collect(eachindex(headers)) :
-                 [_find_column(headers, name) for name in s.columns]
+    s._indices =
+        isnothing(s.columns) ? collect(eachindex(headers)) :
+        [_find_column(headers, name) for name in s.columns]
 
     GLMakie.activate!()
 
