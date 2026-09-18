@@ -80,3 +80,39 @@ end
 
     @test sys1.finalized == 1
 end
+
+@testset "Scheduler fps defaults to unlimited" begin
+    sys1 = RecordingSystem()
+    scheduler = PWNModel.Scheduler(World(), (sys1,))
+
+    @test scheduler.fps == 0.0
+
+    elapsed = @elapsed PWNModel.run!(scheduler, 1000)
+    @test elapsed < 1.0
+end
+
+@testset "Scheduler fps limits the update rate" begin
+    sys1 = RecordingSystem()
+    scheduler = PWNModel.Scheduler(World(), (sys1,); fps=50)
+
+    @test scheduler.fps == 50.0
+
+    # The first two ticks fire without waiting (the resync in `_limit_fps!`
+    # treats the initial, far-in-the-past `_next_update` as stale), so only
+    # `steps - 2` of the `dt = 1/fps` waits actually happen. Assert well
+    # below that theoretical minimum to stay robust to CI timer jitter.
+    dt = 1 / scheduler.fps
+    elapsed = @elapsed PWNModel.run!(scheduler, 10)
+    @test elapsed >= 0.6 * (10 - 2) * dt
+end
+
+@testset "Scheduler fps! and direct field assignment are equivalent" begin
+    sys1 = RecordingSystem()
+    scheduler = PWNModel.Scheduler(World(), (sys1,))
+
+    PWNModel.fps!(scheduler, 50)
+    @test scheduler.fps == 50.0
+
+    scheduler.fps = 0
+    @test scheduler.fps == 0.0
+end

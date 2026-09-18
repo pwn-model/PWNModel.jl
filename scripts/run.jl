@@ -2,6 +2,7 @@ using Ark
 using PWNModel
 
 include("plot/time_series.jl")
+include("plot/trees_map.jl")
 
 world = World(Position, GridCoords, Damaged, Infected, Relation{InCell})
 
@@ -19,6 +20,8 @@ tree_pop_plot = TimeSeries(
     xlabel="Tick",
     ylabel="Trees",
 )
+
+tree_map_plot = TreesMap(title="Trees")
 
 scheduler = Scheduler(
     world,
@@ -54,11 +57,14 @@ scheduler = Scheduler(
             file="out/tree_pop.csv",
         ),
         tree_pop_plot,
+        tree_map_plot,
     ),
 )
 
+fps!(scheduler, 30)
 run!(scheduler, 520)
 
 wait(screen(tree_pop_plot))
+wait(screen(tree_map_plot))
 
 println(trees_to_string(world))
