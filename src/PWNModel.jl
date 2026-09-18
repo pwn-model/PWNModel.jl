@@ -26,6 +26,7 @@ include("sys/update_time.jl")
 include("sys/disease_course.jl")
 include("sys/random_infection.jl")
 include("sys/damage_trees.jl")
+include("sys/colonization.jl")
 
 include("obs/tree_population.jl")
 include("obs/tree_damage.jl")
@@ -45,7 +46,7 @@ export Grid, TreeGrid, SpaceGrid, WorldSize
 export Position, InCell, Damaged, Infected, Colonized
 export GridCoords
 export InitGrids, InitTrees
-export UpdateTime, DiseaseCourse, RandomInfection, DamageTrees
+export UpdateTime, DiseaseCourse, RandomInfection, DamageTrees, Colonization
 export TreePopulationObserver, TreeDamageObserver, TreeColonizationObserver
 export trees_to_string
 

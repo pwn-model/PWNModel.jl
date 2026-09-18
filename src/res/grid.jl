@@ -13,3 +13,6 @@ end
 
 Base.getindex(grid::Grid, x::Int, y::Int) = grid._values[y, x]
 Base.setindex!(grid::Grid, value, x::Int, y::Int) = (grid._values[y, x] = value)
+
+# Fill the grid with the given value.
+Base.fill!(grid::Grid, v) = (fill!(grid._values, v); grid)

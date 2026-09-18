@@ -51,6 +51,13 @@ scheduler = Scheduler(
             damage_probability=0.01,
             removal_probability=0.333,
         ),
+        Colonization(
+            tick_of_year=20,
+            kernel_scale=1.0,
+            kernel_radius=5,
+            beetles_per_tree=5.0,
+            trees_per_beetle=1.0,
+        ),
 
         # Observers
         CSV(

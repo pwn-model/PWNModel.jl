@@ -16,8 +16,23 @@ function do_setup_world(n)
             # Systems
             UpdateTime(ticks_per_year=52),
             DiseaseCourse(ticks_to_damage=8),
-            RandomInfection(tick_of_infection=0, num_trees=100, cell_x=11, cell_y=11),
-            DamageTrees(tick_of_year=35, damage_probability=0.01, removal_probability=0.333),
+            RandomInfection(
+                tick_of_infection=0,
+                num_trees=100,
+                cell_x=11, cell_y=11,
+            ),
+            DamageTrees(
+                tick_of_year=35,
+                damage_probability=0.01,
+                removal_probability=0.333,
+            ),
+            Colonization(
+                tick_of_year=20,
+                kernel_scale=1.0,
+                kernel_radius=5,
+                beetles_per_tree=5.0,
+                trees_per_beetle=1.0,
+            ),
         ),
     )
 
