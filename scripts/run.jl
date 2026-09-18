@@ -4,7 +4,7 @@ using PWNModel
 include("plot/time_series.jl")
 include("plot/trees_map.jl")
 
-world = World(Position, GridCoords, Damaged, Infected, Relation{InCell})
+world = World(Position, GridCoords, Damaged, Infected, Colonized, Relation{InCell})
 
 # Resources
 add_resource!(world, WorldSize(
@@ -31,6 +31,7 @@ scheduler = Scheduler(
         InitTrees(
             tree_probability=0.9,
             damage_prevalence=0.03,
+            beetle_prevalence=0.2,
         ),
 
         # Systems

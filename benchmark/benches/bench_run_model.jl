@@ -1,6 +1,6 @@
 
 function do_setup_world(n)
-    world = World(Position, GridCoords, Damaged, Infected, Relation{InCell})
+    world = World(Position, GridCoords, Damaged, Infected, Colonized, Relation{InCell})
 
     # Resources
     add_resource!(world, WorldSize(1000, 1000, 50))
@@ -11,7 +11,7 @@ function do_setup_world(n)
         (
             # Initialization
             InitGrids(),
-            InitTrees(tree_probability=0.9, damage_prevalence=0.03),
+            InitTrees(tree_probability=0.9, damage_prevalence=0.03, beetle_prevalence=0.2),
 
             # Systems
             UpdateTime(ticks_per_year=52),

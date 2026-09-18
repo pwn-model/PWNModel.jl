@@ -46,6 +46,7 @@ export Position
 export InCell
 export Damaged
 export Infected
+export Colonized
 export GridCoords
 export Rng
 export Time

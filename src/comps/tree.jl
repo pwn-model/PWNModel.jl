@@ -14,3 +14,6 @@ struct Damaged end
 struct Infected
     infection_tick::Int
 end
+
+# Colonized marks a tree as colonized by beetles (eggs, larvae or pupae).
+struct Colonized end

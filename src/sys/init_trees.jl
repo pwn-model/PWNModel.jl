@@ -1,6 +1,7 @@
 Base.@kwdef struct InitTrees <: System
     tree_probability::Float64
     damage_prevalence::Float64
+    beetle_prevalence::Float64
 end
 
 function initialize!(s::InitTrees, w::World)
@@ -13,10 +14,13 @@ function initialize!(s::InitTrees, w::World)
     sizehint!(cells, ws.resolution^2)
     damaged = Position[]
     sizehint!(damaged, ceil(Int, ws.resolution^2 * s.damage_prevalence * 1.2))
+    colonized = Position[]
+    sizehint!(colonized, ceil(Int, ws.resolution^2 * s.damage_prevalence * s.beetle_prevalence * 1.2))
 
     for x in 1:space.grid.width, y in 1:space.grid.height
         empty!(cells)
         empty!(damaged)
+        empty!(colonized)
         cell = space.grid[x, y]
 
         for dx in 1:ws.resolution, dy in 1:ws.resolution
@@ -25,8 +29,13 @@ function initialize!(s::InitTrees, w::World)
             end
             xx = (x - 1) * ws.resolution + dx
             yy = (y - 1) * ws.resolution + dy
-            if rand(rng) < s.damage_prevalence
-                push!(damaged, Position(xx, yy))
+            r = rand(rng)
+            if r < s.damage_prevalence
+                if r < s.damage_prevalence * s.beetle_prevalence
+                    push!(colonized, Position(xx, yy))
+                else
+                    push!(damaged, Position(xx, yy))
+                end
             else
                 push!(cells, Position(xx, yy))
             end
@@ -43,6 +52,17 @@ function initialize!(s::InitTrees, w::World)
             for i in eachindex(entities)
                 positions[i] = damaged[i]
                 trees[damaged[i].x, damaged[i].y] = entities[i]
+            end
+        end
+
+        new_entities!(
+            w,
+            length(colonized),
+            (Position, InCell => cell, Damaged, Colonized),
+        ) do (entities, positions, _, _, _)
+            for i in eachindex(entities)
+                positions[i] = colonized[i]
+                trees[colonized[i].x, colonized[i].y] = entities[i]
             end
         end
     end

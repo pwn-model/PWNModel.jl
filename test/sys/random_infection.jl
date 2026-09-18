@@ -4,6 +4,7 @@ function _setup_random_infection_world()
         PWNModel.GridCoords,
         PWNModel.Damaged,
         PWNModel.Infected,
+        PWNModel.Colonized,
         Relation{PWNModel.InCell},
     )
 
@@ -16,7 +17,7 @@ function _setup_random_infection_world()
     gs = PWNModel.InitGrids()
     PWNModel.initialize!(gs, world)
 
-    ts = PWNModel.InitTrees(tree_probability=1.0, damage_prevalence=0.0)
+    ts = PWNModel.InitTrees(tree_probability=1.0, damage_prevalence=0.0, beetle_prevalence=0.0)
     PWNModel.initialize!(ts, world)
 
     return world, time
