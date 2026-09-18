@@ -8,9 +8,9 @@ world = World(Position, GridCoords, Damaged, Infected, Colonized, Relation{InCel
 
 # Resources
 add_resource!(world, WorldSize(
-    120,
-    120,
-    20,
+    400,
+    300,
+    50,
 ))
 add_resource!(world, Rng(1))
 
@@ -70,9 +70,9 @@ scheduler = Scheduler(
 )
 
 fps!(scheduler, 30)
-run!(scheduler, 520)
+run!(scheduler, 5200)
 
 wait(screen(tree_pop_plot))
 wait(screen(tree_map_plot))
 
-println(trees_to_string(world))
+#println(trees_to_string(world))
