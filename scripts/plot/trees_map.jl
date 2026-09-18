@@ -38,8 +38,9 @@ stays open after a script's `run!` call returns.
 screen(m::TreesMap) = m._screen
 
 const _BACKGROUND_COLOR = RGBAf(0, 0, 0, 1)
-const _TREE_COLOR = RGBAf(1, 1, 1, 1)
-const _DAMAGED_COLOR = RGBAf(1, 0, 0, 1)
+const _TREE_COLOR = RGBAf(0 / 255, 200 / 255, 0 / 255, 1)
+const _DAMAGED_COLOR = RGBAf(0 / 255, 0 / 255, 200 / 255, 1)
+const _INFECTED_COLOR = RGBAf(200 / 255, 0 / 255, 0 / 255, 1)
 
 function PWNModel.initialize!(s::TreesMap, w::World)
     ws = get_resource(w, WorldSize)
@@ -73,6 +74,12 @@ function PWNModel.update!(s::TreesMap, w::World)
     for (_, positions) in Query(w, (Position,); with=(Damaged,))
         for pos in positions
             pixels[pos.x, pos.y] = _DAMAGED_COLOR
+        end
+    end
+
+    for (_, positions) in Query(w, (Position,); with=(Infected,))
+        for pos in positions
+            pixels[pos.x, pos.y] = _INFECTED_COLOR
         end
     end
 
