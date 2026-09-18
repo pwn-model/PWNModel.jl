@@ -80,3 +80,34 @@ end
 
     @test sys1.finalized == 1
 end
+
+@testset "Scheduler fps defaults to unlimited" begin
+    sys1 = RecordingSystem()
+    scheduler = PWNModel.Scheduler(World(), (sys1,))
+
+    @test scheduler.fps == 0.0
+
+    elapsed = @elapsed PWNModel.run!(scheduler, 1000)
+    @test elapsed < 1.0
+end
+
+@testset "Scheduler fps limits the update rate" begin
+    sys1 = RecordingSystem()
+    scheduler = PWNModel.Scheduler(World(), (sys1,); fps=100)
+
+    @test scheduler.fps == 100.0
+
+    elapsed = @elapsed PWNModel.run!(scheduler, 5)
+    @test elapsed >= 0.04
+end
+
+@testset "Scheduler fps! and direct field assignment are equivalent" begin
+    sys1 = RecordingSystem()
+    scheduler = PWNModel.Scheduler(World(), (sys1,))
+
+    PWNModel.fps!(scheduler, 50)
+    @test scheduler.fps == 50.0
+
+    scheduler.fps = 0
+    @test scheduler.fps == 0.0
+end

@@ -30,7 +30,7 @@ include("obs/tree_population.jl")
 
 include("util/print.jl")
 
-export Scheduler, initialize!, step!, finalize!, run!
+export Scheduler, fps!, initialize!, step!, finalize!, run!
 export Tick
 export RowObserver, header, row, CSV
 
