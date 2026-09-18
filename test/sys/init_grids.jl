@@ -5,9 +5,9 @@
     s = PWNModel.InitGrids()
     PWNModel.initialize!(s, world)
 
-    trees = get_resource(world, PWNModel.EntityGrid)
-    @test trees.width == 30
-    @test trees.height == 20
+    trees = get_resource(world, PWNModel.TreeGrid)
+    @test trees.grid.width == 30
+    @test trees.grid.height == 20
 
     space = get_resource(world, PWNModel.SpaceGrid)
     @test space.grid.width == 3  # 30/10

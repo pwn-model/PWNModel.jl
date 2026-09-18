@@ -4,7 +4,7 @@ using PWNModel
 
 include("comps/tree.jl")
 include("comps/cell.jl")
-include("res/entity_grid.jl")
+include("res/grid.jl")
 include("res/rng.jl")
 include("util/shuffle.jl")
 include("tick.jl")

@@ -24,7 +24,7 @@ end
     world = World(PWNModel.Position, PWNModel.Damaged)
     add_resource!(world, PWNModel.Time(0, 3, 0))
     add_resource!(world, PWNModel.Rng(1))
-    add_resource!(world, PWNModel.EntityGrid(1, 1))
+    add_resource!(world, PWNModel.TreeGrid(1, 1))
 
     s = PWNModel.DamageTrees(tick_of_year=3, damage_probability=1.0, removal_probability=0.0)
 
@@ -47,7 +47,7 @@ end
     world = World(PWNModel.Position, PWNModel.Damaged)
     add_resource!(world, PWNModel.Time(0, 3, 0))
     add_resource!(world, PWNModel.Rng(1))
-    add_resource!(world, PWNModel.EntityGrid(1, 1))
+    add_resource!(world, PWNModel.TreeGrid(1, 1))
 
     s = PWNModel.DamageTrees(tick_of_year=3, damage_probability=0.0, removal_probability=0.0)
 
@@ -71,7 +71,7 @@ end
     world = World(PWNModel.Position, PWNModel.Damaged)
     add_resource!(world, PWNModel.Time(0, 3, 0))
     add_resource!(world, PWNModel.Rng(1))
-    grid = PWNModel.EntityGrid(5, 1)
+    grid = PWNModel.TreeGrid(5, 1)
     add_resource!(world, grid)
 
     s = PWNModel.DamageTrees(tick_of_year=3, damage_probability=0.0, removal_probability=1.0)
@@ -81,7 +81,7 @@ end
     new_entities!(world, 5, (PWNModel.Position, PWNModel.Damaged)) do (es, ps, _)
         for i in eachindex(es)
             ps[i] = PWNModel.Position(i, 1)
-            grid[i, 1] = es[i]
+            grid.grid[i, 1] = es[i]
         end
         append!(entities, es)
         append!(positions, ps)
@@ -91,7 +91,7 @@ end
 
     for (e, pos) in zip(entities, positions)
         @test !is_alive(world, e)
-        @test is_zero(grid[pos.x, pos.y])
+        @test is_zero(grid.grid[pos.x, pos.y])
     end
 end
 
@@ -99,7 +99,7 @@ end
     world = World(PWNModel.Position, PWNModel.Damaged)
     add_resource!(world, PWNModel.Time(0, 3, 0))
     add_resource!(world, PWNModel.Rng(1))
-    add_resource!(world, PWNModel.EntityGrid(1, 1))
+    add_resource!(world, PWNModel.TreeGrid(1, 1))
 
     s = PWNModel.DamageTrees(tick_of_year=3, damage_probability=1.0, removal_probability=0.0)
 

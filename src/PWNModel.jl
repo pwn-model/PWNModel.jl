@@ -14,8 +14,8 @@ include("ecs/reporter/csv_reporter.jl")
 
 include("comps/tree.jl")
 include("comps/cell.jl")
-include("res/entity_grid.jl")
-include("res/space_grid.jl")
+include("res/grid.jl")
+include("res/grids.jl")
 include("res/world_size.jl")
 include("res/rng.jl")
 include("res/time.jl")
@@ -41,7 +41,7 @@ export Scheduler, fps!, initialize!, step!, finalize!, run!
 
 export RowObserver, header, row, CSV
 export Rng, Tick, Time
-export EntityGrid, SpaceGrid, WorldSize
+export Grid, TreeGrid, SpaceGrid, WorldSize
 export Position, InCell, Damaged, Infected, Colonized
 export GridCoords
 export InitGrids, InitTrees

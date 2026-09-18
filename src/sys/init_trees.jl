@@ -7,7 +7,7 @@ end
 function initialize!(s::InitTrees, w::World)
     ws = get_resource(w, WorldSize)
     space = get_resource(w, SpaceGrid)
-    trees = get_resource(w, EntityGrid)
+    trees = get_resource(w, TreeGrid)
     rng = get_resource(w, Rng)
 
     cells = Position[]
@@ -44,14 +44,14 @@ function initialize!(s::InitTrees, w::World)
         new_entities!(w, length(cells), (Position, InCell => cell)) do (entities, positions, _)
             for i in eachindex(entities)
                 positions[i] = cells[i]
-                trees[cells[i].x, cells[i].y] = entities[i]
+                trees.grid[cells[i].x, cells[i].y] = entities[i]
             end
         end
 
         new_entities!(w, length(damaged), (Position, InCell => cell, Damaged)) do (entities, positions, _, _)
             for i in eachindex(entities)
                 positions[i] = damaged[i]
-                trees[damaged[i].x, damaged[i].y] = entities[i]
+                trees.grid[damaged[i].x, damaged[i].y] = entities[i]
             end
         end
 
@@ -62,7 +62,7 @@ function initialize!(s::InitTrees, w::World)
         ) do (entities, positions, _, _, _)
             for i in eachindex(entities)
                 positions[i] = colonized[i]
-                trees[colonized[i].x, colonized[i].y] = entities[i]
+                trees.grid[colonized[i].x, colonized[i].y] = entities[i]
             end
         end
     end

@@ -17,7 +17,7 @@ function update!(s::DamageTrees, w::World)
     end
 
     rng = get_resource(w, Rng)
-    grid = get_resource(w, EntityGrid)
+    grid = get_resource(w, TreeGrid)
 
     for (_, positions) in Query(w, (Position,); with=(Damaged,))
         for pos in positions
@@ -28,10 +28,10 @@ function update!(s::DamageTrees, w::World)
     end
 
     for pos in s._to_remove
-        e = grid[pos.x, pos.y]
+        e = grid.grid[pos.x, pos.y]
 
         remove_entity!(w, e)
-        grid[pos.x, pos.y] = zero_entity
+        grid.grid[pos.x, pos.y] = zero_entity
     end
     empty!(s._to_remove)
 
