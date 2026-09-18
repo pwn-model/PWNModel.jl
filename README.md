@@ -1,6 +1,6 @@
 # PWNModel.jl
 
-Julia implementation of the Pine Wood Nematode model.
+Julia implementation of the Pine Wilt Nematode model.
 
 ## Usage
 
