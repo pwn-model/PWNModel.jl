@@ -3,6 +3,7 @@ module PWNModel
 using Ark
 using Random
 
+include("util/timer.jl")
 include("util/shuffle.jl")
 
 include("ecs/tick.jl")
@@ -29,6 +30,10 @@ include("sys/damage_trees.jl")
 include("obs/tree_population.jl")
 
 include("util/print.jl")
+
+function __init__()
+    _init_timer()
+end
 
 export Scheduler, fps!, initialize!, step!, finalize!, run!
 export Tick
