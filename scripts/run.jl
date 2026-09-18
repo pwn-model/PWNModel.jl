@@ -15,10 +15,10 @@ add_resource!(world, WorldSize(
 add_resource!(world, Rng(1))
 
 tree_pop_plot = TimeSeries(
-    observer=TreePopulationObserver(),
-    title="Tree population",
+    observer=TreeColonizationObserver(),
+    title="Tree colonization",
     xlabel="Tick",
-    ylabel="Trees",
+    ylabel="Proportion",
 )
 
 tree_map_plot = TreesMap(title="Trees")

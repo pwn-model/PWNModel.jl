@@ -28,6 +28,8 @@ include("sys/random_infection.jl")
 include("sys/damage_trees.jl")
 
 include("obs/tree_population.jl")
+include("obs/tree_damage.jl")
+include("obs/tree_colonization.jl")
 
 include("util/print.jl")
 
@@ -36,27 +38,15 @@ function __init__()
 end
 
 export Scheduler, fps!, initialize!, step!, finalize!, run!
-export Tick
-export RowObserver, header, row, CSV
 
-export EntityGrid
-export SpaceGrid
-export WorldSize
-export Position
-export InCell
-export Damaged
-export Infected
-export Colonized
+export RowObserver, header, row, CSV
+export Rng, Tick, Time
+export EntityGrid, SpaceGrid, WorldSize
+export Position, InCell, Damaged, Infected, Colonized
 export GridCoords
-export Rng
-export Time
-export InitGrids
-export InitTrees
-export UpdateTime
-export DiseaseCourse
-export RandomInfection
-export DamageTrees
-export TreePopulationObserver
+export InitGrids, InitTrees
+export UpdateTime, DiseaseCourse, RandomInfection, DamageTrees
+export TreePopulationObserver, TreeDamageObserver, TreeColonizationObserver
 export trees_to_string
 
 end
