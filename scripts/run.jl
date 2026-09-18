@@ -4,21 +4,21 @@ using PWNModel
 include("plot/time_series.jl")
 include("plot/trees_map.jl")
 
-world = World(Position, GridCoords, Damaged, Infected, Relation{InCell})
+world = World(Position, GridCoords, Damaged, Infected, Colonized, Relation{InCell})
 
 # Resources
 add_resource!(world, WorldSize(
-    120,
-    120,
-    20,
+    400,
+    300,
+    50,
 ))
 add_resource!(world, Rng(1))
 
 tree_pop_plot = TimeSeries(
-    observer=TreePopulationObserver(),
-    title="Tree population",
+    observer=TreeColonizationObserver(),
+    title="Tree colonization",
     xlabel="Tick",
-    ylabel="Trees",
+    ylabel="Proportion",
 )
 
 tree_map_plot = TreesMap(title="Trees")
@@ -31,6 +31,7 @@ scheduler = Scheduler(
         InitTrees(
             tree_probability=0.9,
             damage_prevalence=0.03,
+            beetle_prevalence=0.2,
         ),
 
         # Systems
@@ -50,6 +51,13 @@ scheduler = Scheduler(
             damage_probability=0.01,
             removal_probability=0.333,
         ),
+        Colonization(
+            tick_of_year=20,
+            kernel_scale=1.0,
+            kernel_radius=5,
+            beetles_per_tree=5.0,
+            trees_per_beetle=1.0,
+        ),
 
         # Observers
         CSV(
@@ -62,9 +70,9 @@ scheduler = Scheduler(
 )
 
 fps!(scheduler, 30)
-run!(scheduler, 520)
+run!(scheduler, 5200)
 
 wait(screen(tree_pop_plot))
 wait(screen(tree_map_plot))
 
-println(trees_to_string(world))
+#println(trees_to_string(world))

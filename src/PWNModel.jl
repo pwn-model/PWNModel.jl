@@ -14,8 +14,8 @@ include("ecs/reporter/csv_reporter.jl")
 
 include("comps/tree.jl")
 include("comps/cell.jl")
-include("res/entity_grid.jl")
-include("res/space_grid.jl")
+include("res/grid.jl")
+include("res/grids.jl")
 include("res/world_size.jl")
 include("res/rng.jl")
 include("res/time.jl")
@@ -26,8 +26,11 @@ include("sys/update_time.jl")
 include("sys/disease_course.jl")
 include("sys/random_infection.jl")
 include("sys/damage_trees.jl")
+include("sys/colonization.jl")
 
 include("obs/tree_population.jl")
+include("obs/tree_damage.jl")
+include("obs/tree_colonization.jl")
 
 include("util/print.jl")
 
@@ -36,26 +39,15 @@ function __init__()
 end
 
 export Scheduler, fps!, initialize!, step!, finalize!, run!
-export Tick
-export RowObserver, header, row, CSV
 
-export EntityGrid
-export SpaceGrid
-export WorldSize
-export Position
-export InCell
-export Damaged
-export Infected
+export RowObserver, header, row, CSV
+export Rng, Tick, Time
+export Grid, TreeGrid, SpaceGrid, WorldSize
+export Position, InCell, Damaged, Infected, Colonized
 export GridCoords
-export Rng
-export Time
-export InitGrids
-export InitTrees
-export UpdateTime
-export DiseaseCourse
-export RandomInfection
-export DamageTrees
-export TreePopulationObserver
+export InitGrids, InitTrees
+export UpdateTime, DiseaseCourse, RandomInfection, DamageTrees, Colonization
+export TreePopulationObserver, TreeDamageObserver, TreeColonizationObserver
 export trees_to_string
 
 end

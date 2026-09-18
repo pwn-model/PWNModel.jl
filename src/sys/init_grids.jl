@@ -10,11 +10,11 @@ function initialize!(::InitGrids, w::World)
         )
     end
 
-    add_resource!(w, EntityGrid(ws.width, ws.height))
+    add_resource!(w, TreeGrid(ws.width, ws.height))
 
     grid_width = ws.width ÷ ws.resolution
     grid_height = ws.height ÷ ws.resolution
-    grid = EntityGrid(grid_width, grid_height)
+    grid = Grid(grid_width, grid_height, zero_entity)
 
     new_entities!(w, grid_width * grid_height, (GridCoords,)) do (entities, coords)
         i = 1

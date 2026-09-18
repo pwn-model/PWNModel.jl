@@ -4,7 +4,7 @@ using PWNModel
 
 include("comps/tree.jl")
 include("comps/cell.jl")
-include("res/entity_grid.jl")
+include("res/grid.jl")
 include("res/rng.jl")
 include("util/shuffle.jl")
 include("tick.jl")
@@ -17,3 +17,4 @@ include("sys/update_time.jl")
 include("sys/disease_course.jl")
 include("sys/random_infection.jl")
 include("sys/damage_trees.jl")
+include("sys/colonization.jl")
