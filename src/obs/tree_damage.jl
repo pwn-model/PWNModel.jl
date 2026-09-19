@@ -9,7 +9,7 @@ TreeDamageObserver() = TreeDamageObserver([0.0])
 
 header(::TreeDamageObserver) = ["damaged"]
 
-function row(o::TreeDamageObserver, w::World)
+function data(o::TreeDamageObserver, w::World)
     o._result[1] = count_entities(Filter(w, (Damaged,))) / count_entities(Filter(w, (Position,)))
 
     return o._result

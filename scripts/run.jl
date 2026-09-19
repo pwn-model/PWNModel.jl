@@ -1,6 +1,7 @@
 using Ark
 using PWNModel
 
+include("plot/image.jl")
 include("plot/time_series.jl")
 include("plot/trees_map.jl")
 
@@ -21,7 +22,10 @@ tree_pop_plot = TimeSeries(
     xlabel="Tick",
     ylabel="Proportion",
 )
-
+colo_map_plot = Image(
+    observer=TreeColonizationMapObserver(cell_size=100),
+    colorrange=(0.0, 5.0),
+)
 tree_map_plot = TreesMap(title="Trees")
 
 scheduler = Scheduler(
@@ -68,6 +72,7 @@ scheduler = Scheduler(
         ),
         tree_pop_plot,
         tree_map_plot,
+        colo_map_plot,
     ),
 )
 

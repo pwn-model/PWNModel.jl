@@ -108,7 +108,7 @@ function PWNModel.update!(s::TimeSeries, w::World)
     PWNModel.update!(s.observer, w)
 
     if s._step % s.update_interval == 0
-        vals = PWNModel.row(s.observer, w)
+        vals = PWNModel.data(s.observer, w)
         x = Float64(s._step)
 
         for (i, idx) in enumerate(s._indices)
