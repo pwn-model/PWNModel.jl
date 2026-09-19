@@ -4,11 +4,12 @@ struct Grid{T}
     _values::Array{T,2}
     width::Int
     height::Int
+    cell_size::Int # Cell size of the grid in meters.
 end
 
 # Creates a new Grid of the given size, filled with `default`.
-function Grid(sx::Int, sy::Int, default::T) where {T}
-    Grid{T}(fill(default, sy, sx), sx, sy)
+function Grid(sx::Int, sy::Int, cell_size::Int, default::T) where {T}
+    Grid{T}(fill(default, sy, sx), sx, sy, cell_size)
 end
 
 Base.getindex(grid::Grid, x::Int, y::Int) = grid._values[y, x]

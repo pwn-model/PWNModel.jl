@@ -1,6 +1,6 @@
 @testset "InitGrids" begin
     world = World(PWNModel.GridCoords)
-    add_resource!(world, PWNModel.WorldSize(30, 20, 10))
+    add_resource!(world, PWNModel.WorldSize(300, 200, 10, 100))
 
     s = PWNModel.InitGrids()
     PWNModel.initialize!(s, world)
@@ -24,10 +24,6 @@
     end
 end
 
-@testset "InitGrids throws on size not multiple of resolution" begin
-    world = World(PWNModel.GridCoords)
-    add_resource!(world, PWNModel.WorldSize(25, 12, 10))
-
-    s = PWNModel.InitGrids()
-    @test_throws ArgumentError PWNModel.initialize!(s, world)
+@testset "WorldSize throws on size not multiple of cell_size" begin
+    @test_throws ArgumentError PWNModel.WorldSize(25, 12, 10, 10)
 end

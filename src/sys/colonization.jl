@@ -72,7 +72,7 @@ function Colonization(;
 )
     return Colonization(
         tick_of_year, kernel_radius, kernel_scale, beetles_per_tree, trees_per_beetle,
-        Grid(0, 0, 0), Grid(0, 0, 0), Grid(0, 0, 0.0), Grid(0, 0, 0.0),
+        Grid(0, 0, 1, 0), Grid(0, 0, 1, 0), Grid(0, 0, 1, 0.0), Grid(0, 0, 1, 0.0),
         KernelOffset[], Entity[],
     )
 end
@@ -80,10 +80,10 @@ end
 function initialize!(s::Colonization, w::World)
     space = get_resource(w, SpaceGrid)
 
-    s._density = Grid(space.grid.width, space.grid.height, 0)
-    s._susceptible = Grid(space.grid.width, space.grid.height, 0)
-    s._arrivals = Grid(space.grid.width, space.grid.height, 0.0)
-    s._probability = Grid(space.grid.width, space.grid.height, 0.0)
+    s._density = Grid(space.grid.width, space.grid.height, space.grid.cell_size, 0)
+    s._susceptible = Grid(space.grid.width, space.grid.height, space.grid.cell_size, 0)
+    s._arrivals = Grid(space.grid.width, space.grid.height, space.grid.cell_size, 0.0)
+    s._probability = Grid(space.grid.width, space.grid.height, space.grid.cell_size, 0.0)
 
     s._kernel = build_kernel(s.kernel_radius, s.kernel_scale)
 end
