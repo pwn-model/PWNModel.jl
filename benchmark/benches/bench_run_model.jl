@@ -28,8 +28,9 @@ function do_setup_world(n)
             ),
             Colonization(
                 tick_of_year=20,
-                kernel_scale=1.0,
-                kernel_radius=5,
+                cell_size=100,
+                kernel_scale=100.0,
+                kernel_radius=400,
                 beetles_per_tree=2.2,
                 trees_per_beetle=1.0,
             ),

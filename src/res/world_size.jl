@@ -38,8 +38,3 @@ function WorldSize(; width::Int, height::Int, cell_size::Int, grid_cell_size::In
         grid_cell_size ÷ cell_size,
     )
 end
-
-"""
-to_coords calculates (1-based) space grid coords from (1-based) tree grid coords.
-"""
-to_coords(ws::WorldSize, x::Int, y::Int) = (fld(x - 1, ws.resolution) + 1, fld(y - 1, ws.resolution) + 1)
