@@ -27,7 +27,11 @@ end
 function initialize!(o::TreeColonizationMapObserver, w::World)
     ws = get_resource(w, WorldSize)
     if o.cell_size % ws.cell_size != 0
-        throw(ArgumentError("cell_size of the tree colonization map observer must be a multiple of the world's base cell size."))
+        throw(
+            ArgumentError(
+                "cell_size of the tree colonization map observer must be a multiple of the world's base cell size.",
+            ),
+        )
     end
     o._units_per_cell = o.cell_size ÷ ws.cell_size
 
@@ -49,5 +53,5 @@ function data(o::TreeColonizationMapObserver, w::World)::Matrix{Float64}
 end
 
 # to_coords calculates (1-based) map-grid coords from (1-based) tree grid coords.
-to_coords(o::TreeColonizationMapObserver, x::Int, y::Int) = (fld(x - 1, o._units_per_cell) + 1, fld(y - 1, o._units_per_cell) + 1)
-
+to_coords(o::TreeColonizationMapObserver, x::Int, y::Int) =
+    (fld(x - 1, o._units_per_cell) + 1, fld(y - 1, o._units_per_cell) + 1)
