@@ -23,8 +23,8 @@ end
 @testset "RowObserver header/row are unimplemented by default" begin
     o = NoopObserver()
 
-    @test_throws MethodError PWNModel.header(o)
-    @test_throws MethodError PWNModel.data(o, World())
+    @test_throws ErrorException PWNModel.header(o)
+    @test_throws ErrorException PWNModel.data(o, World())
 end
 
 @testset "RowObserver dispatch" begin
