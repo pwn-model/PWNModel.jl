@@ -9,7 +9,7 @@ function _setup_random_infection_world()
     )
 
     # 2x2 coarse grid, 100 trees per coarse cell.
-    ws = PWNModel.WorldSize(20, 20, 10)
+    ws = PWNModel.WorldSize(width=200, height=200, cell_size=10, grid_cell_size=100)
     add_resource!(world, ws)
     add_resource!(world, PWNModel.Rng(1))
     time = add_resource!(world, PWNModel.Time())

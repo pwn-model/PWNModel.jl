@@ -8,9 +8,10 @@ world = World(Position, GridCoords, Damaged, Infected, Colonized, Relation{InCel
 
 # Resources
 add_resource!(world, WorldSize(
-    400,
-    300,
-    50,
+    width=4000,
+    height=3000,
+    cell_size=10,
+    grid_cell_size=500,
 ))
 add_resource!(world, Rng(1))
 

@@ -7,7 +7,7 @@ struct TreeGrid
     grid::Grid{Entity}
 end
 
-TreeGrid(sx::Int, sy::Int) = TreeGrid(Grid(sx, sy, zero_entity))
+TreeGrid(sx::Int, sy::Int, cell_size::Int) = TreeGrid(Grid(sx, sy, cell_size, zero_entity))
 
 # SpaceGrid resource for the large-scale spatial grid.
 #

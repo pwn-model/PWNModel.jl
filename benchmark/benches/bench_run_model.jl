@@ -3,7 +3,7 @@ function do_setup_world(n)
     world = World(Position, GridCoords, Damaged, Infected, Colonized, Relation{InCell})
 
     # Resources
-    add_resource!(world, WorldSize(1000, 1000, 50))
+    add_resource!(world, WorldSize(width=10000, height=10000, cell_size=10, grid_cell_size=500))
     add_resource!(world, Rng(1))
 
     scheduler = Scheduler(

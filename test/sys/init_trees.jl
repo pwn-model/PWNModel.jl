@@ -2,7 +2,7 @@
     world =
         World(PWNModel.Position, PWNModel.GridCoords, PWNModel.Damaged, PWNModel.Colonized, Relation{PWNModel.InCell})
 
-    ws = PWNModel.WorldSize(100, 50, 10)
+    ws = PWNModel.WorldSize(width=1000, height=500, cell_size=10, grid_cell_size=100)
     add_resource!(world, ws)
     add_resource!(world, PWNModel.Rng(1))
 
@@ -34,7 +34,7 @@ end
     world =
         World(PWNModel.Position, PWNModel.GridCoords, PWNModel.Damaged, PWNModel.Colonized, Relation{PWNModel.InCell})
 
-    ws = PWNModel.WorldSize(100, 50, 10)
+    ws = PWNModel.WorldSize(width=1000, height=500, cell_size=10, grid_cell_size=100)
     add_resource!(world, ws)
     add_resource!(world, PWNModel.Rng(1))
 
@@ -77,7 +77,7 @@ end
     world =
         World(PWNModel.Position, PWNModel.GridCoords, PWNModel.Damaged, PWNModel.Colonized, Relation{PWNModel.InCell})
 
-    ws = PWNModel.WorldSize(100, 50, 10)
+    ws = PWNModel.WorldSize(width=1000, height=500, cell_size=10, grid_cell_size=100)
     add_resource!(world, ws)
     add_resource!(world, PWNModel.Rng(1))
 

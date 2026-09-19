@@ -24,7 +24,7 @@ end
     world = World(PWNModel.Position, PWNModel.Damaged)
     add_resource!(world, PWNModel.Time(0, 3, 0))
     add_resource!(world, PWNModel.Rng(1))
-    add_resource!(world, PWNModel.TreeGrid(1, 1))
+    add_resource!(world, PWNModel.TreeGrid(1, 1, 10))
 
     s = PWNModel.DamageTrees(tick_of_year=3, damage_probability=1.0, removal_probability=0.0)
 
@@ -47,7 +47,7 @@ end
     world = World(PWNModel.Position, PWNModel.Damaged)
     add_resource!(world, PWNModel.Time(0, 3, 0))
     add_resource!(world, PWNModel.Rng(1))
-    add_resource!(world, PWNModel.TreeGrid(1, 1))
+    add_resource!(world, PWNModel.TreeGrid(1, 1, 10))
 
     s = PWNModel.DamageTrees(tick_of_year=3, damage_probability=0.0, removal_probability=0.0)
 
@@ -71,7 +71,7 @@ end
     world = World(PWNModel.Position, PWNModel.Damaged)
     add_resource!(world, PWNModel.Time(0, 3, 0))
     add_resource!(world, PWNModel.Rng(1))
-    grid = PWNModel.TreeGrid(5, 1)
+    grid = PWNModel.TreeGrid(5, 1, 10)
     add_resource!(world, grid)
 
     s = PWNModel.DamageTrees(tick_of_year=3, damage_probability=0.0, removal_probability=1.0)
@@ -99,7 +99,7 @@ end
     world = World(PWNModel.Position, PWNModel.Damaged)
     add_resource!(world, PWNModel.Time(0, 3, 0))
     add_resource!(world, PWNModel.Rng(1))
-    add_resource!(world, PWNModel.TreeGrid(1, 1))
+    add_resource!(world, PWNModel.TreeGrid(1, 1, 10))
 
     s = PWNModel.DamageTrees(tick_of_year=3, damage_probability=1.0, removal_probability=0.0)
 

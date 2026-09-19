@@ -2,19 +2,12 @@ struct InitGrids <: System end
 
 function initialize!(::InitGrids, w::World)
     ws = get_resource(w, WorldSize)
-    if ws.width % ws.resolution != 0 || ws.height % ws.resolution != 0
-        throw(
-            ArgumentError(
-                "world size ($(ws.width) x $(ws.height)) must be a multiple of the grid resolution ($(ws.resolution))",
-            ),
-        )
-    end
 
-    add_resource!(w, TreeGrid(ws.width, ws.height))
+    add_resource!(w, TreeGrid(ws.width, ws.height, ws.cell_size))
 
     grid_width = ws.width ÷ ws.resolution
     grid_height = ws.height ÷ ws.resolution
-    grid = Grid(grid_width, grid_height, zero_entity)
+    grid = Grid(grid_width, grid_height, ws.grid_cell_size, zero_entity)
 
     new_entities!(w, grid_width * grid_height, (GridCoords,)) do (entities, coords)
         i = 1
