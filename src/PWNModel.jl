@@ -31,6 +31,7 @@ include("sys/colonization.jl")
 include("obs/tree_population.jl")
 include("obs/tree_damage.jl")
 include("obs/tree_colonization.jl")
+include("obs/maps/tree_colonization.jl")
 
 include("util/print.jl")
 
@@ -48,6 +49,7 @@ export GridCoords
 export InitGrids, InitTrees
 export UpdateTime, DiseaseCourse, RandomInfection, DamageTrees, Colonization
 export TreePopulationObserver, TreeDamageObserver, TreeColonizationObserver
+export TreeColonizationMapObserver
 export trees_to_string
 
 end
