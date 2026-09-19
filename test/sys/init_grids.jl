@@ -1,6 +1,6 @@
 @testset "InitGrids" begin
     world = World(PWNModel.GridCoords)
-    add_resource!(world, PWNModel.WorldSize(300, 200, 10, 100))
+    add_resource!(world, PWNModel.WorldSize(width=300, height=200, cell_size=10, grid_cell_size=100))
 
     s = PWNModel.InitGrids()
     PWNModel.initialize!(s, world)
@@ -25,5 +25,5 @@
 end
 
 @testset "WorldSize throws on size not multiple of cell_size" begin
-    @test_throws ArgumentError PWNModel.WorldSize(25, 12, 10, 10)
+    @test_throws ArgumentError PWNModel.WorldSize(width=25, height=12, cell_size=10, grid_cell_size=10)
 end

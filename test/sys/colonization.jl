@@ -1,7 +1,7 @@
 function _setup_colonization_world(width::Int, height::Int, resolution::Int)
     world = World(PWNModel.Position, PWNModel.GridCoords, PWNModel.Damaged, PWNModel.Colonized)
 
-    add_resource!(world, PWNModel.WorldSize(width, height, 10, resolution))
+    add_resource!(world, PWNModel.WorldSize(width=width, height=height, cell_size=10, grid_cell_size=resolution))
 
     gs = PWNModel.InitGrids()
     PWNModel.initialize!(gs, world)
@@ -33,7 +33,7 @@ end
 
 @testset "Colonization calc_arrivals! conserves beetle count" begin
     world = World(PWNModel.GridCoords)
-    add_resource!(world, PWNModel.WorldSize(30, 30, 10, 10))
+    add_resource!(world, PWNModel.WorldSize(width=30, height=30, cell_size=10, grid_cell_size=10))
     gs = PWNModel.InitGrids()
     PWNModel.initialize!(gs, world)
 
@@ -62,7 +62,7 @@ end
 
 @testset "Colonization calc_probability! occupancy formula" begin
     world = World(PWNModel.GridCoords)
-    add_resource!(world, PWNModel.WorldSize(30, 10, 10, 10))
+    add_resource!(world, PWNModel.WorldSize(width=30, height=10, cell_size=10, grid_cell_size=10))
     gs = PWNModel.InitGrids()
     PWNModel.initialize!(gs, world)
 
