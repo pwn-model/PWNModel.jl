@@ -14,6 +14,9 @@ Mirrors `plot.Image` from the sibling Go implementation's
 a `colorgrad` gradient and a manually maintained RGBA pixel buffer. Makie's
 `Axis` also takes care of scaling the image to the window while preserving
 its aspect ratio, so there is no equivalent of the Go type's `Scale` field.
+A `Colorbar` legend for the color scale is added alongside the image, which
+the Go original (drawing directly onto a `pixel.Window` canvas) has no
+equivalent of.
 
 Not part of the `PWNModel` package: GLMakie pulls in a full OpenGL stack, so
 this file lives in `scripts/` (a dependency of the `scripts/` environment
@@ -64,6 +67,7 @@ function PWNModel.initialize!(s::Image, w::World)
 
     s._values = Observable(PWNModel.data(s.observer, w))
     image!(ax, s._values, colormap=s.colormap, colorrange=s.colorrange, interpolate=false)
+    Colorbar(fig[1, 2], colormap=s.colormap, colorrange=s.colorrange)
 
     # display(fig) alone would draw into GLMakie's shared singleton screen,
     # which other plots (e.g. TimeSeries, TreesMap) also default to -- stealing
