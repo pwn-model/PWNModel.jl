@@ -8,7 +8,7 @@ CountObserver() = CountObserver(0, 0)
 PWNModel.initialize!(o::CountObserver, ::World) = (o.initialized += 1)
 PWNModel.update!(o::CountObserver, ::World) = (o.n += 1)
 PWNModel.header(::CountObserver) = ["a", "b"]
-PWNModel.row(o::CountObserver, ::World) = [Float64(o.n), Float64(o.n) * 2]
+PWNModel.data(o::CountObserver, ::World) = [Float64(o.n), Float64(o.n) * 2]
 
 @testset "CSV writes header and one row per tick" begin
     dir = mktempdir()
