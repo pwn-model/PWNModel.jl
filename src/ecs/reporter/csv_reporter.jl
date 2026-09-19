@@ -57,7 +57,7 @@ end
 
 function _write_row!(s::CSV, w::World)
     print(s._io, s._step)
-    for v in row(s.observer, w)
+    for v in data(s.observer, w)
         print(s._io, s.sep, v)
     end
     print(s._io, "\n")

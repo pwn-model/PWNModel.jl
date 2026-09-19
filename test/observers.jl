@@ -10,7 +10,7 @@ RecordingObserver() = RecordingObserver(0, 0)
 PWNModel.initialize!(o::RecordingObserver, ::World) = (o.initialized += 1)
 PWNModel.update!(o::RecordingObserver, ::World) = (o.updated += 1)
 PWNModel.header(::RecordingObserver) = ["a", "b"]
-PWNModel.row(o::RecordingObserver, ::World) = [Float64(o.updated), Float64(o.updated) * 2]
+PWNModel.data(o::RecordingObserver, ::World) = [Float64(o.updated), Float64(o.updated) * 2]
 
 @testset "RowObserver initialize!/update! default to no-ops" begin
     o = NoopObserver()
@@ -24,7 +24,7 @@ end
     o = NoopObserver()
 
     @test_throws MethodError PWNModel.header(o)
-    @test_throws MethodError PWNModel.row(o, World())
+    @test_throws MethodError PWNModel.data(o, World())
 end
 
 @testset "RowObserver dispatch" begin
@@ -38,5 +38,5 @@ end
     @test o.initialized == 1
     @test o.updated == 2
     @test PWNModel.header(o) == ["a", "b"]
-    @test PWNModel.row(o, world) == [2.0, 4.0]
+    @test PWNModel.data(o, world) == [2.0, 4.0]
 end
