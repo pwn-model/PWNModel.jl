@@ -30,7 +30,7 @@ function do_setup_world(n)
                 tick_of_year=20,
                 kernel_scale=1.0,
                 kernel_radius=5,
-                beetles_per_tree=5.0,
+                beetles_per_tree=2.2,
                 trees_per_beetle=1.0,
             ),
         ),
