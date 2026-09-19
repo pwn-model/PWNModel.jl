@@ -38,7 +38,7 @@ end
     PWNModel.initialize!(gs, world)
 
     s = PWNModel.Colonization(
-        tick_of_year=0, kernel_radius=1, kernel_scale=1.0,
+        tick_of_year=0, cell_size=10, kernel_radius=1, kernel_scale=1.0,
         beetles_per_tree=10.0, trees_per_beetle=1.0,
     )
     PWNModel.initialize!(s, world)
@@ -67,7 +67,7 @@ end
     PWNModel.initialize!(gs, world)
 
     s = PWNModel.Colonization(
-        tick_of_year=0, kernel_radius=0, kernel_scale=1.0,
+        tick_of_year=0, cell_size=10, kernel_radius=0, kernel_scale=1.0,
         beetles_per_tree=1.0, trees_per_beetle=1.0,
     )
     PWNModel.initialize!(s, world)
@@ -99,7 +99,7 @@ end
     add_resource!(world, PWNModel.Time(0, 0, 0))
 
     s = PWNModel.Colonization(
-        tick_of_year=5, kernel_radius=0, kernel_scale=1.0,
+        tick_of_year=5, cell_size=100, kernel_radius=0, kernel_scale=1.0,
         beetles_per_tree=100.0, trees_per_beetle=100.0,
     )
     PWNModel.initialize!(s, world)
@@ -132,7 +132,7 @@ end
     # probability for the cell's single susceptible tree to (effectively)
     # exactly 1, regardless of the RNG draw.
     s = PWNModel.Colonization(
-        tick_of_year=3, kernel_radius=0, kernel_scale=1.0,
+        tick_of_year=3, cell_size=100, kernel_radius=0, kernel_scale=1.0,
         beetles_per_tree=5.0, trees_per_beetle=5.0,
     )
     PWNModel.initialize!(s, world)
@@ -165,7 +165,7 @@ end
     add_resource!(world, PWNModel.Time(0, 3, 0))
 
     s = PWNModel.Colonization(
-        tick_of_year=3, kernel_radius=2, kernel_scale=1.0,
+        tick_of_year=3, cell_size=100, kernel_radius=2, kernel_scale=1.0,
         beetles_per_tree=1000.0, trees_per_beetle=1000.0,
     )
     PWNModel.initialize!(s, world)

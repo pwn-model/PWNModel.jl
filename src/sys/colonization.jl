@@ -39,12 +39,15 @@ end
 
 # Colonization is the background beetle spread process.
 mutable struct Colonization <: System
+    # tick_of_year when colonization takes place.
     const tick_of_year::Int
-
-    # kernel_radius is the dispersal kernel's cutoff radius, in space-grid cells.
-    const kernel_radius::Int
-    # kernel_scale is the dispersal kernel's decay length, in space-grid cells.
+    # cell_size of the dispersal grid, in meters.
+    const cell_size::Int
+    # kernel_scale is the dispersal kernel's decay length, in meters.
     const kernel_scale::Float64
+    # kernel_radius is the dispersal kernel's cutoff radius, in meters.
+    # Rounded up to full cells.
+    const kernel_radius::Int
     # beetles_per_tree is the fixed number of beetles emerging from each
     # colonized tree per year.
     const beetles_per_tree::Float64
@@ -61,31 +64,41 @@ mutable struct Colonization <: System
     _kernel::Vector{KernelOffset}
 
     _to_colonize::Vector{Entity}
+
+    # _units_per_cell is the number of tree-grid units per dispersal-grid
+    # cell, i.e. cell_size expressed in the world's base cell-size units.
+    _units_per_cell::Int
 end
 
 function Colonization(;
     tick_of_year::Int,
-    kernel_radius::Int,
+    cell_size::Int,
     kernel_scale::Float64,
+    kernel_radius::Int,
     beetles_per_tree::Float64,
     trees_per_beetle::Float64,
 )
     return Colonization(
-        tick_of_year, kernel_radius, kernel_scale, beetles_per_tree, trees_per_beetle,
+        tick_of_year, cell_size, kernel_scale, kernel_radius, beetles_per_tree, trees_per_beetle,
         Grid(0, 0, 1, 0), Grid(0, 0, 1, 0), Grid(0, 0, 1, 0.0), Grid(0, 0, 1, 0.0),
-        KernelOffset[], Entity[],
+        KernelOffset[], Entity[], 1,
     )
 end
 
 function initialize!(s::Colonization, w::World)
-    space = get_resource(w, SpaceGrid)
+    ws = get_resource(w, WorldSize)
+    if s.cell_size % ws.cell_size != 0
+        throw(ArgumentError("cell_size of the colonization submodel must be a multiple of the world's base cell size."))
+    end
+    s._units_per_cell = s.cell_size ÷ ws.cell_size
 
-    s._density = Grid(space.grid.width, space.grid.height, space.grid.cell_size, 0)
-    s._susceptible = Grid(space.grid.width, space.grid.height, space.grid.cell_size, 0)
-    s._arrivals = Grid(space.grid.width, space.grid.height, space.grid.cell_size, 0.0)
-    s._probability = Grid(space.grid.width, space.grid.height, space.grid.cell_size, 0.0)
+    width, height = cld(ws.width, s._units_per_cell), cld(ws.height, s._units_per_cell)
+    s._density = Grid(width, height, s.cell_size, 0)
+    s._susceptible = Grid(width, height, s.cell_size, 0)
+    s._arrivals = Grid(width, height, s.cell_size, 0.0)
+    s._probability = Grid(width, height, s.cell_size, 0.0)
 
-    s._kernel = build_kernel(s.kernel_radius, s.kernel_scale)
+    s._kernel = build_kernel(cld(s.kernel_radius, s.cell_size), s.kernel_scale / s.cell_size)
 end
 
 function update!(s::Colonization, w::World)
@@ -95,7 +108,6 @@ function update!(s::Colonization, w::World)
         return
     end
 
-    ws = get_resource(w, WorldSize)
     rng = get_resource(w, Rng)
 
     fill!(s._density, 0)
@@ -109,7 +121,7 @@ function update!(s::Colonization, w::World)
 
     for (_, positions) in Query(w, (Position,); with=(Colonized,))
         for pos in positions
-            x, y = to_coords(ws, pos.x, pos.y)
+            x, y = to_coords(s, pos.x, pos.y)
             s._density[x, y] += 1
         end
     end
@@ -121,7 +133,7 @@ function update!(s::Colonization, w::World)
 
     for (_, positions) in Query(w, (Position,); with=(Damaged,), without=(Colonized,))
         for pos in positions
-            x, y = to_coords(ws, pos.x, pos.y)
+            x, y = to_coords(s, pos.x, pos.y)
             s._susceptible[x, y] += 1
         end
     end
@@ -131,7 +143,7 @@ function update!(s::Colonization, w::World)
 
     for (entities, positions) in Query(w, (Position,); with=(Damaged,), without=(Colonized,))
         for i in eachindex(entities)
-            x, y = to_coords(ws, positions[i].x, positions[i].y)
+            x, y = to_coords(s, positions[i].x, positions[i].y)
             p = s._probability[x, y]
             if rand(rng) < p
                 push!(s._to_colonize, entities[i])
@@ -205,3 +217,6 @@ function calc_probability!(s::Colonization)
         s._probability[x, y] = p
     end
 end
+
+# to_coords calculates (1-based) dispersal-grid coords from (1-based) tree grid coords.
+to_coords(s::Colonization, x::Int, y::Int) = (fld(x - 1, s._units_per_cell) + 1, fld(y - 1, s._units_per_cell) + 1)
