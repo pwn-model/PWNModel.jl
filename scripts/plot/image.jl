@@ -37,17 +37,28 @@ end
     Image(; observer, title="", colormap=:viridis, colorrange=(0.0, 1.0))
 
   - `observer`: the [`MatrixObserver`](@ref) supplying the 2D value matrix.
-  - `colormap`: Makie colormap used to map values to colors.
+  - `colormap`: Makie colormap used to map values to colors. A `Symbol` (e.g.
+    `:viridis`) or a `String` (e.g. from a config file, which has no `Symbol`
+    literal syntax).
   - `colorrange`: `(min, max)` value range for the color mapping. Defaults to
-    `(0.0, 1.0)`, matching the Go original's default when neither bound is given.
+    `(0.0, 1.0)`, matching the Go original's default when neither bound is
+    given. A `Tuple` or, e.g. from a config file's YAML sequence, any other
+    2-element `AbstractVector`.
 """
 function Image(;
     observer::PWNModel.MatrixObserver,
     title::AbstractString="",
-    colormap::Symbol=:viridis,
-    colorrange::Tuple{<:Real,<:Real}=(0.0, 1.0),
+    colormap::Union{Symbol,AbstractString}=:viridis,
+    colorrange::Union{Tuple{<:Real,<:Real},AbstractVector{<:Real}}=(0.0, 1.0),
 )
-    return Image(observer, String(title), colormap, Float64.(colorrange), nothing, nothing)
+    return Image(
+        observer,
+        String(title),
+        Symbol(colormap),
+        (Float64(colorrange[1]), Float64(colorrange[2])),
+        nothing,
+        nothing,
+    )
 end
 
 """

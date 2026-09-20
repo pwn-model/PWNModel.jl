@@ -2,6 +2,7 @@ module PWNModel
 
 using Ark
 using Random
+using YAML
 
 include("util/timer.jl")
 include("util/shuffle.jl")
@@ -9,6 +10,7 @@ include("util/shuffle.jl")
 include("ecs/res/tick.jl")
 include("ecs/res/termination.jl")
 include("ecs/system.jl")
+include("ecs/config.jl")
 include("ecs/sys/fixed_termination.jl")
 include("ecs/observers.jl")
 include("ecs/scheduler.jl")
@@ -42,6 +44,8 @@ function __init__()
 end
 
 export Scheduler, fps!, initialize!, step!, finalize!, run!
+
+export Config, load_config, parse_config, apply!, allow_external_module
 
 export RowObserver, header, row, CSV
 export Rng, Tick, Time
