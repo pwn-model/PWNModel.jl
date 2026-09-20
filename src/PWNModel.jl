@@ -39,11 +39,14 @@ include("obs/maps/tree_colonization.jl")
 
 include("util/print.jl")
 
+include("app.jl")
+
 function __init__()
     _init_timer()
 end
 
 export Scheduler, fps!, initialize!, step!, finalize!, run!
+export julia_main
 
 export Config, load_config, parse_config, apply!, allow_external_module
 

@@ -1,0 +1,6 @@
+[deps]
+PWNModel = "07b2daec-95c7-410c-afab-3b381f8c932c"
+PackageCompiler = "9b87118b-4619-50d2-8e1e-99f35a4d4d9d"
+
+[sources]
+PWNModel = {path = ".."}
