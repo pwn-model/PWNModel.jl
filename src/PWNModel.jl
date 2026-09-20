@@ -46,7 +46,7 @@ function __init__()
 end
 
 export Scheduler, fps!, initialize!, step!, finalize!, run!
-export julia_main
+export run_model, julia_main
 
 export Config, load_config, parse_config, apply!, allow_external_module
 
