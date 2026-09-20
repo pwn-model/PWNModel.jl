@@ -16,6 +16,7 @@ end
 
 function Scheduler(world::World, systems::ST; fps::Real=0) where {ST<:Tuple}
     add_resource!(world, Tick())
+    add_resource!(world, Termination())
     return Scheduler{ST}(world, systems, Float64(fps), false, 0.0)
 end
 
@@ -77,10 +78,20 @@ function _limit_fps!(s::Scheduler)
     s._next_update += dt
 end
 
+"""
+    step!(s::Scheduler)
+
+Updates all systems of `s` and advances its [`Tick`](@ref).
+
+Returns whether the run should continue, i.e. whether a system has set the
+[`Termination`](@ref) resource's `terminate` field to `true` (e.g. via
+[`FixedTermination`](@ref)).
+"""
 function step!(s::Scheduler)
     _limit_fps!(s)
     _update_systems!(s.systems, s.world)
     get_resource(s.world, Tick).value += 1
+    return !get_resource(s.world, Termination).terminate
 end
 
 function finalize!(s::Scheduler)
@@ -93,8 +104,29 @@ function run!(s::Scheduler, steps::Int)
 
     # update loop
     for _ in 1:steps
-        # update all systems
-        step!(s)
+        # update all systems, stopping early on termination
+        step!(s) || break
+    end
+
+    # finalize all systems
+    finalize!(s)
+end
+
+"""
+    run!(s::Scheduler)
+
+Runs `s` until a system sets the [`Termination`](@ref) resource, e.g. via
+[`FixedTermination`](@ref).
+
+Mirrors `App.Run` from the sibling Go implementation's
+`github.com/mlange-42/ark-tools/app` package.
+"""
+function run!(s::Scheduler)
+    # initialize all systems
+    initialize!(s)
+
+    # update loop
+    while step!(s)
     end
 
     # finalize all systems

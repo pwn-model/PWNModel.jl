@@ -34,6 +34,9 @@ function do_setup_world(n)
                 beetles_per_tree=2.2,
                 trees_per_beetle=1.0,
             ),
+
+            # Stop criterion
+            FixedTermination(steps=520),
         ),
     )
 
@@ -47,7 +50,7 @@ end
 
 function benchmark_setup_and_run_world(args, n)
     scheduler = do_setup_world(n)
-    run!(scheduler, 520)
+    run!(scheduler)
 
     return scheduler
 end
@@ -61,7 +64,7 @@ end
 
 function benchmark_only_run_world(args, n)
     scheduler = args
-    run!(scheduler, 520)
+    run!(scheduler)
 
     return scheduler
 end
