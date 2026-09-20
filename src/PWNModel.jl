@@ -6,10 +6,12 @@ using Random
 include("util/timer.jl")
 include("util/shuffle.jl")
 
-include("ecs/tick.jl")
+include("ecs/res/tick.jl")
+include("ecs/res/termination.jl")
+include("ecs/system.jl")
+include("ecs/sys/fixed_termination.jl")
 include("ecs/observers.jl")
 include("ecs/scheduler.jl")
-include("ecs/system.jl")
 include("ecs/reporter/csv_reporter.jl")
 
 include("comps/tree.jl")
@@ -43,6 +45,7 @@ export Scheduler, fps!, initialize!, step!, finalize!, run!
 
 export RowObserver, header, row, CSV
 export Rng, Tick, Time
+export Termination, FixedTermination
 export Grid, TreeGrid, SpaceGrid, WorldSize
 export Position, InCell, Damaged, Infected, Colonized
 export GridCoords

@@ -73,11 +73,14 @@ scheduler = Scheduler(
         tree_pop_plot,
         tree_map_plot,
         colo_map_plot,
+
+        # Stop criterion
+        FixedTermination(steps=5200),
     ),
 )
 
 fps!(scheduler, 30)
-run!(scheduler, 5200)
+run!(scheduler)
 
 wait(screen(tree_pop_plot))
 wait(screen(tree_map_plot))
