@@ -91,8 +91,71 @@ end
     @test_throws ArgumentError PWNModel.resolve_type("NoSuchModule.SomeType", Any)
 end
 
-@testset "Config: end-to-end from the shipped scripts/config.yaml" begin
-    cfg = PWNModel.load_config(joinpath(@__DIR__, "..", "..", "scripts", "config.yaml"))
+@testset "Config: Main is allowed by default, unlike other external modules" begin
+    # Unlike a genuine third-party dependency, Main is the running script's
+    # own top-level namespace (e.g. where scripts/run.jl's plotting types
+    # end up), so it needs no allow_external_module call.
+    Base.eval(Main, :(struct _ConfigTestMainType <: $(PWNModel.System) end))
+    T = PWNModel.resolve_type("Main._ConfigTestMainType", PWNModel.System)
+    @test T === Main._ConfigTestMainType
+end
+
+@testset "Config: a nested `type:` value (e.g. a reporter's observer) is resolved recursively" begin
+    cfg = PWNModel.parse_config("""
+    systems:
+      - type: CSV
+        observer:
+          type: TreePopulationObserver
+        file: out/tree_pop.csv
+        sep: ";"
+    """)
+
+    @test length(cfg.systems) == 1
+    csv = cfg.systems[1]
+    @test csv isa PWNModel.CSV
+    @test csv.observer isa PWNModel.TreePopulationObserver
+    @test csv.file == "out/tree_pop.csv"
+    @test csv.sep == ";"
+end
+
+@testset "Config: a nested value resolved to the wrong kind fails at construction" begin
+    # TreeColonizationMapObserver is a MatrixObserver, but CSV's `observer`
+    # keyword is typed RowObserver: Julia's own keyword-argument type
+    # checking is what rejects the mismatch here (raising a TypeError),
+    # since the config mechanism itself resolves nested values
+    # unconstrained (see `_resolve_value`).
+    @test_throws TypeError PWNModel.parse_config("""
+    systems:
+      - type: CSV
+        observer:
+          type: TreeColonizationMapObserver
+          cell_size: 100
+        file: out/tree_pop.csv
+    """)
+end
+
+@testset "Config: end-to-end from an inline config" begin
+    # Deliberately inline, not the repo's own scripts/config.yaml: that one
+    # also references the GLMakie-based plotting types from
+    # scripts/plot/*.jl (as "Main.TimeSeries" etc.), which aren't loaded
+    # (and, being GLMakie-dependent, can't be loaded) in this package's own
+    # test environment -- see allow_external_module's docstring. That part
+    # is instead verified by hand, by running scripts/run.jl's config
+    # loading in the scripts/ environment.
+    cfg = PWNModel.parse_config("""
+    seed: 1
+    tps: 30
+    resources:
+      - type: WorldSize
+        width: 4000
+        height: 3000
+        cell_size: 10
+        grid_cell_size: 500
+    systems:
+      - type: InitGrids
+      - type: FixedTermination
+        steps: 10
+    """)
     @test cfg.seed == 1
     @test cfg.tps == 30.0
     @test !isempty(cfg.systems)

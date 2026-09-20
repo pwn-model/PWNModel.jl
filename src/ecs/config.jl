@@ -15,7 +15,14 @@ const _OWN_MODULE = @__MODULE__
 # files, as "ModuleName.TypeName", keyed by module name. PWNModel's own
 # types need no entry here: an unqualified name resolves against PWNModel
 # directly.
-const _EXTERNAL_MODULES = Dict{String,Module}()
+#
+# Main is allowed by default: it's the running script's own top-level
+# namespace (e.g. where scripts/run.jl's `include`d plotting types end up,
+# since they can't live in the PWNModel package itself -- see their own
+# docstrings), not a third-party dependency. Nothing is gained by making a
+# config file jump through allow_external_module for it: anyone who can
+# edit the config file can just as easily edit the script that reads it.
+const _EXTERNAL_MODULES = Dict{String,Module}("Main" => Main)
 
 """
     allow_external_module(mod::Module)
@@ -90,11 +97,31 @@ function resolve_type(name::AbstractString, supertype_::Type)
     return T
 end
 
+# _resolve_value recursively resolves any nested "type" + parameters
+# value(s) found while building a config entry's keyword arguments, so
+# that e.g. a system's own `observer` keyword can itself be given as
+# `{type: ..., ...}` -- the same mechanism as the top-level "resources"/
+# "systems" lists, just applied wherever it's found, with no separate
+# wrapper type needed the way the sibling Go implementation's
+# RowObserverConfig/MatrixObserverConfig/DrawerConfig are.
+#
+# There's no way to know here which supertype (if any) a given keyword is
+# supposed to satisfy -- e.g. TimeSeries's `observer` keyword is typed
+# `RowObserver`, Image's is typed `MatrixObserver`, and this code has no
+# access to that without reflecting into the constructor's own method
+# signature. So nested values resolve unconstrained (`Any`); Julia's own
+# keyword-argument dispatch is what actually enforces the right kind when
+# the resolved value is then passed into T's constructor below, the same
+# way it would for any other mistyped argument.
+_resolve_value(v::AbstractDict) = haskey(v, "type") ? _build_entry(v, Any) : v
+_resolve_value(v::AbstractVector) = [_resolve_value(x) for x in v]
+_resolve_value(v) = v
+
 # _construct builds a T from a config entry's remaining fields (everything
 # but "type"), via its usual keyword constructor: the same one every
 # System/resource in this codebase already has.
 function _construct(::Type{T}, entry::AbstractDict) where {T}
-    kwargs = (Symbol(k) => v for (k, v) in entry if k != "type")
+    kwargs = (Symbol(k) => _resolve_value(v) for (k, v) in entry if k != "type")
     return T(; kwargs...)
 end
 

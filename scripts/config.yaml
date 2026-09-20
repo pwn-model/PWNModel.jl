@@ -46,3 +46,26 @@ systems:
   # Stop criterion
   - type: FixedTermination
     steps: 5200
+
+  # Reporters and plots
+  - type: CSV
+    observer:
+      type: TreePopulationObserver
+    file: out/tree_pop.csv
+
+  - type: Main.TimeSeries
+    observer:
+      type: TreeColonizationObserver
+    title: Tree colonization
+    xlabel: Tick
+    ylabel: Proportion
+
+  - type: Main.TreesMap
+    title: Trees
+
+  - type: Main.Image
+    observer:
+      type: TreeColonizationMapObserver
+      cell_size: 100
+    colormap: viridis
+    colorrange: [0.0, 5.0]
