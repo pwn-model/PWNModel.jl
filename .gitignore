@@ -16,4 +16,6 @@
 /test/Manifest*.toml
 /scripts/Manifest*.toml
 /benchmark/Manifest*.toml
+/build/Manifest*.toml
+/build/PWNModelApp/
 .vscode
