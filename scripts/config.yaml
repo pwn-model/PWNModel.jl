@@ -1,0 +1,48 @@
+seed: 1
+tps: 30
+
+resources:
+  - type: WorldSize
+    width: 4000
+    height: 3000
+    cell_size: 10
+    grid_cell_size: 500
+
+systems:
+  # Initialization
+  - type: InitGrids
+  
+  - type: InitTrees
+    tree_probability: 0.9
+    damage_prevalence: 0.03
+    beetle_prevalence: 0.2
+
+  # Systems
+  - type: UpdateTime
+    ticks_per_year: 52
+
+  - type: DiseaseCourse
+    ticks_to_damage: 8
+
+  - type: RandomInfection
+    tick_of_infection: 0
+    num_trees: 100
+    cell_x: 3
+    cell_y: 3
+
+  - type: DamageTrees
+    tick_of_year: 35
+    damage_probability: 0.01
+    removal_probability: 0.333
+
+  - type: Colonization
+    tick_of_year: 20
+    cell_size: 100
+    kernel_scale: 100.0
+    kernel_radius: 400
+    beetles_per_tree: 2.2
+    trees_per_beetle: 1.0
+
+  # Stop criterion
+  - type: FixedTermination
+    steps: 5200

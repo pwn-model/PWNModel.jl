@@ -7,6 +7,8 @@ authors = ["mlange-42 <martin_lange_@gmx.net>"]
 Ark = "56664e29-41e4-4ea5-ab0e-825499acc647"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
 [compat]
 Ark = "0.5.1"
+YAML = "0.4.17"
