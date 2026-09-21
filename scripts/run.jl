@@ -7,13 +7,15 @@ include("plot/time_series.jl")
 include("plot/trees_map.jl")
 
 function parse_commandline()
-    s = ArgParseSettings(description = "Runs the Pine Wilt Nematode model.")
+    s = ArgParseSettings(description="Runs the Pine Wilt Nematode model.")
 
+    #! format: off
     @add_arg_table! s begin
         "config"
             help = "Path to the model config file. Default: config.yaml"
             arg_type = String
     end
+    #! format: on
 
     return parse_args(s)
 end
