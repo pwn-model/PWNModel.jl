@@ -21,7 +21,7 @@ function parse_commandline()
 end
 
 parsed_config = parse_commandline()["config"]
-config_path = parsed_config === nothing ? joinpath(@__DIR__, "config.yaml") : parsed_config
+config_path = parsed_config === nothing ? "config.yaml" : parsed_config
 
 world = run_model(config_path)
 
