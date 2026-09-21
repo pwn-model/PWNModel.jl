@@ -4,6 +4,12 @@ Julia implementation of the Pine Wilt Nematode model.
 
 ## Usage
 
+Pre-compile like this:
+
+```
+julia --project=scripts -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+```
+
 Run the default model like this:
 
 ```
