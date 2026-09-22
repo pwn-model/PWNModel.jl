@@ -39,6 +39,7 @@ include("obs/tree_population.jl")
 include("obs/tree_damage.jl")
 include("obs/tree_colonization.jl")
 include("obs/maps/tree_colonization.jl")
+include("obs/maps/beetles.jl")
 
 include("util/print.jl")
 
@@ -64,7 +65,7 @@ export InitGrids, InitTrees
 export UpdateTime, DiseaseCourse, RandomInfection, DamageTrees, Colonization
 export BeetleEmergence, BeetleMortality
 export TreePopulationObserver, TreeDamageObserver, TreeColonizationObserver
-export TreeColonizationMapObserver
+export TreeColonizationMapObserver, BeetlesMapObserver
 export trees_to_string
 
 end

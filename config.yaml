@@ -76,3 +76,10 @@ systems:
       cell_size: 100
     colormap: viridis
     colorrange: [0.0, 5.0]
+
+  - type: Main.Image
+    observer:
+      type: BeetlesMapObserver
+      cell_size: 100
+    colormap: viridis
+    colorrange: [0.0, 50.0]
