@@ -2,7 +2,7 @@
 function do_setup_world(n)
     world = World(
         Position, GridCoords, Damaged, Infected, Colonized, Relation{InCell},
-        BeetlePosition, LifeExpectancy,
+        BeetlePosition, EmergenceTick, LifeExpectancy,
     )
 
     # Resources

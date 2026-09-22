@@ -63,7 +63,7 @@ export BeetlePosition, LifeExpectancy
 export GridCoords
 export InitGrids, InitTrees
 export UpdateTime, DiseaseCourse, RandomInfection, DamageTrees, Colonization
-export BeetleEmergence, BeetleMortality
+export BeetleEmergence, EmergenceTick, BeetleMortality
 export TreePopulationObserver, TreeDamageObserver, TreeColonizationObserver
 export TreeColonizationMapObserver, BeetlesMapObserver
 export trees_to_string

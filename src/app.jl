@@ -19,7 +19,7 @@ function run_model(config_path::AbstractString)
 
     world = World(
         Position, GridCoords, Damaged, Infected, Colonized, Relation{InCell},
-        BeetlePosition, LifeExpectancy,
+        BeetlePosition, EmergenceTick, LifeExpectancy,
     )
     add_resource!(world, Rng(cfg.seed))
     apply!(cfg, world)

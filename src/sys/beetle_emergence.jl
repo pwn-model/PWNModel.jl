@@ -16,6 +16,7 @@ end
 
 function update!(s::BeetleEmergence, w::World)
     time = get_resource(w, Time)
+    tick = time.tick
 
     if time.tick_of_year != s.tick_of_year
         return
@@ -28,11 +29,14 @@ function update!(s::BeetleEmergence, w::World)
     end
 
     n = length(s._source_trees) * s.beetles_per_tree
-    new_entities!(w, n, (BeetlePosition, LifeExpectancy)) do (entities, beetle_positions, life_expectancies)
+    new_entities!(w, n,
+        (BeetlePosition, EmergenceTick, LifeExpectancy),
+    ) do (entities, beetle_positions, emergence_ticks, life_expectancies)
         for i in eachindex(entities)
             pos = s._source_trees[(i-1)÷s.beetles_per_tree+1]
             beetle_positions[i] = BeetlePosition(pos.x, pos.y)
-            life_expectancies[i] = LifeExpectancy(time.tick + floor(Int, randexp(rng.xoshiro) * s.life_expectancy))
+            emergence_ticks[i] = EmergenceTick(tick)
+            life_expectancies[i] = LifeExpectancy(tick + floor(Int, randexp(rng.xoshiro) * s.life_expectancy))
         end
     end
 

@@ -1,7 +1,7 @@
 function _new_beetle_emergence_world()
     return World(
         PWNModel.Position, PWNModel.Damaged, PWNModel.Infected,
-        PWNModel.BeetlePosition, PWNModel.LifeExpectancy,
+        PWNModel.BeetlePosition, PWNModel.EmergenceTick, PWNModel.LifeExpectancy,
     )
 end
 
@@ -40,12 +40,13 @@ end
 
     counts = Dict{Tuple{Int,Int},Int}()
     total = 0
-    for (_, beetle_positions, life_expectancies) in
-        Query(world, (PWNModel.BeetlePosition, PWNModel.LifeExpectancy))
+    for (_, beetle_positions, emergence_ticks, life_expectancies) in
+        Query(world, (PWNModel.BeetlePosition, PWNModel.EmergenceTick, PWNModel.LifeExpectancy))
         for i in eachindex(beetle_positions)
             bp = beetle_positions[i]
             key = (bp.x, bp.y)
             counts[key] = get(counts, key, 0) + 1
+            @test emergence_ticks[i].tick_of_emergence == time.tick
             # randexp is never negative, so death can never precede the
             # current tick.
             @test life_expectancies[i].tick_of_death >= time.tick
