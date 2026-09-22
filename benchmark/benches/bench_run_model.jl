@@ -1,6 +1,9 @@
 
 function do_setup_world(n)
-    world = World(Position, GridCoords, Damaged, Infected, Colonized, Relation{InCell})
+    world = World(
+        Position, GridCoords, Damaged, Infected, Colonized, Relation{InCell},
+        BeetlePosition, LifeExpectancy,
+    )
 
     # Resources
     add_resource!(world, WorldSize(width=10000, height=10000, cell_size=10, grid_cell_size=500))
@@ -26,6 +29,12 @@ function do_setup_world(n)
                 damage_probability=0.01,
                 removal_probability=0.333,
             ),
+            BeetleEmergence(
+                tick_of_year=19,
+                beetles_per_tree=10,
+                life_expectancy=5.0,
+            ),
+            BeetleMortality(),
             Colonization(
                 tick_of_year=20,
                 cell_size=100,

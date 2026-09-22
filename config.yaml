@@ -35,6 +35,13 @@ systems:
     damage_probability: 0.01
     removal_probability: 0.333
 
+  - type: BeetleEmergence
+    tick_of_year: 19
+    beetles_per_tree: 10
+    life_expectancy: 5.0
+
+  - type: BeetleMortality
+
   - type: Colonization
     tick_of_year: 20
     cell_size: 100
