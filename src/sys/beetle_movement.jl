@@ -25,10 +25,6 @@ mutable struct BeetleMovement <: System
     _width::Int
     _height::Int
 
-    _filter::Filter
-    _filter_healthy::Filter
-    _filter_damaged::Filter
-
     function BeetleMovement(
         steps_per_tick::Int, duration_feeding::Int, duration_egg_laying::Int,
         leave_tree_probability::Float64, random_walk_probability::Float64,
@@ -57,10 +53,6 @@ function initialize!(s::BeetleMovement, w::World)
     s._healthy_presence = Grid(ws.width, ws.height, ws.cell_size, false)
     s._damaged_presence = Grid(ws.width, ws.height, ws.cell_size, false)
     s._width, s._height = ws.width, ws.height
-
-    s._filter = Filter(w, (BeetlePosition, EmergenceTick))
-    s._filter_healthy = Filter(w, (Position,); without=(Damaged,))
-    s._filter_damaged = Filter(w, (Position,); with=(Damaged,))
 end
 
 function update!(s::BeetleMovement, w::World)
@@ -72,9 +64,9 @@ function update!(s::BeetleMovement, w::World)
 
     presence_calculated = false
 
-    for (entities, beetle_positions, emergence_ticks) in Query(s._filter)
+    for (entities, beetle_positions, emergence_ticks) in Query(w, (BeetlePosition, EmergenceTick))
         if !presence_calculated
-            calc_presence!(s)
+            calc_presence!(s, w)
             presence_calculated = true
         end
 
@@ -157,17 +149,17 @@ function max_field_neighbor(s::BeetleMovement, field::Grid{Float64}, x::Int, y::
     return best_x, best_y
 end
 
-function calc_presence!(s::BeetleMovement)
+function calc_presence!(s::BeetleMovement, w::World)
     fill!(s._healthy_presence, false)
     fill!(s._damaged_presence, false)
 
-    for (_, positions) in Query(s._filter_healthy)
+    for (_, positions) in Query(w, (Position,); without=(Damaged,))
         for pos in positions
             s._healthy_presence[pos.x, pos.y] = true
         end
     end
 
-    for (_, positions) in Query(s._filter_damaged)
+    for (_, positions) in Query(w, (Position,); with=(Damaged,))
         for pos in positions
             s._damaged_presence[pos.x, pos.y] = true
         end
