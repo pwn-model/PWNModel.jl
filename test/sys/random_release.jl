@@ -1,4 +1,4 @@
-function _setup_random_infection_world()
+function _setup_random_release_world()
     world = World(
         PWNModel.Position,
         PWNModel.GridCoords,
@@ -23,10 +23,10 @@ function _setup_random_infection_world()
     return world, time
 end
 
-@testset "RandomInfection" begin
-    world, time = _setup_random_infection_world()
+@testset "RandomRelease" begin
+    world, time = _setup_random_release_world()
 
-    s = PWNModel.RandomInfection(tick_of_infection=3, num_trees=10, cell_x=1, cell_y=1)
+    s = PWNModel.RandomRelease(tick_of_infection=3, num_trees=10, cell_x=1, cell_y=1)
 
     for tick in 0:2
         time.tick = tick
@@ -61,8 +61,8 @@ end
     @test count_entities(Filter(world, (PWNModel.Infected,))) == 10
 end
 
-@testset "RandomInfection skips ineligible trees" begin
-    world, _time = _setup_random_infection_world()
+@testset "RandomRelease skips ineligible trees" begin
+    world, _time = _setup_random_release_world()
 
     space = get_resource(world, PWNModel.SpaceGrid)
     target = space.grid[1, 1]
@@ -84,7 +84,7 @@ end
         add_components!(world, e, (PWNModel.Infected(-1),))
     end
 
-    s = PWNModel.RandomInfection(tick_of_infection=0, num_trees=5, cell_x=1, cell_y=1)
+    s = PWNModel.RandomRelease(tick_of_infection=0, num_trees=5, cell_x=1, cell_y=1)
     PWNModel.update!(s, world)
 
     newly_infected = 0
@@ -99,21 +99,21 @@ end
     @test newly_infected == 1
 end
 
-@testset "RandomInfection caps at available trees" begin
-    world, _time = _setup_random_infection_world()
+@testset "RandomRelease caps at available trees" begin
+    world, _time = _setup_random_release_world()
 
     # Coarse cell (1, 1) holds 10*10 = 100 trees; request far more than that.
-    s = PWNModel.RandomInfection(tick_of_infection=0, num_trees=1000, cell_x=1, cell_y=1)
+    s = PWNModel.RandomRelease(tick_of_infection=0, num_trees=1000, cell_x=1, cell_y=1)
     PWNModel.update!(s, world)
 
     @test count_entities(Filter(world, (PWNModel.Infected,))) == 100
 end
 
-@testset "RandomInfection only targets specified cell" begin
-    world, _time = _setup_random_infection_world()
+@testset "RandomRelease only targets specified cell" begin
+    world, _time = _setup_random_release_world()
 
     ws = get_resource(world, PWNModel.WorldSize)
-    s = PWNModel.RandomInfection(tick_of_infection=0, num_trees=10, cell_x=2, cell_y=2)
+    s = PWNModel.RandomRelease(tick_of_infection=0, num_trees=10, cell_x=2, cell_y=2)
     PWNModel.update!(s, world)
 
     for (_, positions) in Query(world, (PWNModel.Position,); with=(PWNModel.Infected,))

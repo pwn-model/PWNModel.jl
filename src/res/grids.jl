@@ -26,3 +26,8 @@ end
 struct DamagedTreeAttraction
     grid::Grid{Float64}
 end
+
+# FeedingInfectedBeetles resource.
+struct FeedingInfectedBeetles
+    grid::Grid{UInt32}
+end

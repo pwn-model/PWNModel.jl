@@ -19,9 +19,9 @@ function do_setup_world(n)
             # Systems
             UpdateTime(ticks_per_year=52),
             DiseaseCourse(ticks_to_damage=8),
-            RandomInfection(
+            RandomRelease(
                 tick_of_infection=0,
-                num_trees=100,
+                num_trees=10,
                 cell_x=11, cell_y=11,
             ),
             DamageTrees(
@@ -52,7 +52,7 @@ function do_setup_world(n)
                 steps_per_tick=7,
                 duration_feeding=12,
                 duration_egg_laying=6,
-                leave_tree_probability=0.5,
+                leave_tree_probability=0.1,
                 random_walk_probability=0.5,
             ),
             BeetleMortality(),
@@ -63,6 +63,9 @@ function do_setup_world(n)
                 kernel_radius=300,
                 beetles_per_tree=2.2,
                 trees_per_beetle=1.0,
+            ),
+            NematodeInfection(
+                infection_probability=0.02,
             ),
 
             # Stop criterion

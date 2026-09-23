@@ -1,17 +1,17 @@
 
-# RandomInfection infects the given number of trees in the given grid cell.
+# RandomRelease infects the given number of trees in the given grid cell.
 #
 # Selection uses frozen_shuffle! (see src/util/shuffle.jl) rather than
 # Random.shuffle!, so that tree selection is bit-identical with the sibling
 # Go implementation's util.Shuffle for the same seed.
-Base.@kwdef struct RandomInfection <: System
+Base.@kwdef struct RandomRelease <: System
     tick_of_infection::Int
     num_trees::Int
     cell_x::Int
     cell_y::Int
 end
 
-function update!(s::RandomInfection, w::World)
+function update!(s::RandomRelease, w::World)
     tick = get_resource(w, Time).tick
 
     if tick != s.tick_of_infection

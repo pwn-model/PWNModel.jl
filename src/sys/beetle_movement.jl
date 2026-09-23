@@ -21,6 +21,7 @@ mutable struct BeetleMovement <: System
 
     _healthy_presence::Grid{Bool}
     _damaged_presence::Grid{Bool}
+    _feeding_infected::Grid{UInt32}
 
     _width::Int
     _height::Int
@@ -32,7 +33,7 @@ mutable struct BeetleMovement <: System
         return new(
             steps_per_tick, duration_feeding, duration_egg_laying,
             leave_tree_probability, random_walk_probability,
-            Grid(0, 0, 1, false), Grid(0, 0, 1, false), 0, 0,
+            Grid(0, 0, 1, false), Grid(0, 0, 1, false), Grid(0, 0, 1, UInt32(0)), 0, 0,
         )
     end
 end
@@ -52,7 +53,10 @@ function initialize!(s::BeetleMovement, w::World)
     ws = get_resource(w, WorldSize)
     s._healthy_presence = Grid(ws.width, ws.height, ws.cell_size, false)
     s._damaged_presence = Grid(ws.width, ws.height, ws.cell_size, false)
+    s._feeding_infected = Grid(ws.width, ws.height, ws.cell_size, UInt32(0))
     s._width, s._height = ws.width, ws.height
+
+    add_resource!(w, FeedingInfectedBeetles(s._feeding_infected))
 end
 
 function update!(s::BeetleMovement, w::World)
@@ -63,6 +67,7 @@ function update!(s::BeetleMovement, w::World)
     damaged_field = get_resource(w, DamagedTreeAttraction).grid
 
     presence_calculated = false
+    fill!(s._feeding_infected, UInt32(0))
 
     for (entities, beetle_positions, emergence_ticks) in Query(w, (BeetlePosition, EmergenceTick))
         if !presence_calculated
@@ -101,7 +106,7 @@ function update!(s::BeetleMovement, w::World)
                     continue
                 end
 
-                # TODO: something with the tree...
+                s._feeding_infected[x, y] += UInt32(1)
             end
 
             beetle_positions[i] = BeetlePosition(x, y)
