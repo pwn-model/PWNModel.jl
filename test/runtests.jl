@@ -1,4 +1,5 @@
 using Test
+using Random
 using Ark
 using PWNModel
 
@@ -20,5 +21,8 @@ include("sys/update_time.jl")
 include("sys/disease_course.jl")
 include("sys/random_infection.jl")
 include("sys/damage_trees.jl")
+include("sys/beetle_emergence.jl")
+include("sys/beetle_mortality.jl")
 include("sys/colonization.jl")
 include("obs/maps/tree_colonization.jl")
+include("obs/maps/beetles.jl")
