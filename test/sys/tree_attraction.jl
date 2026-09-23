@@ -30,7 +30,8 @@ end
     world = _setup_tree_attraction_world()
     _place_tree(world, 50, 25)
 
-    s = PWNModel.TreeAttraction(tick_of_year=0, scale=50, density_radius=20, density_weight=0.0)
+    half_distance = 50 * log(2)
+    s = PWNModel.TreeAttraction(tick_of_year=0, half_distance=half_distance, density_radius=20, density_weight=0.0)
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
 
@@ -39,7 +40,7 @@ end
     # approximate), the value should be exactly decay^10 -- confirming
     # fill_grid! decays multiplicatively rather than subtracting a fixed
     # cost per step.
-    decay = exp(-10.0 / 50.0)
+    decay = exp(-10.0 * log(2) / half_distance)
     grid = get_resource(world, PWNModel.HealthyTreeAttraction).grid
     @test isapprox(grid[60, 25], decay^10; atol=1e-9)
 end
@@ -48,7 +49,7 @@ end
     world = _setup_tree_attraction_world()
     _place_tree(world, 50, 25)
 
-    s = PWNModel.TreeAttraction(tick_of_year=0, scale=10, density_radius=20, density_weight=0.0)
+    s = PWNModel.TreeAttraction(tick_of_year=0, half_distance=10 * log(2), density_radius=20, density_weight=0.0)
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
 
@@ -63,7 +64,8 @@ end
     world = _setup_tree_attraction_world()
     _place_isolated_tree_and_cluster!(world)
 
-    s = PWNModel.TreeAttraction(tick_of_year=0, scale=200, density_radius=20, density_weight=0.0)
+    half_distance = 200 * log(2)
+    s = PWNModel.TreeAttraction(tick_of_year=0, half_distance=half_distance, density_radius=20, density_weight=0.0)
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
 
@@ -72,7 +74,7 @@ end
     # tree (10 cells away) must win over the farther cluster (39 cells to
     # its nearest tree).
     grid = get_resource(world, PWNModel.HealthyTreeAttraction).grid
-    decay = exp(-10.0 / 200.0)
+    decay = exp(-10.0 * log(2) / half_distance)
     @test isapprox(grid[60, 25], decay^10; atol=1e-9)
 end
 
@@ -80,7 +82,8 @@ end
     world = _setup_tree_attraction_world()
     _place_isolated_tree_and_cluster!(world)
 
-    s = PWNModel.TreeAttraction(tick_of_year=0, scale=200, density_radius=20, density_weight=1.0)
+    half_distance = 200 * log(2)
+    s = PWNModel.TreeAttraction(tick_of_year=0, half_distance=half_distance, density_radius=20, density_weight=1.0)
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
 
@@ -94,7 +97,7 @@ end
     # consumer is now pulled towards the farther, denser cluster instead
     # of the closer lone tree.
     grid = get_resource(world, PWNModel.HealthyTreeAttraction).grid
-    decay = exp(-10.0 / 200.0)
+    decay = exp(-10.0 * log(2) / half_distance)
     max_count = (2.0 * 2.0 + 1.0)^2 # density_radius=20, cell_size=10 -> density_radius_cells=2.
     isolated_value = (1.0 / max_count) * decay^10
     cluster_value = (9.0 / max_count) * decay^39
@@ -108,7 +111,9 @@ end
         _place_tree(world, 50 + dx, 25 + dy)
     end
 
-    s = PWNModel.TreeAttraction(tick_of_year=0, scale=200, density_radius=20, density_weight=5.0)
+    s = PWNModel.TreeAttraction(
+        tick_of_year=0, half_distance=200 * log(2), density_radius=20, density_weight=5.0,
+    )
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
 
@@ -132,7 +137,7 @@ end
     # every source at 1 directly, without ever consulting density_radius
     # -- so an invalid density_radius (here, not a multiple of the
     # world's 10m cell size) must not throw during initialize!.
-    s = PWNModel.TreeAttraction(tick_of_year=0, scale=50, density_radius=7, density_weight=0.0)
+    s = PWNModel.TreeAttraction(tick_of_year=0, half_distance=50 * log(2), density_radius=7, density_weight=0.0)
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
 
@@ -144,7 +149,7 @@ end
     world = _setup_tree_attraction_world()
     _place_tree(world, 50, 25)
 
-    s = PWNModel.TreeAttraction(tick_of_year=5, scale=200, density_radius=20, density_weight=1.0)
+    s = PWNModel.TreeAttraction(tick_of_year=5, half_distance=200 * log(2), density_radius=20, density_weight=1.0)
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
 

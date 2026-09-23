@@ -22,20 +22,31 @@
 # so there's no hard attraction radius. And unlike summing contributions
 # together, max can never exceed the largest seed anywhere in the grid
 # (multiplying by a factor in (0,1) only ever shrinks a value), so the field
-# stays stable and bounded for any scale.
+# stays stable and bounded for any half_distance.
 mutable struct TreeAttraction <: System
     # tick_of_year when tree attraction is calculated.
     const tick_of_year::Int
 
-    # scale is the e-folding decay length, in meters: a source's
-    # contribution to a cell decays by decay^chamfer_distance(cell, source)
-    # cells away, where decay = exp(-cell_size/scale).
-    const scale::Int
+    # half_distance is the distance, in meters, at which a source's
+    # contribution has decayed to half its value at the source cell -- i.e.
+    # a beetle is half as attracted to a cell this far from a tree as to the
+    # tree's own cell. Internally, decay = exp(-cell_size*log(2) /
+    # half_distance), so a cell chamfer_distance(cell, source) cells from a
+    # source ends up with decay^chamfer_distance(cell, source) of that
+    # source's seed value.
+    #
+    # half_distance also sets the exchange rate between distance and
+    # density: a source whose seed is k times another's can out-compete it
+    # up to half_distance*log2(k) meters farther away (see density_weight).
+    # A larger half_distance both spreads attraction farther and lets
+    # density matter over a longer range; a small one makes density_weight
+    # nearly irrelevant, since almost nothing can outweigh raw proximity.
+    const half_distance::Float64
 
     # density_radius is the radius, in meters, within which a source tree's
     # own same-type neighbours are counted towards its local density.
-    # Independent of scale: this is the "how clustered is this source"
-    # scale, not the "how far does its seed reach" scale. Must be a
+    # Independent of half_distance: this is the "how clustered is this
+    # source" scale, not the "how far does its seed reach" scale. Must be a
     # multiple of the world's base cell size. Unused, and not validated,
     # when density_weight is 0 -- see density_weight and fill_from_query!.
     const density_radius::Int
@@ -54,7 +65,7 @@ mutable struct TreeAttraction <: System
     const density_weight::Float64
 
     # _decay is the per-orthogonal-cell-step decay factor derived from
-    # scale; a diagonal step uses decay^sqrt(2).
+    # half_distance; a diagonal step uses decay^sqrt(2).
     _decay::Float64
 
     # _density_radius_cells is density_radius expressed in grid cells. Left
@@ -86,21 +97,21 @@ mutable struct TreeAttraction <: System
     _filter_healthy::Filter
     _filter_damaged::Filter
 
-    function TreeAttraction(tick_of_year::Int, scale::Int, density_radius::Int, density_weight::Float64)
+    function TreeAttraction(tick_of_year::Int, half_distance::Float64, density_radius::Int, density_weight::Float64)
         return new(
-            tick_of_year, scale, density_radius, density_weight,
+            tick_of_year, half_distance, density_radius, density_weight,
             0.0, 0, 0.0,
             Grid(0, 0, 1, 0.0), Grid(0, 0, 1, 0.0),
         )
     end
 end
 
-TreeAttraction(; tick_of_year::Int, scale::Int, density_radius::Int, density_weight::Float64) =
-    TreeAttraction(tick_of_year, scale, density_radius, density_weight)
+TreeAttraction(; tick_of_year::Int, half_distance::Float64, density_radius::Int, density_weight::Float64) =
+    TreeAttraction(tick_of_year, half_distance, density_radius, density_weight)
 
 function initialize!(s::TreeAttraction, w::World)
     ws = get_resource(w, WorldSize)
-    s._decay = exp(-ws.cell_size / s.scale)
+    s._decay = exp(-ws.cell_size * log(2) / s.half_distance)
 
     s._healthy_attraction = Grid(ws.width, ws.height, ws.cell_size, 0.0)
     s._damaged_attraction = Grid(ws.width, ws.height, ws.cell_size, 0.0)

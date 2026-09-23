@@ -43,8 +43,11 @@ mutable struct Colonization <: System
     const tick_of_year::Int
     # cell_size of the dispersal grid, in meters.
     const cell_size::Int
-    # kernel_scale is the dispersal kernel's decay length, in meters.
-    const kernel_scale::Float64
+    # kernel_half_distance is the distance, in meters, at which the
+    # dispersal kernel's (pre-normalization) weight has decayed to half its
+    # value at the source cell -- i.e. a beetle is half as likely to land
+    # this far from a colonized tree as to land in its own cell.
+    const kernel_half_distance::Float64
     # kernel_radius is the dispersal kernel's cutoff radius, in meters.
     # Rounded up to full cells.
     const kernel_radius::Int
@@ -73,13 +76,13 @@ end
 function Colonization(;
     tick_of_year::Int,
     cell_size::Int,
-    kernel_scale::Float64,
+    kernel_half_distance::Float64,
     kernel_radius::Int,
     beetles_per_tree::Float64,
     trees_per_beetle::Float64,
 )
     return Colonization(
-        tick_of_year, cell_size, kernel_scale, kernel_radius, beetles_per_tree, trees_per_beetle,
+        tick_of_year, cell_size, kernel_half_distance, kernel_radius, beetles_per_tree, trees_per_beetle,
         Grid(0, 0, 1, 0), Grid(0, 0, 1, 0), Grid(0, 0, 1, 0.0), Grid(0, 0, 1, 0.0),
         KernelOffset[], Entity[], 1,
     )
@@ -98,7 +101,7 @@ function initialize!(s::Colonization, w::World)
     s._arrivals = Grid(width, height, s.cell_size, 0.0)
     s._probability = Grid(width, height, s.cell_size, 0.0)
 
-    s._kernel = build_kernel(cld(s.kernel_radius, s.cell_size), s.kernel_scale / s.cell_size)
+    s._kernel = build_kernel(cld(s.kernel_radius, s.cell_size), s.kernel_half_distance / (log(2) * s.cell_size))
 end
 
 function update!(s::Colonization, w::World)
