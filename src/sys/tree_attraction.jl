@@ -20,14 +20,20 @@ mutable struct TreeAttraction <: System
     _damaged_near::Grid{Float64}
     _healthy_far::Grid{Float64}
     _damaged_far::Grid{Float64}
+
+    _filter_healthy::Filter
+    _filter_damaged::Filter
+
+    function TreeAttraction(tick_of_year::Int, radius_near::Int, radius_far::Int)
+        return new(
+            tick_of_year, radius_near, radius_far, 1,
+            Grid(0, 0, 1, 0.0), Grid(0, 0, 1, 0.0), Grid(0, 0, 1, 0.0), Grid(0, 0, 1, 0.0),
+        )
+    end
 end
 
-function TreeAttraction(; tick_of_year::Int, radius_near::Int, radius_far::Int)
-    return TreeAttraction(
-        tick_of_year, radius_near, radius_far, 1,
-        Grid(0, 0, 1, 0.0), Grid(0, 0, 1, 0.0), Grid(0, 0, 1, 0.0), Grid(0, 0, 1, 0.0),
-    )
-end
+TreeAttraction(; tick_of_year::Int, radius_near::Int, radius_far::Int) =
+    TreeAttraction(tick_of_year, radius_near, radius_far)
 
 function initialize!(s::TreeAttraction, w::World)
     ws = get_resource(w, WorldSize)
@@ -49,6 +55,9 @@ function initialize!(s::TreeAttraction, w::World)
     s._damaged_far = Grid(width, height, s.radius_near, 0.0)
     add_resource!(w, HealthyTreeAttractionFar(s._healthy_far))
     add_resource!(w, DamagedTreeAttractionFar(s._damaged_far))
+
+    s._filter_healthy = Filter(w, (Position,); without=(Damaged,))
+    s._filter_damaged = Filter(w, (Position,); with=(Damaged,))
 end
 
 function update!(s::TreeAttraction, w::World)
@@ -58,21 +67,21 @@ function update!(s::TreeAttraction, w::World)
         return
     end
 
-    calc_attraction!(s, w)
+    calc_attraction!(s)
 end
 
-function calc_attraction!(s::TreeAttraction, w::World)
-    fill_from_query!(s, s._healthy_near, w, 1, Float64(s.radius_near ÷ s._healthy_near.cell_size); without=(Damaged,))
-    fill_from_query!(s, s._damaged_near, w, 1, Float64(s.radius_near ÷ s._damaged_near.cell_size); with=(Damaged,))
+function calc_attraction!(s::TreeAttraction)
+    fill_from_query!(s, s._healthy_near, s._filter_healthy, 1, Float64(s.radius_near ÷ s._healthy_near.cell_size))
+    fill_from_query!(s, s._damaged_near, s._filter_damaged, 1, Float64(s.radius_near ÷ s._damaged_near.cell_size))
 
     fill_grid!(s._healthy_near)
     fill_grid!(s._damaged_near)
 
     fill_from_query!(
-        s, s._healthy_far, w, s._units_per_cell, Float64(s.radius_far ÷ s._healthy_far.cell_size); without=(Damaged,),
+        s, s._healthy_far, s._filter_healthy, s._units_per_cell, Float64(s.radius_far ÷ s._healthy_far.cell_size),
     )
     fill_from_query!(
-        s, s._damaged_far, w, s._units_per_cell, Float64(s.radius_far ÷ s._damaged_far.cell_size); with=(Damaged,),
+        s, s._damaged_far, s._filter_damaged, s._units_per_cell, Float64(s.radius_far ÷ s._damaged_far.cell_size),
     )
 
     fill_grid!(s._healthy_far)
@@ -83,12 +92,14 @@ end
 # matching tree is set to the field's peak value (the radius, in grid
 # cells), everything else to 0. fill_grid! then propagates these peaks
 # outward.
-function fill_from_query!(
-    s::TreeAttraction, grid::Grid{Float64}, w::World, units_per_cell::Int, peak::Float64;
-    with::Tuple=(), without::Tuple=(),
-)
+#
+# Takes a pre-built Filter (see the field docstring on TreeAttraction)
+# rather than `with`/`without` tuples, so that Query(filt) below hits Ark's
+# fast, specialized path instead of re-deriving a filter from tuples whose
+# element types aren't compile-time constants here.
+function fill_from_query!(s::TreeAttraction, grid::Grid{Float64}, filt::Filter, units_per_cell::Int, peak::Float64)
     fill!(grid, 0.0)
-    for (_, positions) in Query(w, (Position,); with=with, without=without)
+    for (_, positions) in Query(filt)
         for pos in positions
             x, y = to_coords(s, pos.x, pos.y, units_per_cell)
             grid[x, y] = peak
