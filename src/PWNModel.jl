@@ -29,11 +29,12 @@ include("sys/init_grids.jl")
 include("sys/init_trees.jl")
 include("sys/update_time.jl")
 include("sys/disease_course.jl")
-include("sys/random_infection.jl")
+include("sys/random_release.jl")
 include("sys/damage_trees.jl")
 include("sys/beetle_emergence.jl")
 include("sys/beetle_mortality.jl")
 include("sys/beetle_movement.jl")
+include("sys/nematode_infection.jl")
 include("sys/colonization.jl")
 include("sys/tree_attraction.jl")
 
@@ -61,13 +62,14 @@ export RowObserver, header, row, CSV
 export Rng, Tick, Time
 export Termination, FixedTermination
 export Grid, TreeGrid, SpaceGrid, WorldSize
-export HealthyTreeAttraction, DamagedTreeAttraction
+export HealthyTreeAttraction, DamagedTreeAttraction, FeedingInfectedBeetles
 export Position, InCell, Damaged, Infected, Colonized
 export BeetlePosition, LifeExpectancy
 export GridCoords
 export InitGrids, InitTrees
-export UpdateTime, DiseaseCourse, RandomInfection, DamageTrees, Colonization
+export UpdateTime, DiseaseCourse, RandomRelease, DamageTrees, Colonization
 export BeetleEmergence, EmergenceTick, BeetleMortality, BeetleMovement
+export NematodeInfection
 export TreeAttraction
 export TreePopulationObserver, TreeDamageObserver, TreeColonizationObserver
 export TreeColonizationMapObserver, BeetlesMapObserver, TreeAttractionMapObserver

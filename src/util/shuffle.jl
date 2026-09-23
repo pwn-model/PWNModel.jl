@@ -13,7 +13,7 @@ Fisher-Yates with a masked-rejection sampler on Julia 1.10, a forward
 variant of the same masked sampler on Julia 1.12, and this NDL-based
 rewrite on Julia 1.13), each giving a different permutation from the same
 seed. Calling `Random.shuffle!` directly would make tree selection in
-[`RandomInfection`](@ref) depend on which Julia version happens to be
+[`RandomRelease`](@ref) depend on which Julia version happens to be
 running.
 
 The sibling Go implementation ports this exact algorithm (see
