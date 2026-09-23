@@ -1,7 +1,11 @@
-# TreeAttraction computes two attraction fields -- one for healthy trees,
-# one for damaged trees -- meant to bias where dispersing beetles fly, for a
-# deterministic consumer that always moves towards whichever neighbouring
-# cell has the highest attraction value. Mirrors the sibling Go
+# TreeAttraction computes one attraction field, meant to bias where
+# dispersing beetles fly, for a deterministic consumer that always moves
+# towards whichever neighbouring cell has the highest attraction value. It
+# computes healthy- or damaged-tree attraction, never both: add it to the
+# scheduler twice, once with damaged_trees=false and once true, to get both
+# fields -- each instance can use entirely different half_distance/
+# density_radius/density_weight values, since healthy and damaged trees
+# plausibly attract vectors differently. Mirrors the sibling Go
 # implementation's `sys.TreeAttraction`.
 #
 # Each source tree seeds fill_grid! with its own local occupancy fraction
@@ -26,6 +30,12 @@
 mutable struct TreeAttraction <: System
     # tick_of_year when tree attraction is calculated.
     const tick_of_year::Int
+
+    # damaged_trees selects which trees this instance computes attraction
+    # from and which resource it publishes to: false (the default) uses
+    # healthy trees and publishes HealthyTreeAttraction, true uses damaged
+    # trees and publishes DamagedTreeAttraction.
+    const damaged_trees::Bool
 
     # half_distance is the distance, in meters, at which a source's
     # contribution has decayed to half its value at the source cell -- i.e.
@@ -79,13 +89,11 @@ mutable struct TreeAttraction <: System
     # density_weight is 0.
     _max_count::Float64
 
-    _healthy_attraction::Grid{Float64}
-    _damaged_attraction::Grid{Float64}
+    _attraction::Grid{Float64}
 
-    # _presence is a reused 0/1 scratch grid for whichever type
-    # (healthy/damaged) is currently being seeded. Left undefined when
-    # density_weight is 0, since fill_from_query!'s fast path never touches
-    # it.
+    # _presence is a reused 0/1 scratch grid for seeding. Left undefined
+    # when density_weight is 0, since fill_from_query!'s fast path never
+    # touches it.
     _presence::Grid{Float64}
 
     # _sat is a reused (width+1)*(height+1) summed-area-table buffer for
@@ -94,29 +102,34 @@ mutable struct TreeAttraction <: System
     # it.
     _sat::Vector{Float64}
 
-    _filter_healthy::Filter
-    _filter_damaged::Filter
+    _filter::Filter
 
-    function TreeAttraction(tick_of_year::Int, half_distance::Float64, density_radius::Int, density_weight::Float64)
+    function TreeAttraction(
+        tick_of_year::Int, damaged_trees::Bool, half_distance::Float64, density_radius::Int, density_weight::Float64,
+    )
         return new(
-            tick_of_year, half_distance, density_radius, density_weight,
+            tick_of_year, damaged_trees, half_distance, density_radius, density_weight,
             0.0, 0, 0.0,
-            Grid(0, 0, 1, 0.0), Grid(0, 0, 1, 0.0),
+            Grid(0, 0, 1, 0.0),
         )
     end
 end
 
-TreeAttraction(; tick_of_year::Int, half_distance::Float64, density_radius::Int, density_weight::Float64) =
-    TreeAttraction(tick_of_year, half_distance, density_radius, density_weight)
+TreeAttraction(;
+    tick_of_year::Int, damaged_trees::Bool=false, half_distance::Float64, density_radius::Int,
+    density_weight::Float64,
+) = TreeAttraction(tick_of_year, damaged_trees, half_distance, density_radius, density_weight)
 
 function initialize!(s::TreeAttraction, w::World)
     ws = get_resource(w, WorldSize)
     s._decay = exp(-ws.cell_size * log(2) / s.half_distance)
 
-    s._healthy_attraction = Grid(ws.width, ws.height, ws.cell_size, 0.0)
-    s._damaged_attraction = Grid(ws.width, ws.height, ws.cell_size, 0.0)
-    add_resource!(w, HealthyTreeAttraction(s._healthy_attraction))
-    add_resource!(w, DamagedTreeAttraction(s._damaged_attraction))
+    s._attraction = Grid(ws.width, ws.height, ws.cell_size, 0.0)
+    if s.damaged_trees
+        add_resource!(w, DamagedTreeAttraction(s._attraction))
+    else
+        add_resource!(w, HealthyTreeAttraction(s._attraction))
+    end
 
     # At density_weight 0, occupancy^0 is 1 regardless of local density (see
     # fill_from_query!'s fast path), so density_radius is never consulted:
@@ -137,8 +150,11 @@ function initialize!(s::TreeAttraction, w::World)
         s._sat = zeros(Float64, (ws.width + 1) * (ws.height + 1))
     end
 
-    s._filter_healthy = Filter(w, (Position,); without=(Damaged,))
-    s._filter_damaged = Filter(w, (Position,); with=(Damaged,))
+    s._filter = if s.damaged_trees
+        Filter(w, (Position,); with=(Damaged,))
+    else
+        Filter(w, (Position,); without=(Damaged,))
+    end
 end
 
 function update!(s::TreeAttraction, w::World)
@@ -152,11 +168,8 @@ function update!(s::TreeAttraction, w::World)
 end
 
 function calc_attraction!(s::TreeAttraction)
-    fill_from_query!(s, s._healthy_attraction, s._filter_healthy)
-    fill_from_query!(s, s._damaged_attraction, s._filter_damaged)
-
-    fill_grid!(s, s._healthy_attraction)
-    fill_grid!(s, s._damaged_attraction)
+    fill_from_query!(s, s._attraction, s._filter)
+    fill_grid!(s, s._attraction)
 end
 
 # fill_from_query! seeds the attraction grid: every cell containing a

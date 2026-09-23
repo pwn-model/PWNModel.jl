@@ -45,6 +45,49 @@ end
     @test isapprox(grid[60, 25], decay^10; atol=1e-9)
 end
 
+# Two independently configured instances -- one for healthy trees, one for
+# damaged -- can be run in the same world side by side (as they would be
+# added to a real scheduler twice), each driven only by its own tree type
+# and its own half_distance, without interfering with each other.
+@testset "TreeAttraction healthy and damaged instances are independent" begin
+    world = _setup_tree_attraction_world()
+    _place_tree(world, 50, 25)
+
+    new_entities!(world, 1, (PWNModel.Position, PWNModel.Damaged)) do (entities, positions, _)
+        positions[1] = PWNModel.Position(80, 25)
+    end
+
+    healthy_half_distance = 50 * log(2)
+    healthy = PWNModel.TreeAttraction(
+        tick_of_year=0, half_distance=healthy_half_distance, density_radius=20, density_weight=0.0,
+    )
+    PWNModel.initialize!(healthy, world)
+
+    damaged_half_distance = 200 * log(2)
+    damaged = PWNModel.TreeAttraction(
+        tick_of_year=0, damaged_trees=true, half_distance=damaged_half_distance, density_radius=20,
+        density_weight=0.0,
+    )
+    PWNModel.initialize!(damaged, world)
+
+    PWNModel.update!(healthy, world)
+    PWNModel.update!(damaged, world)
+
+    healthy_grid = get_resource(world, PWNModel.HealthyTreeAttraction).grid
+    damaged_grid = get_resource(world, PWNModel.DamagedTreeAttraction).grid
+
+    # The healthy field is driven only by the healthy tree at (50, 25), 10
+    # cells from the query point, using the healthy instance's own decay.
+    healthy_decay = exp(-10.0 * log(2) / healthy_half_distance)
+    @test isapprox(healthy_grid[60, 25], healthy_decay^10; atol=1e-9)
+
+    # The damaged field is driven only by the damaged tree at (80, 25), 20
+    # cells from the same query point, using the damaged instance's own
+    # (different) decay -- confirming the two run independently.
+    damaged_decay = exp(-10.0 * log(2) / damaged_half_distance)
+    @test isapprox(damaged_grid[60, 25], damaged_decay^20; atol=1e-9)
+end
+
 @testset "TreeAttraction has no hard cutoff" begin
     world = _setup_tree_attraction_world()
     _place_tree(world, 50, 25)

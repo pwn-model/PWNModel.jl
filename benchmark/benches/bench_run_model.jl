@@ -36,7 +36,15 @@ function do_setup_world(n)
             ),
             TreeAttraction(
                 tick_of_year=18,
-                half_distance=50,
+                damaged_trees=true,
+                half_distance=50.0,
+                density_radius=20,
+                density_weight=1.0,
+            ),
+            TreeAttraction(
+                tick_of_year=18,
+                damaged_trees=false,
+                half_distance=50.0,
                 density_radius=20,
                 density_weight=1.0,
             ),
@@ -44,7 +52,7 @@ function do_setup_world(n)
             Colonization(
                 tick_of_year=20,
                 cell_size=100,
-                kernel_half_distance=50,
+                kernel_half_distance=50.0,
                 kernel_radius=300,
                 beetles_per_tree=2.2,
                 trees_per_beetle=1.0,
