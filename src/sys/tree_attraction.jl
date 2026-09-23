@@ -97,6 +97,8 @@ end
 # rather than `with`/`without` tuples, so that Query(filt) below hits Ark's
 # fast, specialized path instead of re-deriving a filter from tuples whose
 # element types aren't compile-time constants here.
+#
+# TODO: is there still type instability? Can we improve further?
 function fill_from_query!(s::TreeAttraction, grid::Grid{Float64}, filt::Filter, units_per_cell::Int, peak::Float64)
     fill!(grid, 0.0)
     for (_, positions) in Query(filt)
