@@ -31,7 +31,7 @@ function do_setup_world(n)
             ),
             BeetleEmergence(
                 tick_of_year=19,
-                beetles_per_tree=10,
+                beetles_per_tree=5,
                 life_expectancy=5.0,
             ),
             TreeAttraction(
@@ -50,7 +50,7 @@ function do_setup_world(n)
             ),
             BeetleMovement(
                 steps_per_tick=7,
-                duration_feeding=12,
+                duration_feeding=6,
                 duration_egg_laying=6,
                 leave_tree_probability=0.1,
                 random_walk_probability=0.5,
@@ -65,7 +65,7 @@ function do_setup_world(n)
                 trees_per_beetle=1.0,
             ),
             NematodeInfection(
-                infection_probability=0.02,
+                infection_probability=0.01,
             ),
 
             # Stop criterion
