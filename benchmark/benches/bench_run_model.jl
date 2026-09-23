@@ -36,8 +36,9 @@ function do_setup_world(n)
             ),
             TreeAttraction(
                 tick_of_year=18,
-                radius_near=100,
-                radius_far=500,
+                scale=50,
+                density_radius=20,
+                density_weight=1.0,
             ),
             BeetleMortality(),
             Colonization(

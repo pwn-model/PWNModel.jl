@@ -17,22 +17,12 @@ struct SpaceGrid
     grid::Grid{Entity}
 end
 
-# HealthyTreeAttractionNear resource: near-field attraction driven by healthy trees.
-struct HealthyTreeAttractionNear
+# HealthyTreeAttraction resource: attraction field driven by healthy trees.
+struct HealthyTreeAttraction
     grid::Grid{Float64}
 end
 
-# HealthyTreeAttractionFar resource: far-field attraction driven by healthy trees.
-struct HealthyTreeAttractionFar
-    grid::Grid{Float64}
-end
-
-# DamagedTreeAttractionNear resource: near-field attraction driven by damaged trees.
-struct DamagedTreeAttractionNear
-    grid::Grid{Float64}
-end
-
-# DamagedTreeAttractionFar resource: far-field attraction driven by damaged trees.
-struct DamagedTreeAttractionFar
+# DamagedTreeAttraction resource: attraction field driven by damaged trees.
+struct DamagedTreeAttraction
     grid::Grid{Float64}
 end

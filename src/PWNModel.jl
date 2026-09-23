@@ -60,8 +60,7 @@ export RowObserver, header, row, CSV
 export Rng, Tick, Time
 export Termination, FixedTermination
 export Grid, TreeGrid, SpaceGrid, WorldSize
-export HealthyTreeAttractionNear, HealthyTreeAttractionFar
-export DamagedTreeAttractionNear, DamagedTreeAttractionFar
+export HealthyTreeAttraction, DamagedTreeAttraction
 export Position, InCell, Damaged, Infected, Colonized
 export BeetlePosition, LifeExpectancy
 export GridCoords

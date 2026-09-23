@@ -43,8 +43,9 @@ systems:
 
   - type: TreeAttraction
     tick_of_year: 18
-    radius_near: 50
-    radius_far: 500
+    scale: 50
+    density_radius: 20
+    density_weight: 1.0
 
   - type: BeetleMortality
 
@@ -94,6 +95,5 @@ systems:
     observer:
       type: TreeAttractionMapObserver
       damaged_trees: true
-      far_range: true
     colormap: viridis
-    colorrange: [0.0, 10.0]
+    colorrange: [-8.0, 0.0]

@@ -1,60 +1,130 @@
-# TreeAttraction computes four attraction fields -- healthy/damaged trees,
-# each at near/far range -- meant to bias where dispersing beetles fly.
-# Mirrors the sibling Go implementation's `sys.TreeAttraction`.
+# TreeAttraction computes two attraction fields -- one for healthy trees,
+# one for damaged trees -- meant to bias where dispersing beetles fly, for a
+# deterministic consumer that always moves towards whichever neighbouring
+# cell has the highest attraction value. Mirrors the sibling Go
+# implementation's `sys.TreeAttraction`.
+#
+# Each source tree seeds fill_grid! with its own local occupancy fraction
+# (see fill_from_query!), raised to density_weight, instead of a uniform
+# value: a denser cluster starts from a taller seed, so it can out-reach and
+# win cells that a closer but sparser source would otherwise have claimed by
+# max-relaxation. Applying a density term *after* propagation instead (a
+# uniform, strictly increasing transform of the finished field) could never
+# achieve this: such a transform can never change a gradient's direction,
+# nor which of several candidate cells has the highest value -- it only ever
+# rescales the numbers, never a decision made from them. Seeding density in
+# before propagation, rather than rescaling it after, is what gives
+# density_weight real effect here.
+#
+# fill_grid! propagates these seeds outward via max-relaxation, decaying
+# multiplicatively per step rather than subtracting a fixed cost: unlike
+# subtraction, multiplication never drives a reachable cell to exactly zero,
+# so there's no hard attraction radius. And unlike summing contributions
+# together, max can never exceed the largest seed anywhere in the grid
+# (multiplying by a factor in (0,1) only ever shrinks a value), so the field
+# stays stable and bounded for any scale.
 mutable struct TreeAttraction <: System
     # tick_of_year when tree attraction is calculated.
     const tick_of_year::Int
-    # radius_near is the radius of the near attraction field around each
-    # source tree, in meters. Must be a multiple of the world's base cell size.
-    const radius_near::Int
-    # radius_far is the radius of the far attraction field around each
-    # source tree, in meters. Must be a multiple of radius_near.
-    const radius_far::Int
 
-    # _units_per_cell is the number of tree-grid units per far-field
-    # dispersal-grid cell, i.e. radius_near expressed in the world's base
-    # cell-size units.
-    _units_per_cell::Int
+    # scale is the e-folding decay length, in meters: a source's
+    # contribution to a cell decays by decay^chamfer_distance(cell, source)
+    # cells away, where decay = exp(-cell_size/scale).
+    const scale::Int
 
-    _healthy_near::Grid{Float64}
-    _damaged_near::Grid{Float64}
-    _healthy_far::Grid{Float64}
-    _damaged_far::Grid{Float64}
+    # density_radius is the radius, in meters, within which a source tree's
+    # own same-type neighbours are counted towards its local density.
+    # Independent of scale: this is the "how clustered is this source"
+    # scale, not the "how far does its seed reach" scale. Must be a
+    # multiple of the world's base cell size. Unused, and not validated,
+    # when density_weight is 0 -- see density_weight and fill_from_query!.
+    const density_radius::Int
+
+    # density_weight is the exponent applied to a source's local occupancy
+    # fraction (its same-type neighbour count within density_radius,
+    # divided by the number of cells that fit in that radius -- so always
+    # in (0, 1]) to scale its seed: 0 makes every source seed at 1
+    # regardless of clustering (a plain single-nearest/strongest-source
+    # decay field), 1 makes the seed scale linearly with local occupancy,
+    # and >1 makes denser clusters reach disproportionately farther than the
+    # same trees spread out. Since occupancy is normalized to (0, 1], every
+    # seed -- and so, by fill_grid!'s max-relaxation, the whole resulting
+    # field -- stays within (0, 1] regardless of density_radius or how
+    # densely populated the world is.
+    const density_weight::Float64
+
+    # _decay is the per-orthogonal-cell-step decay factor derived from
+    # scale; a diagonal step uses decay^sqrt(2).
+    _decay::Float64
+
+    # _density_radius_cells is density_radius expressed in grid cells. Left
+    # at its zero value when density_weight is 0.
+    _density_radius_cells::Int
+
+    # _max_count is the number of cells in a full
+    # (2*_density_radius_cells+1) square window, i.e. the largest
+    # local_count can ever be. Dividing by it turns a raw neighbour count
+    # into an occupancy fraction in (0, 1]. Left at its zero value when
+    # density_weight is 0.
+    _max_count::Float64
+
+    _healthy_attraction::Grid{Float64}
+    _damaged_attraction::Grid{Float64}
+
+    # _presence is a reused 0/1 scratch grid for whichever type
+    # (healthy/damaged) is currently being seeded. Left undefined when
+    # density_weight is 0, since fill_from_query!'s fast path never touches
+    # it.
+    _presence::Grid{Float64}
+
+    # _sat is a reused (width+1)*(height+1) summed-area-table buffer for
+    # counting each source's local density. Left undefined when
+    # density_weight is 0, since fill_from_query!'s fast path never touches
+    # it.
+    _sat::Vector{Float64}
 
     _filter_healthy::Filter
     _filter_damaged::Filter
 
-    function TreeAttraction(tick_of_year::Int, radius_near::Int, radius_far::Int)
+    function TreeAttraction(tick_of_year::Int, scale::Int, density_radius::Int, density_weight::Float64)
         return new(
-            tick_of_year, radius_near, radius_far, 1,
-            Grid(0, 0, 1, 0.0), Grid(0, 0, 1, 0.0), Grid(0, 0, 1, 0.0), Grid(0, 0, 1, 0.0),
+            tick_of_year, scale, density_radius, density_weight,
+            0.0, 0, 0.0,
+            Grid(0, 0, 1, 0.0), Grid(0, 0, 1, 0.0),
         )
     end
 end
 
-TreeAttraction(; tick_of_year::Int, radius_near::Int, radius_far::Int) =
-    TreeAttraction(tick_of_year, radius_near, radius_far)
+TreeAttraction(; tick_of_year::Int, scale::Int, density_radius::Int, density_weight::Float64) =
+    TreeAttraction(tick_of_year, scale, density_radius, density_weight)
 
 function initialize!(s::TreeAttraction, w::World)
     ws = get_resource(w, WorldSize)
-    if s.radius_near % ws.cell_size != 0
-        throw(ArgumentError("radius_near of the dispersal submodel must be a multiple of the world's base cell size."))
-    end
-    if s.radius_far % s.radius_near != 0
-        throw(ArgumentError("radius_far of the dispersal submodel must be a multiple of radius_near."))
-    end
+    s._decay = exp(-ws.cell_size / s.scale)
 
-    s._healthy_near = Grid(ws.width, ws.height, ws.cell_size, 0.0)
-    s._damaged_near = Grid(ws.width, ws.height, ws.cell_size, 0.0)
-    add_resource!(w, HealthyTreeAttractionNear(s._healthy_near))
-    add_resource!(w, DamagedTreeAttractionNear(s._damaged_near))
+    s._healthy_attraction = Grid(ws.width, ws.height, ws.cell_size, 0.0)
+    s._damaged_attraction = Grid(ws.width, ws.height, ws.cell_size, 0.0)
+    add_resource!(w, HealthyTreeAttraction(s._healthy_attraction))
+    add_resource!(w, DamagedTreeAttraction(s._damaged_attraction))
 
-    s._units_per_cell = s.radius_near ÷ ws.cell_size
-    width, height = cld(ws.width, s._units_per_cell), cld(ws.height, s._units_per_cell)
-    s._healthy_far = Grid(width, height, s.radius_near, 0.0)
-    s._damaged_far = Grid(width, height, s.radius_near, 0.0)
-    add_resource!(w, HealthyTreeAttractionFar(s._healthy_far))
-    add_resource!(w, DamagedTreeAttractionFar(s._damaged_far))
+    # At density_weight 0, occupancy^0 is 1 regardless of local density (see
+    # fill_from_query!'s fast path), so density_radius is never consulted:
+    # don't require it to be valid, and don't allocate the buffers that only
+    # the density count needs.
+    if s.density_weight != 0
+        if s.density_radius % ws.cell_size != 0
+            throw(
+                ArgumentError(
+                    "density_radius of the dispersal submodel must be a multiple of the world's base cell size.",
+                ),
+            )
+        end
+        s._density_radius_cells = s.density_radius ÷ ws.cell_size
+        s._max_count = Float64((2 * s._density_radius_cells + 1)^2)
+
+        s._presence = Grid(ws.width, ws.height, ws.cell_size, 0.0)
+        s._sat = zeros(Float64, (ws.width + 1) * (ws.height + 1))
+    end
 
     s._filter_healthy = Filter(w, (Position,); without=(Damaged,))
     s._filter_damaged = Filter(w, (Position,); with=(Damaged,))
@@ -71,61 +141,111 @@ function update!(s::TreeAttraction, w::World)
 end
 
 function calc_attraction!(s::TreeAttraction)
-    fill_from_query!(s, s._healthy_near, s._filter_healthy, 1, Float64(s.radius_near ÷ s._healthy_near.cell_size))
-    fill_from_query!(s, s._damaged_near, s._filter_damaged, 1, Float64(s.radius_near ÷ s._damaged_near.cell_size))
+    fill_from_query!(s, s._healthy_attraction, s._filter_healthy)
+    fill_from_query!(s, s._damaged_attraction, s._filter_damaged)
 
-    fill_grid!(s._healthy_near)
-    fill_grid!(s._damaged_near)
-
-    fill_from_query!(
-        s, s._healthy_far, s._filter_healthy, s._units_per_cell, Float64(s.radius_far ÷ s._healthy_far.cell_size),
-    )
-    fill_from_query!(
-        s, s._damaged_far, s._filter_damaged, s._units_per_cell, Float64(s.radius_far ÷ s._damaged_far.cell_size),
-    )
-
-    fill_grid!(s._healthy_far)
-    fill_grid!(s._damaged_far)
+    fill_grid!(s, s._healthy_attraction)
+    fill_grid!(s, s._damaged_attraction)
 end
 
 # fill_from_query! seeds the attraction grid: every cell containing a
-# matching tree is set to the field's peak value (the radius, in grid
-# cells), everything else to 0. fill_grid! then propagates these peaks
-# outward.
+# matching tree is set to that source's own local occupancy fraction
+# (local_count divided by _max_count, always in (0, 1]) raised to
+# density_weight, everything else to 0. fill_grid! then propagates these
+# seeds outward.
 #
 # Takes a pre-built Filter (see the field docstring on TreeAttraction)
 # rather than `with`/`without` tuples, so that Query(filt) below hits Ark's
 # fast, specialized path instead of re-deriving a filter from tuples whose
 # element types aren't compile-time constants here.
-#
-# TODO: is there still type instability? Can we improve further?
-function fill_from_query!(s::TreeAttraction, grid::Grid{Float64}, filt::Filter, units_per_cell::Int, peak::Float64)
+function fill_from_query!(s::TreeAttraction, grid::Grid{Float64}, filt::Filter)
     fill!(grid, 0.0)
+
+    if s.density_weight == 0
+        # occupancy^0 is 1 for any occupancy, so every source's seed is 1
+        # regardless of local density: skip counting it altogether.
+        for (_, positions) in Query(filt)
+            for pos in positions
+                grid[pos.x, pos.y] = 1.0
+            end
+        end
+        return
+    end
+
+    fill!(s._presence, 0.0)
     for (_, positions) in Query(filt)
         for pos in positions
-            x, y = to_coords(s, pos.x, pos.y, units_per_cell)
-            grid[x, y] = peak
+            s._presence[pos.x, pos.y] = 1.0
+        end
+    end
+
+    build_sat!(s)
+
+    for (_, positions) in Query(filt)
+        for pos in positions
+            occupancy = local_count(s, pos.x, pos.y) / s._max_count
+            grid[pos.x, pos.y] = occupancy^s.density_weight
         end
     end
 end
 
-# fill_grid! turns the seeded peaks into a smooth attraction field by
-# propagating each source's value outward, decreasing by 1 per orthogonal
-# step and sqrt(2) per diagonal step, floored at 0. This is an in-place,
+# build_sat! computes a summed-area table of s._presence into s._sat, so
+# that local_count can answer a windowed tree count in O(1) instead of
+# O(radius^2) per source.
+function build_sat!(s::TreeAttraction)
+    w, h = s._presence.width, s._presence.height
+    stride = h + 1
+    idx(x, y) = x * stride + y + 1
+
+    sat = s._sat
+    for x in 0:w
+        sat[idx(x, 0)] = 0.0
+    end
+    for y in 0:h
+        sat[idx(0, y)] = 0.0
+    end
+    for x in 1:w, y in 1:h
+        sat[idx(x, y)] = s._presence[x, y] + sat[idx(x - 1, y)] + sat[idx(x, y - 1)] - sat[idx(x - 1, y - 1)]
+    end
+end
+
+# local_count returns the number of same-type trees within density_radius
+# of (x, y), inclusive of the tree at (x, y) itself (so the result is
+# always >= 1 when called on an actual source cell), via the summed-area
+# table built by build_sat!.
+function local_count(s::TreeAttraction, x::Int, y::Int)
+    w, h = s._presence.width, s._presence.height
+    stride = h + 1
+    idx(xx, yy) = xx * stride + yy + 1
+
+    r = s._density_radius_cells
+    x1, x2 = max(x - r, 1), min(x + r, w)
+    y1, y2 = max(y - r, 1), min(y + r, h)
+
+    sat = s._sat
+    return sat[idx(x2, y2)] - sat[idx(x1 - 1, y2)] - sat[idx(x2, y1 - 1)] + sat[idx(x1 - 1, y1 - 1)]
+end
+
+# fill_grid! turns the seeded values into a smooth attraction field by
+# propagating each source's value outward, multiplying by decay per
+# orthogonal step and decay^sqrt(2) per diagonal step, and keeping the best
+# (max) value reaching each cell from any source. This is an in-place,
 # single-grid Gauss-Seidel relaxation (a discrete fast-sweeping method):
-# two passes in opposite raster directions suffice, because the grid has
-# no obstacles, so any shortest path from a source can be split into one
+# two passes in opposite raster directions suffice, because the grid has no
+# obstacles, so any shortest path from a source can be split into one
 # forward-monotone and one backward-monotone segment, each fully resolved
 # by one of the two passes.
-function fill_grid!(grid::Grid{Float64})
+function fill_grid!(s::TreeAttraction, grid::Grid{Float64})
     w, h = grid.width, grid.height
 
     # Offsets of the already-updated neighbours seen by a sweep moving in
     # increasing (forward) resp. decreasing (backward) x/y, paired with
-    # their step cost.
+    # their step decay factor.
     forward = ((-1, -1), (-1, 0), (-1, 1), (0, -1))
     backward = ((1, 1), (1, 0), (1, -1), (0, 1))
-    costs = (sqrt(2.0), 1.0, sqrt(2.0), 1.0)
+    decay = s._decay
+    diagonal_decay = decay^sqrt(2.0)
+    decays = (diagonal_decay, decay, diagonal_decay, decay)
 
     function relax!(x, y, offsets)
         best = grid[x, y]
@@ -135,12 +255,12 @@ function fill_grid!(grid::Grid{Float64})
             if nx < 1 || nx > w || ny < 1 || ny > h
                 continue
             end
-            v = grid[nx, ny] - costs[i]
+            v = grid[nx, ny] * decays[i]
             if v > best
                 best = v
             end
         end
-        grid[x, y] = max(best, 0.0)
+        grid[x, y] = best
     end
 
     for x in 1:w, y in 1:h
@@ -150,6 +270,3 @@ function fill_grid!(grid::Grid{Float64})
         relax!(x, y, backward)
     end
 end
-
-# to_coords calculates (1-based) attraction-grid coords from (1-based) tree grid coords.
-to_coords(::TreeAttraction, x::Int, y::Int, upc::Int) = (fld(x - 1, upc) + 1, fld(y - 1, upc) + 1)
