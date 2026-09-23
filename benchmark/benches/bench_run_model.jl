@@ -14,7 +14,7 @@ function do_setup_world(n)
         (
             # Initialization
             InitGrids(),
-            InitTrees(tree_probability=0.9, damage_prevalence=0.03, beetle_prevalence=0.2),
+            InitTrees(cell_probability=1.0, tree_probability=0.9, damage_prevalence=0.03, beetle_prevalence=0.2),
 
             # Systems
             UpdateTime(ticks_per_year=52),
@@ -34,12 +34,26 @@ function do_setup_world(n)
                 beetles_per_tree=10,
                 life_expectancy=5.0,
             ),
+            TreeAttraction(
+                tick_of_year=18,
+                damaged_trees=true,
+                half_distance=50.0,
+                density_radius=20,
+                density_weight=1.0,
+            ),
+            TreeAttraction(
+                tick_of_year=18,
+                damaged_trees=false,
+                half_distance=50.0,
+                density_radius=20,
+                density_weight=1.0,
+            ),
             BeetleMortality(),
             Colonization(
                 tick_of_year=20,
                 cell_size=100,
-                kernel_scale=100.0,
-                kernel_radius=400,
+                kernel_half_distance=50.0,
+                kernel_radius=300,
                 beetles_per_tree=2.2,
                 trees_per_beetle=1.0,
             ),

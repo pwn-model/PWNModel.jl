@@ -9,7 +9,7 @@
     gs = PWNModel.InitGrids()
     PWNModel.initialize!(gs, world)
 
-    s = PWNModel.InitTrees(tree_probability=0.9, damage_prevalence=0.0, beetle_prevalence=0.0)
+    s = PWNModel.InitTrees(cell_probability=1.0, tree_probability=0.9, damage_prevalence=0.0, beetle_prevalence=0.0)
     PWNModel.initialize!(s, world)
 
     grid = get_resource(world, PWNModel.TreeGrid)
@@ -41,7 +41,7 @@ end
     gs = PWNModel.InitGrids()
     PWNModel.initialize!(gs, world)
 
-    s = PWNModel.InitTrees(tree_probability=1.0, damage_prevalence=0.2, beetle_prevalence=0.0)
+    s = PWNModel.InitTrees(cell_probability=1.0, tree_probability=1.0, damage_prevalence=0.2, beetle_prevalence=0.0)
     PWNModel.initialize!(s, world)
 
     grid = get_resource(world, PWNModel.TreeGrid)
@@ -84,7 +84,7 @@ end
     gs = PWNModel.InitGrids()
     PWNModel.initialize!(gs, world)
 
-    s = PWNModel.InitTrees(tree_probability=1.0, damage_prevalence=0.2, beetle_prevalence=0.3)
+    s = PWNModel.InitTrees(cell_probability=1.0, tree_probability=1.0, damage_prevalence=0.2, beetle_prevalence=0.3)
     PWNModel.initialize!(s, world)
 
     grid = get_resource(world, PWNModel.TreeGrid)
