@@ -55,6 +55,13 @@ systems:
     density_radius: 20
     density_weight: 1.0
 
+  - type: BeetleMovement
+    steps_per_tick: 7
+    duration_feeding: 12
+    duration_egg_laying: 6
+    leave_tree_probability: 0.5
+    random_walk_probability: 0.5
+
   - type: BeetleMortality
 
   - type: Colonization
@@ -95,9 +102,9 @@ systems:
   - type: Main.Image
     observer:
       type: BeetlesMapObserver
-      cell_size: 100
+      cell_size: 10
     colormap: viridis
-    colorrange: [0.0, 50.0]
+    colorrange: [0.0, 10.0]
 
   - type: Main.Image
     observer:

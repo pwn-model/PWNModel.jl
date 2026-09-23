@@ -48,6 +48,13 @@ function do_setup_world(n)
                 density_radius=20,
                 density_weight=1.0,
             ),
+            BeetleMovement(
+                steps_per_tick=7,
+                duration_feeding=12,
+                duration_egg_laying=6,
+                leave_tree_probability=0.5,
+                random_walk_probability=0.5,
+            ),
             BeetleMortality(),
             Colonization(
                 tick_of_year=20,

@@ -182,6 +182,8 @@ end
 # rather than `with`/`without` tuples, so that Query(filt) below hits Ark's
 # fast, specialized path instead of re-deriving a filter from tuples whose
 # element types aren't compile-time constants here.
+#
+# TODO: can we do better here and get rid of the dynamic dispatch?
 function fill_from_query!(s::TreeAttraction, grid::Grid{Float64}, filt::Filter)
     fill!(grid, 0.0)
 
