@@ -13,6 +13,7 @@ systems:
   - type: InitGrids
   
   - type: InitTrees
+    cell_probability: 0.6
     tree_probability: 0.9
     damage_prevalence: 0.03
     beetle_prevalence: 0.2
@@ -39,6 +40,11 @@ systems:
     tick_of_year: 19
     beetles_per_tree: 10
     life_expectancy: 5.0
+
+  - type: TreeAttraction
+    tick_of_year: 18
+    radius_near: 50
+    radius_far: 500
 
   - type: BeetleMortality
 
@@ -83,3 +89,11 @@ systems:
       cell_size: 100
     colormap: viridis
     colorrange: [0.0, 50.0]
+
+  - type: Main.Image
+    observer:
+      type: TreeAttractionMapObserver
+      damaged_trees: true
+      far_range: true
+    colormap: viridis
+    colorrange: [0.0, 10.0]

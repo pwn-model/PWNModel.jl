@@ -1,4 +1,5 @@
 Base.@kwdef struct InitTrees <: System
+    cell_probability::Float64
     tree_probability::Float64
     damage_prevalence::Float64
     beetle_prevalence::Float64
@@ -18,6 +19,9 @@ function initialize!(s::InitTrees, w::World)
     sizehint!(colonized, ceil(Int, ws.resolution^2 * s.damage_prevalence * s.beetle_prevalence * 1.2))
 
     for x in 1:space.grid.width, y in 1:space.grid.height
+        if rand(rng) > s.cell_probability
+            continue
+        end
         empty!(cells)
         empty!(damaged)
         empty!(colonized)

@@ -13,6 +13,7 @@ end # module
     systems:
       - type: InitGrids
       - type: InitTrees
+        cell_probability: 0.6
         tree_probability: 0.9
         damage_prevalence: 0.03
         beetle_prevalence: 0.2
@@ -23,6 +24,7 @@ end # module
 
     init_trees = cfg.systems[2]
     @test init_trees isa PWNModel.InitTrees
+    @test init_trees.cell_probability == 0.6
     @test init_trees.tree_probability == 0.9
     @test init_trees.damage_prevalence == 0.03
     @test init_trees.beetle_prevalence == 0.2

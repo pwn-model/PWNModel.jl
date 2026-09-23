@@ -16,3 +16,23 @@ TreeGrid(sx::Int, sy::Int, cell_size::Int) = TreeGrid(Grid(sx, sy, cell_size, ze
 struct SpaceGrid
     grid::Grid{Entity}
 end
+
+# HealthyTreeAttractionNear resource: near-field attraction driven by healthy trees.
+struct HealthyTreeAttractionNear
+    grid::Grid{Float64}
+end
+
+# HealthyTreeAttractionFar resource: far-field attraction driven by healthy trees.
+struct HealthyTreeAttractionFar
+    grid::Grid{Float64}
+end
+
+# DamagedTreeAttractionNear resource: near-field attraction driven by damaged trees.
+struct DamagedTreeAttractionNear
+    grid::Grid{Float64}
+end
+
+# DamagedTreeAttractionFar resource: far-field attraction driven by damaged trees.
+struct DamagedTreeAttractionFar
+    grid::Grid{Float64}
+end
