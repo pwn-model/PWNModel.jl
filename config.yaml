@@ -96,6 +96,7 @@ systems:
     title: Trees
 
   - type: Main.Image
+    title: Colonized trees
     observer:
       type: TreeColonizationMapObserver
       cell_size: 100
@@ -103,6 +104,7 @@ systems:
     colorrange: [0.0, 5.0]
 
   - type: Main.Image
+    title: Beetles
     observer:
       type: BeetlesMapObserver
       cell_size: 10
@@ -110,6 +112,7 @@ systems:
     colorrange: [0.0, 10.0]
 
   - type: Main.Image
+    title: Attraction
     observer:
       type: TreeAttractionMapObserver
       damaged_trees: false
