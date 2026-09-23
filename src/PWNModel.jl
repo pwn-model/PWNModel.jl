@@ -33,6 +33,7 @@ include("sys/random_infection.jl")
 include("sys/damage_trees.jl")
 include("sys/beetle_emergence.jl")
 include("sys/beetle_mortality.jl")
+include("sys/beetle_movement.jl")
 include("sys/colonization.jl")
 include("sys/tree_attraction.jl")
 
@@ -66,7 +67,7 @@ export BeetlePosition, LifeExpectancy
 export GridCoords
 export InitGrids, InitTrees
 export UpdateTime, DiseaseCourse, RandomInfection, DamageTrees, Colonization
-export BeetleEmergence, EmergenceTick, BeetleMortality
+export BeetleEmergence, EmergenceTick, BeetleMortality, BeetleMovement
 export TreeAttraction
 export TreePopulationObserver, TreeDamageObserver, TreeColonizationObserver
 export TreeColonizationMapObserver, BeetlesMapObserver, TreeAttractionMapObserver
