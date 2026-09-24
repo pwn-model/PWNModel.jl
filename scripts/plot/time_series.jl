@@ -96,15 +96,13 @@ function PWNModel.initialize!(s::TimeSeries, w::World)
 
     s._ax = ax
 
-    # display(fig) alone would draw into GLMakie's shared singleton screen,
-    # which other plots (e.g. TreesMap) also default to -- stealing their
-    # window instead of opening a separate one. An explicit Screen avoids that.
-    s._screen = GLMakie.Screen(title=isempty(s.title) ? "Makie" : s.title)
-    display(s._screen, fig)
+    s._screen = plot_window(s.title, fig)
     s._step = 0
 end
 
 function PWNModel.update!(s::TimeSeries, w::World)
+    window_closed!(s._screen, w) && return
+
     PWNModel.update!(s.observer, w)
 
     if s._step % s.update_interval == 0
