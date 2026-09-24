@@ -9,6 +9,7 @@ include("util/shuffle.jl")
 
 include("ecs/res/tick.jl")
 include("ecs/res/termination.jl")
+include("ecs/res/scheduler_control.jl")
 include("ecs/system.jl")
 include("ecs/config.jl")
 include("ecs/sys/fixed_termination.jl")
@@ -63,7 +64,7 @@ export Config, load_config, parse_config, apply!, allow_external_module
 
 export RowObserver, header, row, CSV
 export Rng, Tick, Time
-export Termination, FixedTermination
+export Termination, FixedTermination, SchedulerControl, next_tps
 export Grid, TreeGrid, SpaceGrid, WorldSize
 export HealthyTreeAttraction, DamagedTreeAttraction, FeedingInfectedBeetles
 export Position, InCell, Damaged, Infected, Colonized

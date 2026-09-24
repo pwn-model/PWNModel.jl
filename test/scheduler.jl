@@ -146,3 +146,59 @@ end
     @test sys1.updated == 100
     @test sys1.ui_updated == 100
 end
+
+@testset "Scheduler shares tps/fps/paused with its SchedulerControl resource" begin
+    world = World()
+    scheduler = PWNModel.Scheduler(world, (RecordingSystem(),); tps=50, fps=20)
+    control = get_resource(world, PWNModel.SchedulerControl)
+    @test control.tps == 50.0
+    @test control.fps == 20.0
+    @test control.paused == false
+
+    control.tps = 10
+    @test scheduler.tps == 10.0
+    scheduler.paused = true
+    @test control.paused == true
+end
+
+# Pauses the run on its `pause_at`-th tick; resumes it on the
+# `resume_after`-th UI update after that, recording what happened meanwhile.
+mutable struct PausingSystem <: PWNModel.System
+    const pause_at::Int
+    const resume_after::Int
+    updated::Int
+    paused_ui_updates::Int
+end
+
+PausingSystem(pause_at, resume_after) = PausingSystem(pause_at, resume_after, 0, 0)
+
+function PWNModel.update!(sys::PausingSystem, w::World)
+    sys.updated += 1
+    if sys.updated == sys.pause_at
+        get_resource(w, PWNModel.SchedulerControl).paused = true
+    end
+end
+
+function PWNModel.update_ui!(sys::PausingSystem, w::World)
+    control = get_resource(w, PWNModel.SchedulerControl)
+    control.paused || return
+    sys.paused_ui_updates += 1
+    if sys.paused_ui_updates >= sys.resume_after
+        control.paused = false
+    end
+end
+
+@testset "Scheduler pause stops ticks but not UI updates" begin
+    world = World()
+    sys = PausingSystem(3, 5)
+    # Unlimited ticks and synced UI: while paused, UI updates must still happen,
+    # at a limited frame rate instead of spinning.
+    scheduler = PWNModel.Scheduler(world, (sys,); fps=-1)
+
+    elapsed = @elapsed PWNModel.run!(scheduler, 10)
+    @test sys.updated == 10
+    @test sys.paused_ui_updates == 5
+    @test get_resource(world, Tick).value == 10
+    # 5 UI updates at <= 30 FPS while paused.
+    @test elapsed >= 0.6 * 4 / 30
+end

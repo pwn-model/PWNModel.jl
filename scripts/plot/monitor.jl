@@ -23,6 +23,12 @@ Symbology of the archetype bars, like the Go original:
     used/total tables
   - Light: used capacity, dark: reserved capacity
 
+Unless `hide_controls` is set, it also has controls for the run, like the Go
+`monitor.Controls` drawer (which `monitor.NewMonitorWindow` adds there): a
+button or SPACE pauses/resumes the run, and buttons or the UP/DOWN keys step
+its tick rate through a list of preferred rates (see [`next_tps`](@ref)).
+They act on the [`SchedulerControl`](@ref) resource.
+
 Not part of the `PWNModel` package: GLMakie pulls in a full OpenGL stack, so
 this file lives in `scripts/` (a dependency of the `scripts/` environment
 only, see `scripts/Project.toml`) and is `include`d directly by run scripts
@@ -34,7 +40,11 @@ mutable struct Monitor <: PWNModel.System
     const sample_interval::Float64
     const hide_plots::Bool
     const hide_archetypes::Bool
+    const hide_controls::Bool
 
+    _control::Union{SchedulerControl,Nothing}
+    _tps_text::Union{Observable{String},Nothing}
+    _pause_text::Union{Observable{String},Nothing}
     _summary::Union{Observable{String},Nothing}
     _series::Vector{Observable{Vector{Point2f}}}
     _plot_axes::Vector{Axis}
@@ -56,13 +66,14 @@ end
 
 """
     Monitor(; title="Monitor", plot_capacity=300, sample_interval=1.0,
-              hide_plots=false, hide_archetypes=false)
+              hide_plots=false, hide_archetypes=false, hide_controls=false)
 
   - `plot_capacity`: number of values kept in the time series plots.
   - `sample_interval`: approx. time between samples for the time series
     plots, in seconds (Go's `SampleInterval`, a `time.Duration` there).
   - `hide_plots`: hides the time series plots.
   - `hide_archetypes`: hides the archetype bars.
+  - `hide_controls`: hides the pause/speed controls and disables their keys.
 """
 function Monitor(;
     title::AbstractString="Monitor",
@@ -70,6 +81,7 @@ function Monitor(;
     sample_interval::Real=1.0,
     hide_plots::Bool=false,
     hide_archetypes::Bool=false,
+    hide_controls::Bool=false,
 )
     return Monitor(
         String(title),
@@ -77,6 +89,10 @@ function Monitor(;
         sample_interval > 0 ? Float64(sample_interval) : 1.0,
         hide_plots,
         hide_archetypes,
+        hide_controls,
+        nothing,
+        nothing,
+        nothing,
         nothing,
         Observable{Vector{Point2f}}[],
         Axis[],
@@ -149,6 +165,8 @@ function PWNModel.initialize!(m::Monitor, w::World)
         end
     end
 
+    m.hide_controls || _add_controls!(m, fig, get_resource(w, SchedulerControl))
+
     m._num_archetypes = -1
     now = time()
     m._start_time = now
@@ -179,6 +197,58 @@ function PWNModel.update_ui!(m::Monitor, w::World)
     end
 
     m.hide_archetypes || _update_archetypes!(m, stats)
+    m.hide_controls || _update_controls!(m)
+end
+
+# Adds pause and speed buttons below the plots, and their keyboard shortcuts.
+function _add_controls!(m::Monitor, fig::Figure, control::SchedulerControl)
+    m._control = control
+    m._tps_text = Observable("")
+    m._pause_text = Observable("")
+
+    controls = GridLayout(fig[3, 1:2], halign=:right, tellwidth=false)
+    Label(controls[1, 1], m._tps_text, width=110, halign=:right)
+    slower = Button(controls[1, 2], label="-", width=30)
+    faster = Button(controls[1, 3], label="+", width=30)
+    pause = Button(controls[1, 4], label=m._pause_text, width=80)
+
+    on(_ -> _toggle_pause!(m), pause.clicks)
+    on(_ -> _step_tps!(m, false), slower.clicks)
+    on(_ -> _step_tps!(m, true), faster.clicks)
+
+    on(events(fig).keyboardbutton) do event
+        event.action == Keyboard.press || return
+        if event.key == Keyboard.space
+            _toggle_pause!(m)
+        elseif event.key == Keyboard.up
+            _step_tps!(m, true)
+        elseif event.key == Keyboard.down
+            _step_tps!(m, false)
+        end
+    end
+
+    _update_controls!(m)
+end
+
+# Controls are also changed in the (render loop) callbacks above, so their
+# labels are refreshed there, too, to not wait for the next UI update while
+# paused at a low frame rate.
+function _toggle_pause!(m::Monitor)
+    m._control.paused = !m._control.paused
+    _update_controls!(m)
+end
+
+function _step_tps!(m::Monitor, increase::Bool)
+    m._control.tps = next_tps(m._control.tps, increase)
+    _update_controls!(m)
+end
+
+function _update_controls!(m::Monitor)
+    tps = m._control.tps
+    tps_text = tps > 0 ? "$(round(Int, tps)) TPS" : "Max. TPS"
+    pause_text = m._control.paused ? "Resume" : "Pause"
+    m._tps_text[] == tps_text || (m._tps_text[] = tps_text)
+    m._pause_text[] == pause_text || (m._pause_text[] = pause_text)
 end
 
 # Updates the time per tick about once per second, like Go's frameTimer.
@@ -186,10 +256,10 @@ function _update_timer!(m::Monitor, tick::Int, now::Float64)
     delta = now - m._timer_time
     delta < 1.0 && return
 
+    # Unlike Go's frameTimer, no ticks (e.g. while paused) show as 0 TPS
+    # instead of keeping the last rate.
     ticks = tick - m._timer_tick
-    if ticks > 0
-        m._tick_time = delta / ticks
-    end
+    m._tick_time = ticks > 0 ? delta / ticks : 0.0
     m._timer_tick = tick
     m._timer_time = now
 end

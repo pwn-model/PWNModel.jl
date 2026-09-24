@@ -9,7 +9,10 @@
     UI update after every tick.
 
 Both can also be changed later, by calling [`tps!`](@ref)/[`fps!`](@ref) or
-by assigning `scheduler.tps`/`scheduler.fps` directly.
+by assigning `scheduler.tps`/`scheduler.fps` directly, and the run can be
+paused via `scheduler.paused`. All three are stored in a
+[`SchedulerControl`](@ref) resource the scheduler adds to the world, so that
+systems (e.g. a UI) can change them, too.
 
 Mirrors `app.Systems` from the sibling Go implementation's
 `github.com/mlange-42/ark-tools/app` package, except that UI updates are a
@@ -18,8 +21,7 @@ second method of ordinary [`System`](@ref)s instead of a separate system type.
 mutable struct Scheduler{ST<:Tuple}
     const world::World
     const systems::ST
-    tps::Float64
-    fps::Float64
+    const _control::SchedulerControl
 
     _is_initialized::Bool
     _next_update::Float64
@@ -29,8 +31,25 @@ end
 function Scheduler(world::World, systems::ST; tps::Real=0, fps::Real=0) where {ST<:Tuple}
     add_resource!(world, Tick())
     add_resource!(world, Termination())
-    return Scheduler{ST}(world, systems, Float64(tps), Float64(fps), false, 0.0, 0.0)
+    control = SchedulerControl(; tps=tps, fps=fps)
+    add_resource!(world, control)
+    return Scheduler{ST}(world, systems, control, false, 0.0, 0.0)
 end
+
+# `tps`, `fps` and `paused` are forwarded to the SchedulerControl resource.
+const _CONTROL_PROPERTIES = (:tps, :fps, :paused)
+
+function Base.getproperty(s::Scheduler, name::Symbol)
+    name in _CONTROL_PROPERTIES && return getfield(getfield(s, :_control), name)
+    return getfield(s, name)
+end
+
+function Base.setproperty!(s::Scheduler, name::Symbol, value)
+    name in _CONTROL_PROPERTIES && return setproperty!(getfield(s, :_control), name, value)
+    return setfield!(s, name, convert(fieldtype(typeof(s), name), value))
+end
+
+Base.propertynames(s::Scheduler) = (fieldnames(typeof(s))..., _CONTROL_PROPERTIES...)
 
 """
     tps!(s::Scheduler, value)
@@ -97,10 +116,19 @@ function _next_time(last::Float64, rate::Float64)
     return last + 1.0 / rate
 end
 
-_effective_fps(s::Scheduler) = s.fps == 0 ? 30.0 : s.fps
+# Effective UI frame rate. While paused, it is capped to 30 FPS and never
+# synced with the (then absent) ticks, like `limitedFps` in ark-tools' `app`.
+function _effective_fps(s::Scheduler)
+    fps = s.fps
+    if s.paused
+        return (fps <= 0 || fps > 30) ? 30.0 : fps
+    end
+    return fps == 0 ? 30.0 : fps
+end
 
-# Updates the systems if a tick is due. Returns whether it was.
+# Updates the systems if a tick is due and not paused. Returns whether it was.
 function _update_systems_timed!(s::Scheduler)
+    s.paused && return false
     if s.tps > 0
         time() < s._next_update && return false
         s._next_update = _next_time(s._next_update, s.tps)
@@ -128,9 +156,10 @@ function _update_ui_timed!(s::Scheduler, updated::Bool)
     yield()
 end
 
-# Sleeps until the next tick or UI update is due.
+# Sleeps until the next tick or UI update is due. While paused, only UI
+# updates are due.
 function _wait(s::Scheduler)
-    next = s._next_update
+    next = s.paused ? s._next_draw : s._next_update
     if _effective_fps(s) > 0 && s._next_draw < next
         next = s._next_draw
     end
@@ -146,6 +175,8 @@ end
 Updates all systems of `s` and advances its [`Tick`](@ref), waiting until the
 tick is due according to `s.tps` and updating the UI of all systems in between
 according to `s.fps`.
+
+While `s.paused`, only updates the UI, until unpaused (or terminated).
 
 Returns whether the run should continue, i.e. whether a system has set the
 [`Termination`](@ref) resource's `terminate` field to `true` (e.g. via
