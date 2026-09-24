@@ -67,7 +67,9 @@ the tests in `test/ecs/stats.jl` are there to catch that.
 Memory is estimated as the entities column's capacity times each entity's
 (ID plus components) size, instead of measuring every component column
 individually, so it ignores differences between storage modes and any
-per-column capacity differences.
+per-column capacity differences. On Julia < 1.11, capacities can't be
+determined and are reported as equal to sizes, so reserved memory equals
+used memory there.
 """
 struct WorldStats
     # Component types, indexed by component ID.
@@ -89,7 +91,15 @@ struct WorldStats
 end
 
 # Number of elements v has reserved memory for, without reallocating.
-_capacity(v::Vector) = length(v.ref.mem) - Base.memoryrefoffset(v.ref) + 1
+#
+# Only Julia >= 1.11 exposes this, via a Vector's backing Memory. Before
+# that, a Vector's capacity is hidden inside the C-level array struct, so it
+# falls back to the length there, i.e. reports no reserved memory.
+@static if VERSION >= v"1.11"
+    _capacity(v::Vector) = length(v.ref.mem) - Base.memoryrefoffset(v.ref) + 1
+else
+    _capacity(v::Vector) = length(v)
+end
 
 """
     world_stats(world::World) -> WorldStats
