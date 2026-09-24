@@ -1,7 +1,7 @@
 """
 Increases the Windows system timer resolution to 1 ms.
 
-Without this, `sleep` (used by [`Scheduler`](@ref)'s `fps` limiting) is
+Without this, `sleep` (used by [`Scheduler`](@ref)'s `tps`/`fps` limiting) is
 rounded up to the OS's default timer tick of ~15.6 ms, making short waits
 far less precise than requested. No-op on non-Windows systems.
 

@@ -4,8 +4,8 @@ using GLMakie
 
 """
 Live grid-map plot system. Draws the tree grid as a color image in its own
-GLMakie window, mutating a pixel-buffer matrix in place each tick and
-re-uploading it to the GPU via `notify`, instead of drawing one mark per
+GLMakie window, mutating a pixel-buffer matrix in place on each UI update
+and re-uploading it to the GPU via `notify`, instead of drawing one mark per
 tree entity.
 
 Mirrors `maps.Trees` from the sibling Go implementation's
@@ -58,7 +58,7 @@ function PWNModel.initialize!(s::TreesMap, w::World)
     s._screen = plot_window(s.title, fig)
 end
 
-function PWNModel.update!(s::TreesMap, w::World)
+function PWNModel.update_ui!(s::TreesMap, w::World)
     window_closed!(s._screen, w) && return
 
     pixels = s._pixels[]

@@ -24,7 +24,7 @@ function run_model(config_path::AbstractString)
     add_resource!(world, Rng(cfg.seed))
     apply!(cfg, world)
 
-    scheduler = Scheduler(world, Tuple(cfg.systems); fps=cfg.tps)
+    scheduler = Scheduler(world, Tuple(cfg.systems); tps=cfg.tps, fps=cfg.fps)
     run!(scheduler)
 
     return world
