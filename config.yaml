@@ -86,6 +86,9 @@ systems:
       type: TreePopulationObserver
     file: out/tree_pop.csv
 
+  - type: Main.Monitor
+    sample_interval: 0.333
+
   - type: Main.TimeSeries
     observer:
       type: TreeColonizationObserver

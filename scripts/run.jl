@@ -7,6 +7,7 @@ include("plot/window.jl")
 include("plot/image.jl")
 include("plot/time_series.jl")
 include("plot/trees_map.jl")
+include("plot/monitor.jl")
 
 function parse_commandline()
     s = ArgParseSettings(description="Runs the Pine Wilt Nematode model.")

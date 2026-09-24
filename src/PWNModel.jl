@@ -14,6 +14,7 @@ include("ecs/config.jl")
 include("ecs/sys/fixed_termination.jl")
 include("ecs/observers.jl")
 include("ecs/scheduler.jl")
+include("ecs/stats.jl")
 include("ecs/reporter/csv_reporter.jl")
 
 include("comps/tree.jl")
@@ -55,6 +56,8 @@ end
 
 export Scheduler, tps!, fps!, initialize!, step!, finalize!, run!, update_ui!
 export run_model, julia_main
+
+export WorldStats, ArchetypeStats, TableStats, EntityStats, world_stats
 
 export Config, load_config, parse_config, apply!, allow_external_module
 
