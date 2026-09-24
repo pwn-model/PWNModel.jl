@@ -139,9 +139,12 @@ struct Config
     # (not configurable), to keep it bit-identical with the sibling Go
     # implementation.
     seed::UInt64
-    # Ticks per second cap for the Scheduler (see `Scheduler`'s `fps`).
+    # Ticks per second cap for the Scheduler (see `Scheduler`'s `tps`).
     # Values <= 0 mean as fast as possible.
     tps::Float64
+    # Frames per second cap for the Scheduler's UI updates (see
+    # `Scheduler`'s `fps`). 0 means 30 FPS, values < 0 sync it with `tps`.
+    fps::Float64
     # Resources to add to the world. Each entry's "type" selects the
     # resource type (see `resolve_type`); its other fields are passed as
     # keyword arguments to that type's constructor.
@@ -159,11 +162,12 @@ function _config_from_data(data)
 
     seed = UInt64(get(data, "seed", 0))
     tps = Float64(get(data, "tps", 0))
+    fps = Float64(get(data, "fps", 0))
 
     resources = Any[_build_entry(entry, Any) for entry in get(data, "resources", [])]
     systems = System[_build_entry(entry, System) for entry in get(data, "systems", [])]
 
-    return Config(seed, tps, resources, systems)
+    return Config(seed, tps, fps, resources, systems)
 end
 
 """
@@ -187,7 +191,7 @@ Adds all of `cfg`'s resources to `world`.
 
 Does not touch systems: a [`Scheduler`](@ref)'s systems tuple is fixed at
 construction (for dispatch performance), so callers build it themselves
-from `cfg.systems`, e.g. `Scheduler(world, Tuple(cfg.systems); fps=cfg.tps)`.
+from `cfg.systems`, e.g. `Scheduler(world, Tuple(cfg.systems); tps=cfg.tps, fps=cfg.fps)`.
 Nor does it touch the PRNG seed, which is hard-coded to [`Rng`](@ref)
 using only `cfg.seed` (see `scripts/run.jl`).
 """

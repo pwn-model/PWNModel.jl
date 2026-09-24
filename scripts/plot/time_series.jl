@@ -5,7 +5,8 @@ using GLMakie
 """
 Live time-series plot reporter system. Draws one line per selected column of
 a [`RowObserver`](@ref) in its own GLMakie window, appending one row of data
-per tick (or every `update_interval` ticks).
+per tick (or every `update_interval` ticks) and redrawing them on each UI
+update.
 
 Mirrors `plot.TimeSeries` from the sibling Go implementation's
 `github.com/mlange-42/ark-pixel/plot` package, adapted to GLMakie's
@@ -38,7 +39,7 @@ end
 
   - `observer`: the [`RowObserver`](@ref) supplying column headers and rows.
   - `columns`: column names to plot as separate lines. Defaults to all columns.
-  - `update_interval`: sample and redraw every this many ticks, like [`CSV`](@ref).
+  - `update_interval`: sample every this many ticks, like [`CSV`](@ref).
   - `max_rows`: if given, keep only the most recent `max_rows` points per line
     (rolling window) instead of the full unbounded history.
 """
@@ -101,8 +102,6 @@ function PWNModel.initialize!(s::TimeSeries, w::World)
 end
 
 function PWNModel.update!(s::TimeSeries, w::World)
-    window_closed!(s._screen, w) && return
-
     PWNModel.update!(s.observer, w)
 
     if s._step % s.update_interval == 0
@@ -115,13 +114,19 @@ function PWNModel.update!(s::TimeSeries, w::World)
             if !isnothing(s.max_rows) && length(points) > s.max_rows
                 deleteat!(points, 1)
             end
-            notify(s._series[i])
         end
-
-        autolimits!(s._ax)
     end
 
     s._step += 1
+end
+
+function PWNModel.update_ui!(s::TimeSeries, w::World)
+    window_closed!(s._screen, w) && return
+
+    for series in s._series
+        notify(series)
+    end
+    autolimits!(s._ax)
 end
 
 function _find_column(headers::Vector{String}, name::AbstractString)

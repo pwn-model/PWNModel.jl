@@ -147,6 +147,7 @@ end
     cfg = PWNModel.parse_config("""
     seed: 1
     tps: 30
+    fps: 20
     resources:
       - type: WorldSize
         width: 4000
@@ -160,6 +161,7 @@ end
     """)
     @test cfg.seed == 1
     @test cfg.tps == 30.0
+    @test cfg.fps == 20.0
     @test !isempty(cfg.systems)
 
     world = World(Position, GridCoords, Damaged, Infected, Colonized, Relation{InCell})
@@ -172,7 +174,7 @@ end
     @test cfg.systems[end] isa PWNModel.FixedTermination
     steps = cfg.systems[end].steps
 
-    # Intentionally not passing fps=cfg.tps here: that throttles run! to
+    # Intentionally not passing tps=cfg.tps here: that throttles run! to
     # real time, which would make this test take minutes; correctness
     # doesn't depend on pacing.
     scheduler = Scheduler(world, Tuple(cfg.systems))

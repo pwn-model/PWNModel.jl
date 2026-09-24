@@ -13,6 +13,10 @@ Displays `fig` in a new GLMakie window titled `title` (or "Makie" if empty).
 all plots default to -- each stealing the previous one's window instead of
 opening a separate one. An explicit Screen avoids that.
 
+The window's render loop polls at 120 FPS, so that it is ready to draw
+whenever the model's [`Scheduler`](@ref) briefly yields to it after a UI
+update, even at unlimited tick rates. It only actually renders after updates.
+
 The window's render loop runs with Ctrl+C deferred. Otherwise, a Ctrl+C
 pressed while the render loop task happens to be running (e.g. while the model
 sleeps to cap its tick rate) is thrown into that task instead of the model's,
@@ -23,6 +27,7 @@ function plot_window(title::AbstractString, fig::Figure)
     screen = GLMakie.Screen(
         title=isempty(title) ? "Makie" : title,
         renderloop=_sigint_deferred_renderloop,
+        framerate=120.0,
     )
     display(screen, fig)
     return screen

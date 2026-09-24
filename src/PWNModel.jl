@@ -53,7 +53,7 @@ function __init__()
     _init_timer()
 end
 
-export Scheduler, fps!, initialize!, step!, finalize!, run!
+export Scheduler, tps!, fps!, initialize!, step!, finalize!, run!, update_ui!
 export run_model, julia_main
 
 export Config, load_config, parse_config, apply!, allow_external_module

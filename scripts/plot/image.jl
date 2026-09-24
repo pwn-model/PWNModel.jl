@@ -5,8 +5,8 @@ using GLMakie
 """
 Live matrix-image plot reporter system. Draws the values of a
 [`MatrixObserver`](@ref) as a color-mapped image in its own GLMakie window,
-copying each tick's matrix into a reused backing buffer and re-uploading it
-to the GPU via `notify`.
+copying the matrix into a reused backing buffer on each UI update and
+re-uploading it to the GPU via `notify`.
 
 Mirrors `plot.Image` from the sibling Go implementation's
 `github.com/mlange-42/ark-pixel/plot` package, adapted to Makie's built-in
@@ -84,9 +84,11 @@ function PWNModel.initialize!(s::Image, w::World)
 end
 
 function PWNModel.update!(s::Image, w::World)
-    window_closed!(s._screen, w) && return
-
     PWNModel.update!(s.observer, w)
+end
+
+function PWNModel.update_ui!(s::Image, w::World)
+    window_closed!(s._screen, w) && return
 
     values = s._values[]
     values .= PWNModel.data(s.observer, w)

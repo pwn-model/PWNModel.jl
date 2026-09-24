@@ -1,5 +1,6 @@
 seed: 1
 tps: 30
+fps: 30
 
 resources:
   - type: WorldSize
