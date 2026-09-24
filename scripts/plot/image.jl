@@ -80,14 +80,12 @@ function PWNModel.initialize!(s::Image, w::World)
     image!(ax, s._values, colormap=s.colormap, colorrange=s.colorrange, interpolate=false)
     Colorbar(fig[1, 2], colormap=s.colormap, colorrange=s.colorrange)
 
-    # display(fig) alone would draw into GLMakie's shared singleton screen,
-    # which other plots (e.g. TimeSeries, TreesMap) also default to -- stealing
-    # their window instead of opening a separate one. An explicit Screen avoids that.
-    s._screen = GLMakie.Screen(title=isempty(s.title) ? "Makie" : s.title)
-    display(s._screen, fig)
+    s._screen = plot_window(s.title, fig)
 end
 
 function PWNModel.update!(s::Image, w::World)
+    window_closed!(s._screen, w) && return
+
     PWNModel.update!(s.observer, w)
 
     values = s._values[]
