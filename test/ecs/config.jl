@@ -44,6 +44,66 @@ end
     """)
 end
 
+@testset "Config: an unknown top-level key raises an error" begin
+    err = try
+        PWNModel.parse_config("""
+        seeed: 1
+        """)
+        nothing
+    catch e
+        e
+    end
+    @test err isa ArgumentError
+    @test occursin("\"seeed\"", err.msg)
+end
+
+@testset "Config: an unknown entry parameter raises an error naming it" begin
+    # Misspelled (optional or required) parameters, as well as parameters to
+    # a type that takes none, at the top level of an entry and nested inside
+    # one.
+    for (src, key) in [
+        """
+        systems:
+          - type: InitTrees
+            cell_probability: 0.6
+            tree_probability: 0.9
+            damage_prevalence: 0.03
+            beetle_prevalence: 0.2
+            cell_probabilty: 0.6
+        """ => "cell_probabilty",
+        """
+        systems:
+          - type: InitGrids
+            bogus: 1
+        """ => "bogus",
+        """
+        resources:
+          - type: WorldSize
+            widht: 4000
+            height: 3000
+            cell_size: 10
+            grid_cell_size: 500
+        """ => "widht",
+        """
+        systems:
+          - type: CSV
+            observer:
+              type: TreePopulationObserver
+              bogus: 1
+            file: out/tree_pop.csv
+        """ => "bogus",
+    ]
+        err = try
+            PWNModel.parse_config(src)
+            nothing
+        catch e
+            e
+        end
+        @test err isa ArgumentError
+        @test occursin("\"$key\"", err.msg)
+    end
+end
+
 @testset "Config: resources are resolved and applied to a world" begin
     cfg = PWNModel.parse_config("""
     resources:

@@ -120,7 +120,16 @@ _resolve_value(v) = v
 # _construct builds a T from a config entry's remaining fields (everything
 # but "type"), via its usual keyword constructor: the same one every
 # System/resource in this codebase already has.
+#
+# Unknown (e.g. misspelled) keys would already fail that constructor call,
+# but only with a MethodError that doesn't say which key is at fault, so
+# they are checked for up front, by name.
 function _construct(::Type{T}, entry::AbstractDict) where {T}
+    unknown = sort!([k for k in keys(entry) if k != "type" && !hasmethod(T, Tuple{}, (Symbol(k),))])
+    if !isempty(unknown)
+        throw(ArgumentError("unknown parameter(s) $(join(repr.(unknown), ", ")) for type $T"))
+    end
+
     kwargs = (Symbol(k) => _resolve_value(v) for (k, v) in entry if k != "type")
     return T(; kwargs...)
 end
@@ -155,9 +164,17 @@ struct Config
     systems::Vector{System}
 end
 
+# The keys allowed at a config file's top level, i.e. Config's fields.
+const _TOP_LEVEL_KEYS = ("seed", "tps", "fps", "resources", "systems")
+
 function _config_from_data(data)
     if data === nothing
         data = Dict{String,Any}()
+    end
+
+    unknown = sort!([k for k in keys(data) if !(k in _TOP_LEVEL_KEYS)])
+    if !isempty(unknown)
+        throw(ArgumentError("unknown top-level config key(s) $(join(repr.(unknown), ", "))"))
     end
 
     seed = UInt64(get(data, "seed", 0))
