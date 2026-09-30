@@ -3,7 +3,7 @@ Reports the attraction grid computed by [`TreeAttraction`](@ref) (healthy or
 damaged trees), for plotting (e.g. with `plot.Image`, see
 `scripts/plot/image.jl`).
 """
-mutable struct TreeAttractionMapObserver <: MatrixObserver
+mutable struct TreeAttractionMap <: MatrixObserver
     const damaged_trees::Bool
 
     _grid::Grid{Float64}
@@ -11,16 +11,16 @@ mutable struct TreeAttractionMapObserver <: MatrixObserver
 end
 
 """
-    TreeAttractionMapObserver(; damaged_trees=false)
+    TreeAttractionMap(; damaged_trees=false)
 
   - `damaged_trees`: reports the damaged-tree attraction grid instead of the
     healthy-tree one.
 """
-function TreeAttractionMapObserver(; damaged_trees::Bool=false)
-    return TreeAttractionMapObserver(damaged_trees, Grid(0, 0, 1, 0.0), zeros(Float64, 0, 0))
+function TreeAttractionMap(; damaged_trees::Bool=false)
+    return TreeAttractionMap(damaged_trees, Grid(0, 0, 1, 0.0), zeros(Float64, 0, 0))
 end
 
-function initialize!(o::TreeAttractionMapObserver, w::World)
+function initialize!(o::TreeAttractionMap, w::World)
     o._grid = if o.damaged_trees
         get_resource(w, DamagedTreeAttraction).grid
     else
@@ -29,7 +29,7 @@ function initialize!(o::TreeAttractionMapObserver, w::World)
     o._values = zeros(Float64, o._grid.width, o._grid.height)
 end
 
-function data(o::TreeAttractionMapObserver, w::World)::Matrix{Float64}
+function data(o::TreeAttractionMap, w::World)::Matrix{Float64}
     for x in 1:(o._grid.width), y in 1:(o._grid.height)
         o._values[x, y] = log(o._grid[x, y])
     end

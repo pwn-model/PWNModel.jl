@@ -1,15 +1,15 @@
 """
 Reports the proportion of colonized trees per tick.
 """
-struct TreeColonizationObserver <: RowObserver
+struct TreeColonization <: RowObserver
     _result::Vector{Float64}
 end
 
-TreeColonizationObserver() = TreeColonizationObserver([0.0])
+TreeColonization() = TreeColonization([0.0])
 
-header(::TreeColonizationObserver) = ["damaged"]
+header(::TreeColonization) = ["damaged"]
 
-function data(o::TreeColonizationObserver, w::World)
+function data(o::TreeColonization, w::World)
     o._result[1] = count_entities(Filter(w, (Colonized,))) / count_entities(Filter(w, (Position,)))
 
     return o._result

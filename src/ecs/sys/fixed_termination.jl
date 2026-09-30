@@ -3,8 +3,7 @@
 
 System that terminates the run after a fixed number of ticks.
 
-Mirrors `system.FixedTermination` from the sibling Go implementation's
-`github.com/mlange-42/ark-tools/system` package.
+Mirrors `sys.FixedTermination` from the sibling Go implementation.
 """
 Base.@kwdef struct FixedTermination <: System
     steps::Int

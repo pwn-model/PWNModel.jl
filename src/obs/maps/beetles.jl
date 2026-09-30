@@ -3,7 +3,7 @@
 Reports the number of live beetles per grid cell of `cell_size` (in
 meters), aggregated over the base tree grid.
 """
-mutable struct BeetlesMapObserver <: MatrixObserver
+mutable struct BeetlesMap <: MatrixObserver
     const cell_size::Int
 
     _units_per_cell::Int
@@ -11,16 +11,16 @@ mutable struct BeetlesMapObserver <: MatrixObserver
 end
 
 """
-    BeetlesMapObserver(; cell_size)
+    BeetlesMap(; cell_size)
 
   - `cell_size`: aggregation cell size in meters. Must be a multiple of the
     world's base cell size.
 """
-function BeetlesMapObserver(; cell_size::Int)
-    return BeetlesMapObserver(cell_size, 1, zeros(Float64, 0, 0))
+function BeetlesMap(; cell_size::Int)
+    return BeetlesMap(cell_size, 1, zeros(Float64, 0, 0))
 end
 
-function initialize!(o::BeetlesMapObserver, w::World)
+function initialize!(o::BeetlesMap, w::World)
     ws = get_resource(w, WorldSize)
     if o.cell_size % ws.cell_size != 0
         throw(ArgumentError("cell_size of the beetles map observer must be a multiple of the world's base cell size."))
@@ -31,7 +31,7 @@ function initialize!(o::BeetlesMapObserver, w::World)
     o._counts = zeros(Float64, width, height)
 end
 
-function data(o::BeetlesMapObserver, w::World)::Matrix{Float64}
+function data(o::BeetlesMap, w::World)::Matrix{Float64}
     fill!(o._counts, 0.0)
 
     for (_, positions) in Query(w, (BeetlePosition,))
@@ -45,5 +45,5 @@ function data(o::BeetlesMapObserver, w::World)::Matrix{Float64}
 end
 
 # to_coords calculates (1-based) map-grid coords from (1-based) tree grid coords.
-to_coords(o::BeetlesMapObserver, x::Int, y::Int) =
+to_coords(o::BeetlesMap, x::Int, y::Int) =
     (fld(x - 1, o._units_per_cell) + 1, fld(y - 1, o._units_per_cell) + 1)

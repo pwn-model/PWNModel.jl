@@ -2,27 +2,27 @@ function _setup_map_observer_world(width::Int, height::Int, cell_size::Int)
     world = World(PWNModel.Position, PWNModel.Damaged, PWNModel.Colonized)
     add_resource!(world, PWNModel.WorldSize(width=width, height=height, cell_size=10, grid_cell_size=10))
 
-    o = PWNModel.TreeColonizationMapObserver(cell_size=cell_size)
+    o = PWNModel.TreeColonizationMap(cell_size=cell_size)
     PWNModel.initialize!(o, world)
 
     return world, o
 end
 
-@testset "TreeColonizationMapObserver rejects non-multiple cell_size" begin
+@testset "TreeColonizationMap rejects non-multiple cell_size" begin
     world = World()
     add_resource!(world, PWNModel.WorldSize(width=100, height=100, cell_size=10, grid_cell_size=10))
 
-    o = PWNModel.TreeColonizationMapObserver(cell_size=25)
+    o = PWNModel.TreeColonizationMap(cell_size=25)
     @test_throws ArgumentError PWNModel.initialize!(o, world)
 end
 
-@testset "TreeColonizationMapObserver dims are the world size divided by cell_size" begin
+@testset "TreeColonizationMap dims are the world size divided by cell_size" begin
     world, o = _setup_map_observer_world(100, 40, 30)
 
     @test size(PWNModel.data(o, world)) == (4, 2)
 end
 
-@testset "TreeColonizationMapObserver counts colonized trees per cell" begin
+@testset "TreeColonizationMap counts colonized trees per cell" begin
     world, o = _setup_map_observer_world(100, 100, 30)
 
     # Both land in map cell (1, 1) (tree-grid coords 1..3).
@@ -50,7 +50,7 @@ end
     @test sum(values) == 3.0
 end
 
-@testset "TreeColonizationMapObserver does not carry counts over between calls" begin
+@testset "TreeColonizationMap does not carry counts over between calls" begin
     world, o = _setup_map_observer_world(100, 100, 30)
 
     entity = nothing
