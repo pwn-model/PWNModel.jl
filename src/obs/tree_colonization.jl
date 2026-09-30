@@ -7,7 +7,7 @@ end
 
 TreeColonization() = TreeColonization([0.0])
 
-header(::TreeColonization) = ["damaged"]
+header(::TreeColonization) = ["colonized"]
 
 function data(o::TreeColonization, w::World)
     o._result[1] = count_entities(Filter(w, (Colonized,))) / count_entities(Filter(w, (Position,)))

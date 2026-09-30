@@ -7,7 +7,7 @@
 #   julia --project=build build/compile.jl [app_dir]
 #
 # The resulting app is invoked as:
-#   <app_dir>/bin/PWNModel[.exe] [config.yaml]
+#   <app_dir>/bin/PWNModel[.exe] [config.yaml] [-o out_dir]
 
 using Pkg
 Pkg.activate(@__DIR__)

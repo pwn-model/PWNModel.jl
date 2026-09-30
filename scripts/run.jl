@@ -17,14 +17,18 @@ function parse_commandline()
         "config"
             help = "Path to the model config file. Default: config.yaml"
             arg_type = String
+        "--out-dir", "-o"
+            help = "Directory to run the model in. Default: ."
+            arg_type = String
     end
     #! format: on
 
     return parse_args(s)
 end
 
-parsed_config = parse_commandline()["config"]
-config_path = parsed_config === nothing ? "config.yaml" : parsed_config
+parsed_args = parse_commandline()
+config_path = something(parsed_args["config"], "config.yaml")
+out_dir = parsed_args["out-dir"]
 
 # Outside the REPL (`julia run.jl`), Julia by default handles Ctrl+C by exiting
 # the process directly instead of throwing an `InterruptException`, which does
@@ -42,7 +46,7 @@ end
 # Ctrl+C aborts the run without reaching the plot systems' windows, so close
 # them explicitly.
 world = try
-    run_model(config_path)
+    run_model(config_path; out_dir=out_dir)
 catch e
     GLMakie.closeall()
     e isa InterruptException || rethrow()
