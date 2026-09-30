@@ -75,8 +75,8 @@ export UpdateTime, DiseaseCourse, RandomRelease, DamageTrees, Colonization
 export BeetleEmergence, EmergenceTick, BeetleMortality, BeetleMovement
 export NematodeInfection
 export TreeAttraction
-export TreePopulationObserver, TreeDamageObserver, TreeColonizationObserver
-export TreeColonizationMapObserver, BeetlesMapObserver, TreeAttractionMapObserver
+export TreePopulation, TreeDamage, TreeColonization
+export TreeColonizationMap, BeetlesMap, TreeAttractionMap
 export trees_to_string
 
 end

@@ -130,8 +130,25 @@ function _construct(::Type{T}, entry::AbstractDict) where {T}
         throw(ArgumentError("unknown parameter(s) $(join(repr.(unknown), ", ")) for type $T"))
     end
 
-    kwargs = (Symbol(k) => _resolve_value(v) for (k, v) in entry if k != "type")
+    kwargs = (Symbol(k) => _widen_param(T, Symbol(k), _resolve_value(v)) for (k, v) in entry if k != "type")
     return T(; kwargs...)
+end
+
+# _widen_param converts a whole-number YAML value (e.g. `half_distance: 50`)
+# to the float type of T's same-named field, if it has one, so that a config
+# needn't spell out `50.0` just because the keyword constructor is typed
+# `::Float64`. This matches the sibling Go implementation, whose YAML decoder
+# accepts integers for float fields, so that the same config file works for
+# both. Keyword names match field names throughout this codebase; for a
+# keyword that has no same-named field, `v` is passed through unchanged.
+function _widen_param(::Type{T}, k::Symbol, v) where {T}
+    if v isa Integer && !(v isa Bool) && hasfield(T, k)
+        FT = fieldtype(T, k)
+        if FT <: AbstractFloat && isconcretetype(FT)
+            return convert(FT, v)
+        end
+    end
+    return v
 end
 
 function _build_entry(entry::AbstractDict, supertype_::Type)

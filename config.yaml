@@ -29,8 +29,8 @@ systems:
   - type: RandomRelease
     tick_of_infection: 0
     num_trees: 10
-    cell_x: 3
-    cell_y: 3
+    cell_x: 2
+    cell_y: 2
 
   - type: DamageTrees
     tick_of_year: 35
@@ -60,8 +60,8 @@ systems:
     steps_per_tick: 7
     duration_feeding: 6
     duration_egg_laying: 6
-    leave_tree_probability: 0.1
-    random_walk_probability: 0.5
+    leave_tree_probability: 0.25
+    random_walk_probability: 0.6
 
   - type: BeetleMortality
 
@@ -69,8 +69,8 @@ systems:
     tick_of_year: 20
     cell_size: 100
     kernel_half_distance: 50.0
-    kernel_radius: 30
-    beetles_per_tree: 2.2
+    kernel_radius: 300
+    beetles_per_tree: 2.0
     trees_per_beetle: 1.0
 
   - type: NematodeInfection
@@ -83,7 +83,7 @@ systems:
   # Reporters and plots
   - type: CSV
     observer:
-      type: TreePopulationObserver
+      type: TreePopulation
     file: out/tree_pop.csv
 
   - type: Main.Monitor
@@ -91,7 +91,7 @@ systems:
 
   - type: Main.TimeSeries
     observer:
-      type: TreeColonizationObserver
+      type: TreeColonization
     title: Tree colonization
     xlabel: Tick
     ylabel: Proportion
@@ -102,7 +102,7 @@ systems:
   - type: Main.Image
     title: Colonized trees
     observer:
-      type: TreeColonizationMapObserver
+      type: TreeColonizationMap
       cell_size: 100
     colormap: viridis
     colorrange: [0.0, 5.0]
@@ -110,7 +110,7 @@ systems:
   - type: Main.Image
     title: Beetles
     observer:
-      type: BeetlesMapObserver
+      type: BeetlesMap
       cell_size: 10
     colormap: viridis
     colorrange: [0.0, 10.0]
@@ -118,7 +118,7 @@ systems:
   - type: Main.Image
     title: Attraction
     observer:
-      type: TreeAttractionMapObserver
-      damaged_trees: false
+      type: TreeAttractionMap
+      damaged_trees: true
     colormap: viridis
     colorrange: [-8.0, 0.0]

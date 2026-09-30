@@ -26,7 +26,7 @@ end
 @testset "RandomRelease" begin
     world, time = _setup_random_release_world()
 
-    s = PWNModel.RandomRelease(tick_of_infection=3, num_trees=10, cell_x=1, cell_y=1)
+    s = PWNModel.RandomRelease(tick_of_infection=3, num_trees=10, cell_x=0, cell_y=0)
 
     for tick in 0:2
         time.tick = tick
@@ -84,7 +84,7 @@ end
         add_components!(world, e, (PWNModel.Infected(-1),))
     end
 
-    s = PWNModel.RandomRelease(tick_of_infection=0, num_trees=5, cell_x=1, cell_y=1)
+    s = PWNModel.RandomRelease(tick_of_infection=0, num_trees=5, cell_x=0, cell_y=0)
     PWNModel.update!(s, world)
 
     newly_infected = 0
@@ -102,8 +102,8 @@ end
 @testset "RandomRelease caps at available trees" begin
     world, _time = _setup_random_release_world()
 
-    # Coarse cell (1, 1) holds 10*10 = 100 trees; request far more than that.
-    s = PWNModel.RandomRelease(tick_of_infection=0, num_trees=1000, cell_x=1, cell_y=1)
+    # Coarse cell (0, 0) holds 10*10 = 100 trees; request far more than that.
+    s = PWNModel.RandomRelease(tick_of_infection=0, num_trees=1000, cell_x=0, cell_y=0)
     PWNModel.update!(s, world)
 
     @test count_entities(Filter(world, (PWNModel.Infected,))) == 100
@@ -113,7 +113,7 @@ end
     world, _time = _setup_random_release_world()
 
     ws = get_resource(world, PWNModel.WorldSize)
-    s = PWNModel.RandomRelease(tick_of_infection=0, num_trees=10, cell_x=2, cell_y=2)
+    s = PWNModel.RandomRelease(tick_of_infection=0, num_trees=10, cell_x=1, cell_y=1)
     PWNModel.update!(s, world)
 
     for (_, positions) in Query(world, (PWNModel.Position,); with=(PWNModel.Infected,))

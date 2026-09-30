@@ -1,15 +1,15 @@
 """
 Reports the proportion of damaged trees per tick.
 """
-struct TreeDamageObserver <: RowObserver
+struct TreeDamage <: RowObserver
     _result::Vector{Float64}
 end
 
-TreeDamageObserver() = TreeDamageObserver([0.0])
+TreeDamage() = TreeDamage([0.0])
 
-header(::TreeDamageObserver) = ["damaged"]
+header(::TreeDamage) = ["damaged"]
 
-function data(o::TreeDamageObserver, w::World)
+function data(o::TreeDamage, w::World)
     o._result[1] = count_entities(Filter(w, (Damaged,))) / count_entities(Filter(w, (Position,)))
 
     return o._result

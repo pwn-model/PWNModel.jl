@@ -30,6 +30,26 @@ end # module
     @test init_trees.beetle_prevalence == 0.2
 end
 
+@testset "Config: whole numbers are accepted for float parameters" begin
+    # As in the sibling Go implementation, so that the same config file
+    # works for both: TreeAttraction's keyword constructor is typed
+    # `half_distance::Float64`, which a plain YAML `50` would not match.
+    cfg = PWNModel.parse_config("""
+    systems:
+      - type: TreeAttraction
+        tick_of_year: 18
+        half_distance: 50
+        density_radius: 20
+        density_weight: 1
+    """)
+    s = cfg.systems[1]
+    @test s isa PWNModel.TreeAttraction
+    @test s.half_distance === 50.0
+    @test s.density_weight === 1.0
+    # Int fields are left alone.
+    @test s.density_radius === 20
+end
+
 @testset "Config: unknown system type raises an error" begin
     @test_throws ArgumentError PWNModel.parse_config("""
     systems:
@@ -88,7 +108,7 @@ end
         systems:
           - type: CSV
             observer:
-              type: TreePopulationObserver
+              type: TreePopulation
               bogus: 1
             file: out/tree_pop.csv
         """ => "bogus",
@@ -167,7 +187,7 @@ end
     systems:
       - type: CSV
         observer:
-          type: TreePopulationObserver
+          type: TreePopulation
         file: out/tree_pop.csv
         sep: ";"
     """)
@@ -175,13 +195,13 @@ end
     @test length(cfg.systems) == 1
     csv = cfg.systems[1]
     @test csv isa PWNModel.CSV
-    @test csv.observer isa PWNModel.TreePopulationObserver
+    @test csv.observer isa PWNModel.TreePopulation
     @test csv.file == "out/tree_pop.csv"
     @test csv.sep == ";"
 end
 
 @testset "Config: a nested value resolved to the wrong kind fails at construction" begin
-    # TreeColonizationMapObserver is a MatrixObserver, but CSV's `observer`
+    # TreeColonizationMap is a MatrixObserver, but CSV's `observer`
     # keyword is typed RowObserver: Julia's own keyword-argument type
     # checking is what rejects the mismatch here (raising a TypeError),
     # since the config mechanism itself resolves nested values
@@ -190,7 +210,7 @@ end
     systems:
       - type: CSV
         observer:
-          type: TreeColonizationMapObserver
+          type: TreeColonizationMap
           cell_size: 100
         file: out/tree_pop.csv
     """)

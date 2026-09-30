@@ -2,27 +2,27 @@ function _setup_beetles_map_observer_world(width::Int, height::Int, cell_size::I
     world = World(PWNModel.BeetlePosition)
     add_resource!(world, PWNModel.WorldSize(width=width, height=height, cell_size=10, grid_cell_size=10))
 
-    o = PWNModel.BeetlesMapObserver(cell_size=cell_size)
+    o = PWNModel.BeetlesMap(cell_size=cell_size)
     PWNModel.initialize!(o, world)
 
     return world, o
 end
 
-@testset "BeetlesMapObserver rejects non-multiple cell_size" begin
+@testset "BeetlesMap rejects non-multiple cell_size" begin
     world = World()
     add_resource!(world, PWNModel.WorldSize(width=100, height=100, cell_size=10, grid_cell_size=10))
 
-    o = PWNModel.BeetlesMapObserver(cell_size=25)
+    o = PWNModel.BeetlesMap(cell_size=25)
     @test_throws ArgumentError PWNModel.initialize!(o, world)
 end
 
-@testset "BeetlesMapObserver dims are the world size divided by cell_size" begin
+@testset "BeetlesMap dims are the world size divided by cell_size" begin
     world, o = _setup_beetles_map_observer_world(100, 40, 30)
 
     @test size(PWNModel.data(o, world)) == (4, 2)
 end
 
-@testset "BeetlesMapObserver counts beetles per cell" begin
+@testset "BeetlesMap counts beetles per cell" begin
     world, o = _setup_beetles_map_observer_world(100, 100, 30)
 
     # Both land in map cell (1, 1) (tree-grid coords 1..3).
@@ -45,7 +45,7 @@ end
     @test sum(values) == 3.0
 end
 
-@testset "BeetlesMapObserver does not carry counts over between calls" begin
+@testset "BeetlesMap does not carry counts over between calls" begin
     world, o = _setup_beetles_map_observer_world(100, 100, 30)
 
     entity = nothing
