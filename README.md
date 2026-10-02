@@ -23,3 +23,7 @@ For the default model setup, see file [`config.yaml`](https://github.com/pwn-mod
 ```
 julia --project=build build/compile.jl
 ```
+
+## License
+
+Copyright (c) 2026 Martin Lange. All rights reserved. See [LICENSE](LICENSE).
