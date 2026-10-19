@@ -21,15 +21,15 @@ function initialize!(s::InitTrees, w::World)
     colonized = Position[]
     sizehint!(colonized, ceil(Int, num_cells * s.damage_prevalence * s.beetle_prevalence * 1.2))
 
-    hectares = Grid(cld(trees.grid.width, cells_per_km2), cld(trees.grid.height, cells_per_km2), cells_size, false)
-    for x in 1:hectares.width, y in 1:hectares.height
+    blocks = Grid(cld(trees.grid.width, cells_per_km2), cld(trees.grid.height, cells_per_km2), cells_size, false)
+    for x in 1:blocks.width, y in 1:blocks.height
         if rand(rng) < s.km2_probability
-            hectares[x, y] = true
+            blocks[x, y] = true
         end
     end
 
     for x in 1:trees.grid.width, y in 1:trees.grid.height
-        if !hectares[cld(x, cells_per_km2), cld(y, cells_per_km2)]
+        if !blocks[cld(x, cells_per_km2), cld(y, cells_per_km2)]
             continue
         end
         if s.tree_probability < 1.0 && rand(rng) > s.tree_probability
