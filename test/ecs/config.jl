@@ -38,6 +38,7 @@ end
     systems:
       - type: TreeAttraction
         tick_of_year: 18
+        damaged_trees: false
         half_distance: 50
         density_radius: 20
         density_weight: 1
@@ -121,6 +122,61 @@ end
         @test err isa ArgumentError
         @test occursin("\"$key\"", err.msg)
     end
+end
+
+@testset "Config: a missing entry parameter raises an error naming it" begin
+    # Keywords without a default are required parameters, for systems,
+    # resources and nested observers alike.
+    for (src, key) in [
+        """
+        systems:
+          - type: InitTrees
+            km2_probability: 0.6
+            tree_probability: 0.9
+            beetle_prevalence: 0.2
+        """ => "damage_prevalence",
+        """
+        resources:
+          - type: WorldSize
+            width: 4000
+            cell_size: 10
+        """ => "height",
+        """
+        systems:
+          - type: TreeAttraction
+            tick_of_year: 18
+            half_distance: 50
+            density_radius: 20
+            density_weight: 1
+        """ => "damaged_trees",
+        """
+        systems:
+          - type: CSV
+            observer:
+              type: TreeColonizationMap
+            file: out/tree_pop.csv
+        """ => "cell_size",
+    ]
+        err = try
+            PWNModel.parse_config(src)
+            nothing
+        catch e
+            e
+        end
+        @test err isa ArgumentError
+        @test occursin("\"$key\"", err.msg)
+    end
+end
+
+@testset "Config: parameters with a default may be left out" begin
+    cfg = PWNModel.parse_config("""
+    systems:
+      - type: CSV
+        observer:
+          type: TreePopulation
+        file: out/tree_pop.csv
+    """)
+    @test cfg.systems[1].sep == ","
 end
 
 @testset "Config: resources are resolved and applied to a world" begin

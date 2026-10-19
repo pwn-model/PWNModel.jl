@@ -32,9 +32,9 @@ mutable struct TreeAttraction <: System
     const tick_of_year::Int
 
     # damaged_trees selects which trees this instance computes attraction
-    # from and which resource it publishes to: false (the default) uses
-    # healthy trees and publishes HealthyTreeAttraction, true uses damaged
-    # trees and publishes DamagedTreeAttraction.
+    # from and which resource it publishes to: false uses healthy trees and
+    # publishes HealthyTreeAttraction, true uses damaged trees and publishes
+    # DamagedTreeAttraction.
     const damaged_trees::Bool
 
     # half_distance is the distance, in meters, at which a source's
@@ -116,7 +116,7 @@ mutable struct TreeAttraction <: System
 end
 
 TreeAttraction(;
-    tick_of_year::Int, damaged_trees::Bool=false, half_distance::Float64, density_radius::Int,
+    tick_of_year::Int, damaged_trees::Bool, half_distance::Float64, density_radius::Int,
     density_weight::Float64,
 ) = TreeAttraction(tick_of_year, damaged_trees, half_distance, density_radius, density_weight)
 
