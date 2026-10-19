@@ -4,7 +4,6 @@ using Ark
 using PWNModel
 
 include("comps/tree.jl")
-include("comps/cell.jl")
 include("res/grid.jl")
 include("res/rng.jl")
 include("util/shuffle.jl")

@@ -19,7 +19,6 @@ include("ecs/stats.jl")
 include("ecs/reporter/csv_reporter.jl")
 
 include("comps/tree.jl")
-include("comps/cell.jl")
 include("comps/beetle.jl")
 include("res/grid.jl")
 include("res/grids.jl")
@@ -65,11 +64,10 @@ export Config, load_config, parse_config, apply!, allow_external_module
 export RowObserver, header, row, CSV
 export Rng, Tick, Time
 export Termination, FixedTermination, SchedulerControl, next_tps
-export Grid, TreeGrid, SpaceGrid, WorldSize
+export Grid, TreeGrid, WorldSize
 export HealthyTreeAttraction, DamagedTreeAttraction, FeedingInfectedBeetles
-export Position, InCell, Damaged, Infected, Colonized
+export Position, Damaged, Infected, Colonized
 export BeetlePosition, LifeExpectancy
-export GridCoords
 export InitGrids, InitTrees
 export UpdateTime, DiseaseCourse, RandomRelease, DamageTrees, Colonization
 export BeetleEmergence, EmergenceTick, BeetleMortality, BeetleMovement

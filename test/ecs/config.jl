@@ -13,7 +13,7 @@ end # module
     systems:
       - type: InitGrids
       - type: InitTrees
-        cell_probability: 0.6
+        km2_probability: 0.6
         tree_probability: 0.9
         damage_prevalence: 0.03
         beetle_prevalence: 0.2
@@ -24,7 +24,7 @@ end # module
 
     init_trees = cfg.systems[2]
     @test init_trees isa PWNModel.InitTrees
-    @test init_trees.cell_probability == 0.6
+    @test init_trees.km2_probability == 0.6
     @test init_trees.tree_probability == 0.9
     @test init_trees.damage_prevalence == 0.03
     @test init_trees.beetle_prevalence == 0.2
@@ -85,12 +85,12 @@ end
         """
         systems:
           - type: InitTrees
-            cell_probability: 0.6
+            km2_probability: 0.6
             tree_probability: 0.9
             damage_prevalence: 0.03
             beetle_prevalence: 0.2
-            cell_probabilty: 0.6
-        """ => "cell_probabilty",
+            km2_probabilty: 0.6
+        """ => "km2_probabilty",
         """
         systems:
           - type: InitGrids
@@ -102,7 +102,6 @@ end
             widht: 4000
             height: 3000
             cell_size: 10
-            grid_cell_size: 500
         """ => "widht",
         """
         systems:
@@ -131,7 +130,6 @@ end
         width: 4000
         height: 3000
         cell_size: 10
-        grid_cell_size: 500
     """)
     @test length(cfg.resources) == 1
 
@@ -142,7 +140,6 @@ end
     @test ws.width == 400
     @test ws.height == 300
     @test ws.cell_size == 10
-    @test ws.resolution == 50
 end
 
 @testset "Config: a type that is merely `using`'d, not defined, is not resolvable" begin
@@ -233,7 +230,6 @@ end
         width: 4000
         height: 3000
         cell_size: 10
-        grid_cell_size: 500
     systems:
       - type: InitGrids
       - type: FixedTermination
@@ -244,7 +240,7 @@ end
     @test cfg.fps == 20.0
     @test !isempty(cfg.systems)
 
-    world = World(Position, GridCoords, Damaged, Infected, Colonized, Relation{InCell})
+    world = World(Position, Damaged, Infected, Colonized)
     PWNModel.apply!(cfg, world)
     add_resource!(world, PWNModel.Rng(cfg.seed))
 

@@ -10,7 +10,6 @@
                 width: 200
                 height: 100
                 cell_size: 10
-                grid_cell_size: 50
             systems:
               - type: InitGrids
               - type: FixedTermination
