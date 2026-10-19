@@ -1,7 +1,7 @@
 @testset "InitTrees" begin
     world = World(PWNModel.Position, PWNModel.Damaged, PWNModel.Colonized)
 
-    ws = PWNModel.WorldSize(width=1000, height=500, cell_size=10, )
+    ws = PWNModel.WorldSize(width=1000, height=500, cell_size=10)
     add_resource!(world, ws)
     add_resource!(world, PWNModel.Rng(1))
 
@@ -27,7 +27,7 @@ end
 @testset "InitTrees damaged" begin
     world = World(PWNModel.Position, PWNModel.Damaged, PWNModel.Colonized)
 
-    ws = PWNModel.WorldSize(width=1000, height=500, cell_size=10, )
+    ws = PWNModel.WorldSize(width=1000, height=500, cell_size=10)
     add_resource!(world, ws)
     add_resource!(world, PWNModel.Rng(1))
 
@@ -64,7 +64,7 @@ end
 @testset "InitTrees colonized" begin
     world = World(PWNModel.Position, PWNModel.Damaged, PWNModel.Colonized)
 
-    ws = PWNModel.WorldSize(width=1000, height=500, cell_size=10, )
+    ws = PWNModel.WorldSize(width=1000, height=500, cell_size=10)
     add_resource!(world, ws)
     add_resource!(world, PWNModel.Rng(1))
 
