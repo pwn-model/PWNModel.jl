@@ -31,7 +31,13 @@ end
     _place_tree(world, 50, 25)
 
     half_distance = 50 * log(2)
-    s = PWNModel.TreeAttraction(tick_of_year=0, half_distance=half_distance, density_radius=20, density_weight=0.0)
+    s = PWNModel.TreeAttraction(
+        tick_of_year=0,
+        damaged_trees=false,
+        half_distance=half_distance,
+        density_radius=20,
+        density_weight=0.0,
+    )
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
 
@@ -59,7 +65,8 @@ end
 
     healthy_half_distance = 50 * log(2)
     healthy = PWNModel.TreeAttraction(
-        tick_of_year=0, half_distance=healthy_half_distance, density_radius=20, density_weight=0.0,
+        tick_of_year=0, damaged_trees=false, half_distance=healthy_half_distance, density_radius=20,
+        density_weight=0.0,
     )
     PWNModel.initialize!(healthy, world)
 
@@ -92,7 +99,13 @@ end
     world = _setup_tree_attraction_world()
     _place_tree(world, 50, 25)
 
-    s = PWNModel.TreeAttraction(tick_of_year=0, half_distance=10 * log(2), density_radius=20, density_weight=0.0)
+    s = PWNModel.TreeAttraction(
+        tick_of_year=0,
+        damaged_trees=false,
+        half_distance=10 * log(2),
+        density_radius=20,
+        density_weight=0.0,
+    )
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
 
@@ -108,7 +121,13 @@ end
     _place_isolated_tree_and_cluster!(world)
 
     half_distance = 200 * log(2)
-    s = PWNModel.TreeAttraction(tick_of_year=0, half_distance=half_distance, density_radius=20, density_weight=0.0)
+    s = PWNModel.TreeAttraction(
+        tick_of_year=0,
+        damaged_trees=false,
+        half_distance=half_distance,
+        density_radius=20,
+        density_weight=0.0,
+    )
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
 
@@ -126,7 +145,13 @@ end
     _place_isolated_tree_and_cluster!(world)
 
     half_distance = 200 * log(2)
-    s = PWNModel.TreeAttraction(tick_of_year=0, half_distance=half_distance, density_radius=20, density_weight=1.0)
+    s = PWNModel.TreeAttraction(
+        tick_of_year=0,
+        damaged_trees=false,
+        half_distance=half_distance,
+        density_radius=20,
+        density_weight=1.0,
+    )
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
 
@@ -155,7 +180,7 @@ end
     end
 
     s = PWNModel.TreeAttraction(
-        tick_of_year=0, half_distance=200 * log(2), density_radius=20, density_weight=5.0,
+        tick_of_year=0, damaged_trees=false, half_distance=200 * log(2), density_radius=20, density_weight=5.0,
     )
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
@@ -180,7 +205,13 @@ end
     # every source at 1 directly, without ever consulting density_radius
     # -- so an invalid density_radius (here, not a multiple of the
     # world's 10m cell size) must not throw during initialize!.
-    s = PWNModel.TreeAttraction(tick_of_year=0, half_distance=50 * log(2), density_radius=7, density_weight=0.0)
+    s = PWNModel.TreeAttraction(
+        tick_of_year=0,
+        damaged_trees=false,
+        half_distance=50 * log(2),
+        density_radius=7,
+        density_weight=0.0,
+    )
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
 
@@ -192,7 +223,13 @@ end
     world = _setup_tree_attraction_world()
     _place_tree(world, 50, 25)
 
-    s = PWNModel.TreeAttraction(tick_of_year=5, half_distance=200 * log(2), density_radius=20, density_weight=1.0)
+    s = PWNModel.TreeAttraction(
+        tick_of_year=5,
+        damaged_trees=false,
+        half_distance=200 * log(2),
+        density_radius=20,
+        density_weight=1.0,
+    )
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
 

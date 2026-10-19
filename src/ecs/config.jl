@@ -124,6 +124,13 @@ _resolve_value(v) = v
 # Unknown (e.g. misspelled) keys would already fail that constructor call,
 # but only with a MethodError that doesn't say which key is at fault, so
 # they are checked for up front, by name.
+#
+# A keyword without a default value is a required parameter: leaving it out
+# of the config fails the constructor call with an UndefKeywordError, which
+# is turned into an ArgumentError naming the type, like the unknown-key
+# error. This matches the sibling Go implementation, where every parameter
+# is required unless tagged `config:"optional"`, so a keyword should only
+# have a default if the Go field is tagged optional too.
 function _construct(::Type{T}, entry::AbstractDict) where {T}
     unknown = sort!([k for k in keys(entry) if k != "type" && !hasmethod(T, Tuple{}, (Symbol(k),))])
     if !isempty(unknown)
@@ -131,7 +138,12 @@ function _construct(::Type{T}, entry::AbstractDict) where {T}
     end
 
     kwargs = (Symbol(k) => _widen_param(T, Symbol(k), _resolve_value(v)) for (k, v) in entry if k != "type")
-    return T(; kwargs...)
+    try
+        return T(; kwargs...)
+    catch e
+        e isa UndefKeywordError || rethrow()
+        throw(ArgumentError("missing parameter \"$(e.var)\" for type $T"))
+    end
 end
 
 # _widen_param converts a whole-number YAML value (e.g. `half_distance: 50`)
