@@ -93,7 +93,7 @@ function update!(s::BeetleMovement, w::World)
 
             for _ in 1:(s.steps_per_tick)
                 tree_here = presence[x, y]
-                if !tree_here || rand(rng) >= s.leave_tree_probability
+                if !tree_here || rand(rng) < s.leave_tree_probability
                     if rand(rng) < s.random_walk_probability
                         x, y = random_neighbor(s, rng, x, y)
                     else
