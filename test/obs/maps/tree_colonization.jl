@@ -1,6 +1,6 @@
 function _setup_map_observer_world(width::Int, height::Int, cell_size::Int)
     world = World(PWNModel.Position, PWNModel.Damaged, PWNModel.Colonized)
-    add_resource!(world, PWNModel.WorldSize(width=width, height=height, cell_size=10, grid_cell_size=10))
+    add_resource!(world, PWNModel.WorldSize(width=width, height=height, cell_size=10))
 
     o = PWNModel.TreeColonizationMap(cell_size=cell_size)
     PWNModel.initialize!(o, world)
@@ -10,7 +10,7 @@ end
 
 @testset "TreeColonizationMap rejects non-multiple cell_size" begin
     world = World()
-    add_resource!(world, PWNModel.WorldSize(width=100, height=100, cell_size=10, grid_cell_size=10))
+    add_resource!(world, PWNModel.WorldSize(width=100, height=100, cell_size=10))
 
     o = PWNModel.TreeColonizationMap(cell_size=25)
     @test_throws ArgumentError PWNModel.initialize!(o, world)

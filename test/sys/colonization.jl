@@ -1,7 +1,7 @@
-function _setup_colonization_world(width::Int, height::Int, resolution::Int)
-    world = World(PWNModel.Position, PWNModel.GridCoords, PWNModel.Damaged, PWNModel.Colonized)
+function _setup_colonization_world(width::Int, height::Int)
+    world = World(PWNModel.Position, PWNModel.Damaged, PWNModel.Colonized)
 
-    add_resource!(world, PWNModel.WorldSize(width=width, height=height, cell_size=10, grid_cell_size=resolution))
+    add_resource!(world, PWNModel.WorldSize(width=width, height=height, cell_size=10))
 
     gs = PWNModel.InitGrids()
     PWNModel.initialize!(gs, world)
@@ -32,8 +32,8 @@ end
 end
 
 @testset "Colonization calc_arrivals! conserves beetle count" begin
-    world = World(PWNModel.GridCoords)
-    add_resource!(world, PWNModel.WorldSize(width=30, height=30, cell_size=10, grid_cell_size=10))
+    world = World()
+    add_resource!(world, PWNModel.WorldSize(width=30, height=30, cell_size=10))
     gs = PWNModel.InitGrids()
     PWNModel.initialize!(gs, world)
 
@@ -61,8 +61,8 @@ end
 end
 
 @testset "Colonization calc_probability! occupancy formula" begin
-    world = World(PWNModel.GridCoords)
-    add_resource!(world, PWNModel.WorldSize(width=30, height=10, cell_size=10, grid_cell_size=10))
+    world = World()
+    add_resource!(world, PWNModel.WorldSize(width=30, height=10, cell_size=10))
     gs = PWNModel.InitGrids()
     PWNModel.initialize!(gs, world)
 
@@ -94,7 +94,7 @@ end
 end
 
 @testset "Colonization skips wrong tick of year" begin
-    world = _setup_colonization_world(100, 100, 100)
+    world = _setup_colonization_world(100, 100)
     add_resource!(world, PWNModel.Rng(1))
     add_resource!(world, PWNModel.Time(0, 0, 0))
 
@@ -123,7 +123,7 @@ end
 end
 
 @testset "Colonization colonizes susceptible tree when beetles arrive" begin
-    world = _setup_colonization_world(100, 100, 100)
+    world = _setup_colonization_world(100, 100)
     add_resource!(world, PWNModel.Rng(1))
     add_resource!(world, PWNModel.Time(0, 3, 0))
 
@@ -160,7 +160,7 @@ end
 end
 
 @testset "Colonization no colonization without source" begin
-    world = _setup_colonization_world(100, 100, 100)
+    world = _setup_colonization_world(100, 100)
     add_resource!(world, PWNModel.Rng(1))
     add_resource!(world, PWNModel.Time(0, 3, 0))
 

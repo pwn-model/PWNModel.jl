@@ -1,12 +1,12 @@
 
 function do_setup_world(n)
     world = World(
-        Position, GridCoords, Damaged, Infected, Colonized, Relation{InCell},
+        Position, Damaged, Infected, Colonized,
         BeetlePosition, EmergenceTick, LifeExpectancy,
     )
 
     # Resources
-    add_resource!(world, WorldSize(width=10000, height=10000, cell_size=10, grid_cell_size=500))
+    add_resource!(world, WorldSize(width=10000, height=10000, cell_size=10))
     add_resource!(world, Rng(1))
 
     scheduler = Scheduler(
@@ -14,7 +14,7 @@ function do_setup_world(n)
         (
             # Initialization
             InitGrids(),
-            InitTrees(cell_probability=1.0, tree_probability=0.9, damage_prevalence=0.03, beetle_prevalence=0.2),
+            InitTrees(km2_probability=1.0, tree_probability=0.9, damage_prevalence=0.03, beetle_prevalence=0.2),
 
             # Systems
             UpdateTime(ticks_per_year=52),
@@ -22,7 +22,6 @@ function do_setup_world(n)
             RandomRelease(
                 tick_of_infection=0,
                 num_trees=10,
-                cell_x=11, cell_y=11,
             ),
             DamageTrees(
                 tick_of_year=35,

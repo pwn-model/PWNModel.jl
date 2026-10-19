@@ -1,6 +1,6 @@
 function _setup_tree_attraction_world()
     world = World(PWNModel.Position, PWNModel.Damaged)
-    ws = PWNModel.WorldSize(width=2000, height=500, cell_size=10, grid_cell_size=100)
+    ws = PWNModel.WorldSize(width=2000, height=500, cell_size=10)
     add_resource!(world, ws)
     add_resource!(world, PWNModel.Time(0, 0, 0))
     return world

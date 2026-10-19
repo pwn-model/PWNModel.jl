@@ -1,5 +1,8 @@
+# Relation component for testing relation stats.
+struct _StatsTestRel end
+
 @testset "WorldStats: entities, archetypes and memory" begin
-    world = World(Position, Damaged, Colonized, Relation{InCell})
+    world = World(Position, Damaged, Colonized, Relation{_StatsTestRel})
 
     empty = world_stats(world)
     @test empty.entities.used == 0
@@ -36,7 +39,7 @@
     @test stats.nodes >= length(stats.archetypes)
 
     cell = new_entity!(world, ())
-    new_entity!(world, (Position(4, 4), InCell() => cell))
+    new_entity!(world, (Position(4, 4), _StatsTestRel() => cell))
     rel = only(a for a in world_stats(world).archetypes if a.num_relations > 0)
     @test rel.size == 1
     @test length(rel.tables) == 1
