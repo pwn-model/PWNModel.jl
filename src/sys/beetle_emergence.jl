@@ -24,7 +24,7 @@ function update!(s::BeetleEmergence, w::World)
 
     rng = get_resource(w, Rng)
 
-    for (_, positions) in Query(w, (Position,); with=(Damaged, Infected))
+    for (_, positions) in Query(w, (Position,); with=(Colonized, Infected))
         append!(s._source_trees, positions)
     end
 

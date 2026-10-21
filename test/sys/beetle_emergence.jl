@@ -1,6 +1,6 @@
 function _new_beetle_emergence_world()
     return World(
-        PWNModel.Position, PWNModel.Damaged, PWNModel.Infected,
+        PWNModel.Position, PWNModel.Colonized, PWNModel.Infected,
         PWNModel.BeetlePosition, PWNModel.EmergenceTick, PWNModel.LifeExpectancy,
     )
 end
@@ -12,7 +12,7 @@ end
 
     s = PWNModel.BeetleEmergence(tick_of_year=0, beetles_per_tree=5, life_expectancy=10.0)
 
-    new_entities!(world, 1, (PWNModel.Position, PWNModel.Damaged, PWNModel.Infected)) do (_, positions, _, infected)
+    new_entities!(world, 1, (PWNModel.Position, PWNModel.Colonized, PWNModel.Infected)) do (_, positions, _, infected)
         positions[1] = PWNModel.Position(1, 2)
         infected[1] = PWNModel.Infected(0)
     end
@@ -29,7 +29,7 @@ end
 
     s = PWNModel.BeetleEmergence(tick_of_year=3, beetles_per_tree=4, life_expectancy=10.0)
 
-    new_entities!(world, 2, (PWNModel.Position, PWNModel.Damaged, PWNModel.Infected)) do (_, positions, _, infected)
+    new_entities!(world, 2, (PWNModel.Position, PWNModel.Colonized, PWNModel.Infected)) do (_, positions, _, infected)
         positions[1] = PWNModel.Position(1, 2)
         positions[2] = PWNModel.Position(5, 6)
         infected[1] = PWNModel.Infected(0)
@@ -59,14 +59,14 @@ end
     @test counts[(5, 6)] == 4
 end
 
-@testset "BeetleEmergence requires both Damaged and Infected" begin
+@testset "BeetleEmergence requires both Colonized and Infected" begin
     world = _new_beetle_emergence_world()
     add_resource!(world, PWNModel.Time(0, 3, 0))
     add_resource!(world, PWNModel.Rng(1))
 
     s = PWNModel.BeetleEmergence(tick_of_year=3, beetles_per_tree=5, life_expectancy=10.0)
 
-    new_entities!(world, 1, (PWNModel.Position, PWNModel.Damaged)) do (_, positions, _)
+    new_entities!(world, 1, (PWNModel.Position, PWNModel.Colonized)) do (_, positions, _)
         positions[1] = PWNModel.Position(1, 1)
     end
     new_entities!(world, 1, (PWNModel.Position, PWNModel.Infected)) do (_, positions, infected)
@@ -76,7 +76,7 @@ end
 
     PWNModel.update!(s, world)
 
-    # Only trees with both Damaged and Infected are emergence sources.
+    # Only trees with both Colonized and Infected are emergence sources.
     @test count_entities(Filter(world, (PWNModel.BeetlePosition,))) == 0
 end
 
@@ -99,7 +99,7 @@ end
 
     s = PWNModel.BeetleEmergence(tick_of_year=3, beetles_per_tree=2, life_expectancy=10.0)
 
-    new_entities!(world, 1, (PWNModel.Position, PWNModel.Damaged, PWNModel.Infected)) do (_, positions, _, infected)
+    new_entities!(world, 1, (PWNModel.Position, PWNModel.Colonized, PWNModel.Infected)) do (_, positions, _, infected)
         positions[1] = PWNModel.Position(1, 1)
         infected[1] = PWNModel.Infected(0)
     end
