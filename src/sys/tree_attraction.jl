@@ -8,9 +8,9 @@
 # plausibly attract vectors differently. Mirrors the sibling Go
 # implementation's `sys.TreeAttraction`.
 #
-# Each source tree seeds fill_grid! with its own local occupancy fraction
-# (see fill_from_query!), raised to density_weight, instead of a uniform
-# value: a denser cluster starts from a taller seed, so it can out-reach and
+# Each source tree seeds propagate_attraction! with its own local occupancy
+# fraction (see fill_from_query!), raised to density_weight, instead of a
+# uniform value: a denser cluster starts from a taller seed, so it can out-reach and
 # win cells that a closer but sparser source would otherwise have claimed by
 # max-relaxation. Applying a density term *after* propagation instead (a
 # uniform, strictly increasing transform of the finished field) could never
@@ -20,8 +20,8 @@
 # before propagation, rather than rescaling it after, is what gives
 # density_weight real effect here.
 #
-# fill_grid! propagates these seeds outward via max-relaxation, decaying
-# multiplicatively per step rather than subtracting a fixed cost: unlike
+# propagate_attraction! propagates these seeds outward via max-relaxation,
+# decaying multiplicatively per step rather than subtracting a fixed cost: unlike
 # subtraction, multiplication never drives a reachable cell to exactly zero,
 # so there's no hard attraction radius. And unlike summing contributions
 # together, max can never exceed the largest seed anywhere in the grid
@@ -69,14 +69,10 @@ mutable struct TreeAttraction <: System
     # decay field), 1 makes the seed scale linearly with local occupancy,
     # and >1 makes denser clusters reach disproportionately farther than the
     # same trees spread out. Since occupancy is normalized to (0, 1], every
-    # seed -- and so, by fill_grid!'s max-relaxation, the whole resulting
-    # field -- stays within (0, 1] regardless of density_radius or how
-    # densely populated the world is.
+    # seed -- and so, by propagate_attraction!'s max-relaxation, the whole
+    # resulting field -- stays within (0, 1] regardless of density_radius
+    # or how densely populated the world is.
     const density_weight::Float64
-
-    # _decay is the per-orthogonal-cell-step decay factor derived from
-    # half_distance; a diagonal step uses decay^sqrt(2).
-    _decay::Float64
 
     # _density_radius_cells is density_radius expressed in grid cells. Left
     # at its zero value when density_weight is 0.
@@ -109,7 +105,7 @@ mutable struct TreeAttraction <: System
     )
         return new(
             tick_of_year, damaged_trees, half_distance, density_radius, density_weight,
-            0.0, 0, 0.0,
+            0, 0.0,
             Grid(0, 0, 1, 0.0),
         )
     end
@@ -122,7 +118,6 @@ TreeAttraction(;
 
 function initialize!(s::TreeAttraction, w::World)
     ws = get_resource(w, WorldSize)
-    s._decay = exp(-ws.cell_size * log(2) / s.half_distance)
 
     s._attraction = Grid(ws.width, ws.height, ws.cell_size, 0.0)
     if s.damaged_trees
@@ -169,14 +164,14 @@ end
 
 function calc_attraction!(s::TreeAttraction)
     fill_from_query!(s, s._attraction, s._filter)
-    fill_grid!(s, s._attraction)
+    propagate_attraction!(s._attraction, s.half_distance)
 end
 
 # fill_from_query! seeds the attraction grid: every cell containing a
 # matching tree is set to that source's own local occupancy fraction
 # (local_count divided by _max_count, always in (0, 1]) raised to
-# density_weight, everything else to 0. fill_grid! then propagates these
-# seeds outward.
+# density_weight, everything else to 0. propagate_attraction! then
+# propagates these seeds outward.
 #
 # Takes a pre-built Filter (see the field docstring on TreeAttraction)
 # rather than `with`/`without` tuples, so that Query(filt) below hits Ark's
@@ -250,49 +245,4 @@ function local_count(s::TreeAttraction, x::Int, y::Int)
 
     sat = s._sat
     return sat[idx(x2, y2)] - sat[idx(x1 - 1, y2)] - sat[idx(x2, y1 - 1)] + sat[idx(x1 - 1, y1 - 1)]
-end
-
-# fill_grid! turns the seeded values into a smooth attraction field by
-# propagating each source's value outward, multiplying by decay per
-# orthogonal step and decay^sqrt(2) per diagonal step, and keeping the best
-# (max) value reaching each cell from any source. This is an in-place,
-# single-grid Gauss-Seidel relaxation (a discrete fast-sweeping method):
-# two passes in opposite raster directions suffice, because the grid has no
-# obstacles, so any shortest path from a source can be split into one
-# forward-monotone and one backward-monotone segment, each fully resolved
-# by one of the two passes.
-function fill_grid!(s::TreeAttraction, grid::Grid{Float64})
-    w, h = grid.width, grid.height
-
-    # Offsets of the already-updated neighbours seen by a sweep moving in
-    # increasing (forward) resp. decreasing (backward) x/y, paired with
-    # their step decay factor.
-    forward = ((-1, -1), (-1, 0), (-1, 1), (0, -1))
-    backward = ((1, 1), (1, 0), (1, -1), (0, 1))
-    decay = s._decay
-    diagonal_decay = decay^sqrt(2.0)
-    decays = (diagonal_decay, decay, diagonal_decay, decay)
-
-    function relax!(x, y, offsets)
-        best = grid[x, y]
-        for i in eachindex(offsets)
-            dx, dy = offsets[i]
-            nx, ny = x + dx, y + dy
-            if nx < 1 || nx > w || ny < 1 || ny > h
-                continue
-            end
-            v = grid[nx, ny] * decays[i]
-            if v > best
-                best = v
-            end
-        end
-        grid[x, y] = best
-    end
-
-    for x in 1:w, y in 1:h
-        relax!(x, y, forward)
-    end
-    for x in w:-1:1, y in h:-1:1
-        relax!(x, y, backward)
-    end
 end

@@ -44,8 +44,8 @@ end
     # A single isolated tree seeds at occupancy^0=1; 10 cells away (a
     # purely orthogonal offset, so the chamfer sweep is exact here, not
     # approximate), the value should be exactly decay^10 -- confirming
-    # fill_grid! decays multiplicatively rather than subtracting a fixed
-    # cost per step.
+    # propagate_attraction! decays multiplicatively rather than subtracting
+    # a fixed cost per step.
     decay = exp(-10.0 * log(2) / half_distance)
     grid = get_resource(world, PWNModel.HealthyTreeAttraction).grid
     @test isapprox(grid[60, 25], decay^10; atol=1e-9)
@@ -188,9 +188,9 @@ end
     # A fully-occupied patch (a tree in every cell of its own
     # density_radius window) has an occupancy fraction of exactly 1, so
     # its seed is exactly 1 regardless of density_weight -- and since
-    # fill_grid!'s max-relaxation can never exceed the largest seed
-    # anywhere in the grid, no cell of the resulting field can exceed 1
-    # either, however densely populated the world is or how high
+    # propagate_attraction!'s max-relaxation can never exceed the largest
+    # seed anywhere in the grid, no cell of the resulting field can exceed
+    # 1 either, however densely populated the world is or how high
     # density_weight is set.
     grid = get_resource(world, PWNModel.HealthyTreeAttraction).grid
     @test isapprox(grid[50, 25], 1.0; atol=1e-9)

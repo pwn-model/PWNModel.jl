@@ -19,6 +19,18 @@ struct DamagedTreeAttraction
     grid::Grid{Float64}
 end
 
+# HealthyTreeAttractionCoarse resource: attraction field driven by healthy
+# trees, on the coarse grid of the CoarseTreeAttraction system.
+struct HealthyTreeAttractionCoarse
+    grid::Grid{Float64}
+end
+
+# DamagedTreeAttractionCoarse resource: attraction field driven by damaged
+# trees, on the coarse grid of the CoarseTreeAttraction system.
+struct DamagedTreeAttractionCoarse
+    grid::Grid{Float64}
+end
+
 # FeedingInfectedBeetles resource.
 struct FeedingInfectedBeetles
     grid::Grid{UInt32}

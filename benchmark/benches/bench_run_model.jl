@@ -47,6 +47,20 @@ function do_setup_world(n)
                 density_radius=20,
                 density_weight=1.0,
             ),
+            CoarseTreeAttraction(
+                tick_of_year=18,
+                damaged_trees=true,
+                cell_size=100,
+                half_distance=200.0,
+                density_weight=1.0,
+            ),
+            CoarseTreeAttraction(
+                tick_of_year=18,
+                damaged_trees=false,
+                cell_size=100,
+                half_distance=200.0,
+                density_weight=1.0,
+            ),
             BeetleMovement(
                 steps_per_tick=7,
                 duration_feeding=6,
