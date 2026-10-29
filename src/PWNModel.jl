@@ -37,6 +37,7 @@ include("sys/beetle_mortality.jl")
 include("sys/beetle_movement.jl")
 include("sys/nematode_infection.jl")
 include("sys/colonization.jl")
+include("sys/attraction_field.jl")
 include("sys/tree_attraction.jl")
 
 include("obs/tree_population.jl")
