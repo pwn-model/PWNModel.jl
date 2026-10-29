@@ -47,6 +47,7 @@ include("obs/tree_colonization.jl")
 include("obs/maps/tree_colonization.jl")
 include("obs/maps/beetles.jl")
 include("obs/maps/tree_attraction.jl")
+include("obs/maps/coarse_tree_attraction.jl")
 
 include("util/print.jl")
 
@@ -77,7 +78,7 @@ export BeetleEmergence, EmergenceTick, BeetleMortality, BeetleMovement
 export NematodeInfection
 export TreeAttraction, CoarseTreeAttraction
 export TreePopulation, TreeDamage, TreeColonization
-export TreeColonizationMap, BeetlesMap, TreeAttractionMap
+export TreeColonizationMap, BeetlesMap, TreeAttractionMap, CoarseTreeAttractionMap
 export trees_to_string
 
 end
