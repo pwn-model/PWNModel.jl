@@ -39,6 +39,7 @@ include("sys/nematode_infection.jl")
 include("sys/colonization.jl")
 include("sys/attraction_field.jl")
 include("sys/tree_attraction.jl")
+include("sys/coarse_tree_attraction.jl")
 
 include("obs/tree_population.jl")
 include("obs/tree_damage.jl")
@@ -67,13 +68,14 @@ export Rng, Tick, Time
 export Termination, FixedTermination, SchedulerControl, next_tps
 export Grid, TreeGrid, WorldSize
 export HealthyTreeAttraction, DamagedTreeAttraction, FeedingInfectedBeetles
+export HealthyTreeAttractionCoarse, DamagedTreeAttractionCoarse
 export Position, Damaged, Infected, Colonized
 export BeetlePosition, LifeExpectancy
 export InitGrids, InitTrees
 export UpdateTime, DiseaseCourse, RandomRelease, DamageTrees, Colonization
 export BeetleEmergence, EmergenceTick, BeetleMortality, BeetleMovement
 export NematodeInfection
-export TreeAttraction
+export TreeAttraction, CoarseTreeAttraction
 export TreePopulation, TreeDamage, TreeColonization
 export TreeColonizationMap, BeetlesMap, TreeAttractionMap
 export trees_to_string
