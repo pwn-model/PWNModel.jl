@@ -12,6 +12,7 @@ using Documenter
 # Experiment folders and their page titles, in page order.
 const EXPERIMENTS = [
     "beetle_trajectories" => "Beetle trajectories",
+    "attraction_field" => "Attraction field",
 ]
 
 src = mktempdir()
