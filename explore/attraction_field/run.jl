@@ -85,8 +85,8 @@ for (i, r) in enumerate(results)
     )
     grid = field(r.world)
     hm = heatmap!(
-        ax, grid_axes(grid)..., log10.(grid_matrix(grid));
-        colormap=FIELD_COLORMAP, colorrange=(-6, 0), rasterize=2,
+        ax, grid_axes(grid)..., log.(grid_matrix(grid));
+        colormap=:viridis, colorrange=(-8, 0), rasterize=2,
     )
     image!(ax, tree_image(r.world; xlims=(0, WIDTH), ylims=(0, HEIGHT))...; interpolate=false, rasterize=2)
     hlines!(ax, [transect_y]; color=:black, linestyle=:dash, linewidth=1)
@@ -94,7 +94,7 @@ for (i, r) in enumerate(results)
     ratio = log10.(grid_matrix(r.tree)) .- log10.(grid_matrix(r.forest))
     contour!(ax, grid_axes(grid)..., ratio; levels=[0.0], color=SERIES_COLORS[2], linewidth=1.5)
     limits!(ax, 0, WIDTH, 0, HEIGHT)
-    i == 1 && Colorbar(fig[1:length(results), 2], hm; label="log₁₀ attraction")
+    i == 1 && Colorbar(fig[1:length(results), 2], hm; label="ln attraction")
 end
 save_figure(OUT_DIR, "field_maps", fig; png=true)
 
