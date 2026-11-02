@@ -23,6 +23,10 @@ mutable struct BeetleMovement <: System
     _damaged_presence::Grid{Bool}
     _feeding_infected::Grid{UInt32}
 
+    # _candidates is a reused buffer for max_field_neighbor's tied
+    # candidates, as indices into NEIGHBOR_OFFSETS.
+    _candidates::Vector{UInt8}
+
     _width::Int
     _height::Int
 
@@ -33,7 +37,8 @@ mutable struct BeetleMovement <: System
         return new(
             steps_per_tick, duration_feeding, duration_egg_laying,
             leave_tree_probability, random_walk_probability,
-            Grid(0, 0, 1, false), Grid(0, 0, 1, false), Grid(0, 0, 1, UInt32(0)), 0, 0,
+            Grid(0, 0, 1, false), Grid(0, 0, 1, false), Grid(0, 0, 1, UInt32(0)),
+            Vector{UInt8}(undef, length(NEIGHBOR_OFFSETS)), 0, 0,
         )
     end
 end
@@ -97,7 +102,7 @@ function update!(s::BeetleMovement, w::World)
                     if rand(rng) < s.random_walk_probability
                         x, y = random_neighbor(s, rng, x, y)
                     else
-                        x, y = max_field_neighbor(s, field, x, y)
+                        x, y = max_field_neighbor(s, rng, field, x, y)
                     end
                     tree_here = presence[x, y]
                 end
@@ -134,24 +139,40 @@ function random_neighbor(s::BeetleMovement, rng::Rng, x::Int, y::Int)
 end
 
 # max_field_neighbor picks the in-bounds Moore-neighborhood cell of (x, y)
-# with the highest value in field, breaking ties by NEIGHBOR_OFFSETS order.
-function max_field_neighbor(s::BeetleMovement, field::Grid{Float64}, x::Int, y::Int)
-    best_x, best_y = x, y
-    has_best = false
+# with the highest value in field. Ties are broken uniformly at random, so
+# that a flat field doesn't bias movement towards the first NEIGHBOR_OFFSETS.
+# Draws a random number only if there is a tie, via frozen_rand_range (see
+# random_neighbor). Mirrors the sibling Go implementation's maxFieldNeighbor,
+# which uses a stack array instead of the reused _candidates buffer.
+function max_field_neighbor(s::BeetleMovement, rng::Rng, field::Grid{Float64}, x::Int, y::Int)
+    candidates = s._candidates
+    n = 0
     best_v = 0.0
-    for o in NEIGHBOR_OFFSETS
+    for (i, o) in enumerate(NEIGHBOR_OFFSETS)
         nx, ny = x + o[1], y + o[2]
         if nx < 1 || nx > s._width || ny < 1 || ny > s._height
             continue
         end
         v = field[nx, ny]
-        if !has_best || v > best_v
+        if n == 0 || v > best_v
             best_v = v
-            best_x, best_y = nx, ny
-            has_best = true
+            candidates[1] = UInt8(i)
+            n = 1
+        elseif v == best_v
+            n += 1
+            candidates[n] = UInt8(i)
         end
     end
-    return best_x, best_y
+
+    if n == 0
+        return x, y
+    elseif n == 1
+        o = NEIGHBOR_OFFSETS[candidates[1]]
+        return x + o[1], y + o[2]
+    else
+        o = NEIGHBOR_OFFSETS[candidates[frozen_rand_range(rng.xoshiro, UInt64(n))+1]]
+        return x + o[1], y + o[2]
+    end
 end
 
 function calc_presence!(s::BeetleMovement, w::World)
