@@ -38,6 +38,12 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: explore/site
+      - name: Upload web page preview
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-preview
+          path: explore/site
   deploy:
     name: Deploy web page
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
