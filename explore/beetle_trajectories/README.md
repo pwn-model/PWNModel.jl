@@ -34,6 +34,9 @@ Figures are written to `out/` as SVG (and PNG).
   within 200 m of the release point.
   Green dots are healthy trees, brown dots damaged trees, the star is the release point,
   and colored dots are beetle positions at the end of the phase.
+- `out/trajectories_individual.svg`: trajectories of the first 20 beetles, one panel each,
+  colored by phase (blue: maturation feeding, orange: egg laying). A cross marks where a beetle died,
+  and the panel title gives the week of death.
 - `out/displacement.svg`: distance of each beetle from the release point over movement steps (gray),
   with median and 10–90 % quantile band.
 

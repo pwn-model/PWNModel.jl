@@ -55,7 +55,7 @@ run!(Scheduler(world, systems), total_steps)
 # Analysis and plots
 
 cs = get_resource(world, WorldSize).cell_size
-tracks = [[Point2f(cell_center(p.x, p.y, cs)...) for p in track] for track in values(trajectories.tracks)]
+tracks = [[Point2f(cell_center(p.x, p.y, cs)...) for p in trajectories.tracks[e]] for e in trajectories.entities]
 release = first(first(tracks))
 
 # Tracks end early when beetles die. Part of a track within the given range of steps.
@@ -97,17 +97,56 @@ for (i, phase) in enumerate(phases)
     scatter!(ax, damaged_trees; color=DAMAGED_TREE_COLOR, markersize=5, rasterize=2)
     lines!(ax, track_segments(tracks, phase.range); color=(phase.color, 0.35), linewidth=1)
     # Positions at the end of the phase, of beetles still alive then.
-    scatter!(ax, [t[last(phase.range)] for t in tracks if length(t) >= last(phase.range)]; color=phase.color, markersize=6)
+    scatter!(
+        ax,
+        [t[last(phase.range)] for t in tracks if length(t) >= last(phase.range)];
+        color=phase.color,
+        markersize=6,
+    )
     scatter!(ax, [release]; color=:black, marker=:star5, markersize=14)
     limits!(ax, release[1] - MAP_RADIUS, release[1] + MAP_RADIUS, release[2] - MAP_RADIUS, release[2] + MAP_RADIUS)
 end
 save_figure(OUT_DIR, "trajectories", fig; png=true)
 
+# Individual trajectories of the first beetles, both phases per panel.
+const GRID_ROWS, GRID_COLS = 4, 5
+
+fig = Figure(; size=(1300, 1150))
+for (k, track) in enumerate(tracks[1:min(GRID_ROWS*GRID_COLS, length(tracks))])
+    row, col = fldmod1(k, GRID_COLS)
+    died = length(track) < total_steps + 1
+    title = died ? "Beetle $k (died week $(cld(length(track) - 1, steps_per_tick)))" : "Beetle $k"
+    ax = Axis(fig[row, col]; title=title, aspect=DataAspect())
+    scatter!(ax, healthy_trees; color=HEALTHY_TREE_COLOR, markersize=2, rasterize=2)
+    scatter!(ax, damaged_trees; color=DAMAGED_TREE_COLOR, markersize=4, rasterize=2)
+    for phase in phases
+        segment = track_range(track, phase.range)
+        length(segment) > 1 && lines!(ax, segment; color=phase.color, linewidth=1.5)
+    end
+    scatter!(ax, [release]; color=:black, marker=:star5, markersize=10)
+    died && scatter!(ax, [track[end]]; color=:black, marker=:xcross, markersize=10)
+    limits!(ax, release[1] - MAP_RADIUS, release[1] + MAP_RADIUS, release[2] - MAP_RADIUS, release[2] + MAP_RADIUS)
+    row == GRID_ROWS || hidexdecorations!(ax; grid=false)
+    col == 1 || hideydecorations!(ax; grid=false)
+end
+Legend(
+    fig[GRID_ROWS+1, :],
+    [
+        LineElement(; color=phases[1].color, linewidth=1.5),
+        LineElement(; color=phases[2].color, linewidth=1.5),
+        MarkerElement(; color=:black, marker=:star5, markersize=10),
+        MarkerElement(; color=:black, marker=:xcross, markersize=10),
+    ],
+    ["Maturation feeding", "Egg laying", "Release point", "Death"];
+    orientation=:horizontal, framevisible=false,
+)
+save_figure(OUT_DIR, "trajectories_individual", fig; png=true)
+
 # Net displacement from the release point over movement steps.
 steps = 0:total_steps
 # NaN after a beetle's death. Quantiles are over the beetles alive at each step.
 dist = [s + 1 <= length(t) ? hypot((t[s+1] - release)...) : NaN for t in tracks, s in steps]
-alive_quantile(col, q) = (alive = filter(!isnan, col); isempty(alive) ? NaN : quantile(alive, q))
+alive_quantile(col, q) = (alive=filter(!isnan, col); isempty(alive) ? NaN : quantile(alive, q))
 q10, q50, q90 = (map(c -> alive_quantile(c, q), eachcol(dist)) for q in (0.1, 0.5, 0.9))
 
 fig = Figure(; size=(800, 420))
