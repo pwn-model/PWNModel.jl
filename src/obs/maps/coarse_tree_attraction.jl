@@ -1,5 +1,5 @@
 """
-Reports the log of the coarse attraction grid computed by
+Reports the base-10 log of the coarse attraction grid computed by
 [`CoarseTreeAttraction`](@ref) (healthy or damaged trees), for plotting
 (e.g. with `plot.Image`, see `scripts/plot/image.jl`).
 """
@@ -31,7 +31,7 @@ end
 
 function data(o::CoarseTreeAttractionMap, w::World)::Matrix{Float64}
     for x in 1:(o._grid.width), y in 1:(o._grid.height)
-        o._values[x, y] = log(o._grid[x, y])
+        o._values[x, y] = log10(o._grid[x, y])
     end
 
     return o._values
