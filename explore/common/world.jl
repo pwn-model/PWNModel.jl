@@ -1,5 +1,6 @@
 using Ark
 using PWNModel
+using Random
 
 """
     new_world(; seed, width, height, cell_size) -> World
@@ -26,11 +27,12 @@ Center of grid cell `(x, y)` in meters, for 1-based cell coordinates.
 cell_center(x::Int, y::Int, cell_size::Int) = ((x - 0.5) * cell_size, (y - 0.5) * cell_size)
 
 """
-    ReleaseBeetles(; x, y, count)
+    ReleaseBeetles(; x, y, count, life_expectancy)
 
 Initialization system that creates `count` beetles in cell `(x, y)`, all
-emerging at tick 0 and never dying (as long as `BeetleMortality` is not
-used, their life expectancy is irrelevant anyway).
+emerging at the current tick. Life expectancy in ticks is drawn from an
+exponential distribution with mean `life_expectancy`, like in
+`BeetleEmergence`. It only matters if `BeetleMortality` is used.
 """
 Base.@kwdef struct ReleaseBeetles <: PWNModel.System
     x::Int
@@ -48,7 +50,7 @@ function PWNModel.initialize!(s::ReleaseBeetles, w::World)
     ) do (entities, positions, emergence_ticks, life_expectancies)
         for i in eachindex(entities)
             positions[i] = BeetlePosition(s.x, s.y)
-            emergence_ticks[i] = EmergenceTick(0)
+            emergence_ticks[i] = EmergenceTick(tick)
             life_expectancies[i] = LifeExpectancy(tick + floor(Int, randexp(rng.xoshiro) * s.life_expectancy))
         end
     end
