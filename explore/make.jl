@@ -11,6 +11,7 @@ using Documenter
 
 # Experiment folders and their page titles, in page order.
 const EXPERIMENTS = [
+    "attraction_field" => "Attraction field",
     "beetle_trajectories" => "Beetle trajectories",
 ]
 

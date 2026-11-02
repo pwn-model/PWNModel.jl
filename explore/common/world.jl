@@ -55,3 +55,27 @@ function PWNModel.initialize!(s::ReleaseBeetles, w::World)
         end
     end
 end
+
+"""
+    PlaceTrees(; positions, damaged=false)
+
+Initialization system that creates a tree in each of the given cells
+(`positions`, a vector of `Position`), healthy or damaged. Requires
+`InitGrids` to run before it. Can be used several times, e.g. once for
+healthy and once for damaged trees, as long as cells don't overlap.
+"""
+Base.@kwdef struct PlaceTrees <: PWNModel.System
+    positions::Vector{Position}
+    damaged::Bool = false
+end
+
+function PWNModel.initialize!(s::PlaceTrees, w::World)
+    trees = get_resource(w, TreeGrid).grid
+    comps = s.damaged ? (Position, Damaged) : (Position,)
+    new_entities!(w, length(s.positions), comps) do (entities, positions, _...)
+        for i in eachindex(entities)
+            positions[i] = s.positions[i]
+            trees[s.positions[i].x, s.positions[i].y] = entities[i]
+        end
+    end
+end

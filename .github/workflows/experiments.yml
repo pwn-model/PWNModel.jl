@@ -32,6 +32,7 @@ jobs:
         run: julia --project=explore -e 'using Pkg; Pkg.instantiate()'
       - name: Run experiments
         run: |
+          julia --project=explore explore/attraction_field/run.jl
           julia --project=explore explore/beetle_trajectories/run.jl
       - name: Build web page
         run: julia --project=explore explore/make.jl
