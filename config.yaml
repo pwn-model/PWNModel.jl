@@ -132,7 +132,7 @@ systems:
       type: TreeAttractionMap
       damaged_trees: true
     colormap: viridis
-    colorrange: [-8.0, 0.0]
+    colorrange: [-4.0, 0.0]
 
   - type: Main.Image
     title: Coarse attraction
@@ -140,4 +140,4 @@ systems:
       type: CoarseTreeAttractionMap
       damaged_trees: true
     colormap: viridis
-    colorrange: [-8.0, 0.0]
+    colorrange: [-4.0, 0.0]

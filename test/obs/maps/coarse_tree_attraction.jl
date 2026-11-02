@@ -1,4 +1,4 @@
-@testset "CoarseTreeAttractionMap reports the log of the selected field" begin
+@testset "CoarseTreeAttractionMap reports the base-10 log of the selected field" begin
     world = World()
 
     healthy = Grid(3, 2, 50, 0.0)
@@ -14,7 +14,7 @@
 
         values = PWNModel.data(o, world)
         @test size(values) == (3, 2)
-        @test isapprox(values[3, 2], log(want); atol=1e-12)
+        @test isapprox(values[3, 2], log10(want); atol=1e-12)
         @test values[1, 1] == -Inf # an empty cell's log is -Inf
     end
 end
