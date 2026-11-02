@@ -20,6 +20,16 @@ All parameters are set where the systems are created, in [`run.jl`](https://gith
 To record every single movement step, the model runs with one movement step per tick, and phase durations scaled by 7.
 As trees and attraction fields are static here, this gives the same movement behaviour as weekly ticks.
 
+### Scenarios
+
+The experiment runs two scenarios that differ only in the tree landscape, created by `InitTrees`.
+Everything else is the same, including the random seed.
+
+| Scenario      | `tree_probability` | `damage_prevalence` |
+| ------------- | ------------------ | ------------------- |
+| Dense forest  | 0.9                | 0.03                |
+| Sparse forest | 0.025              | 0.25                |
+
 ## Running
 
 From the `PWNModel.jl/` directory:
@@ -32,20 +42,34 @@ Figures are written to `out/` as SVG (and PNG). They are not committed, but show
 
 ## Figures
 
-Trajectories during maturation feeding (left) and egg laying (right), within 200 m of the release point.
+### Trajectories by phase
+
+Trajectories during maturation feeding (left) and egg laying (right), within 200 m of the release point,
+for both scenarios (rows).
 Green cells are healthy trees, brown cells damaged trees, the star is the release point,
 and colored dots are beetle positions at the end of the phase.
 
 ![Trajectories by phase](out/trajectories.svg)
 
+### Displacement
+
+Distance of each beetle from the release point over movement steps (gray), with median and 10–90 % quantile band,
+for both scenarios.
+
+![Displacement](out/displacement.svg)
+
+### Individual trajectories
+
 Trajectories of the first 20 beetles, one panel each, colored by phase (blue: maturation feeding, orange: egg laying).
 A cross marks where a beetle died, and the panel title gives the week of death.
 
-![Individual trajectories](out/trajectories_individual.svg)
+#### Dense forest
 
-Distance of each beetle from the release point over movement steps (gray), with median and 10–90 % quantile band.
+![Individual trajectories, dense forest](out/trajectories_individual_dense.svg)
 
-![Displacement](out/displacement.svg)
+#### Sparse forest
+
+![Individual trajectories, sparse forest](out/trajectories_individual_sparse.svg)
 
 ## Observations
 
