@@ -92,9 +92,20 @@ map_xlims = (release[1] - MAP_RADIUS, release[1] + MAP_RADIUS)
 map_ylims = (release[2] - MAP_RADIUS, release[2] + MAP_RADIUS)
 trees_x, trees_y, trees_image = tree_image(world; xlims=map_xlims, ylims=map_ylims)
 
+# Map ticks relative to the release point, which is the origin.
+const MAP_TICK_STEP = 100
+map_ticks(origin) = (
+    origin .+ (-MAP_RADIUS:MAP_TICK_STEP:MAP_RADIUS),
+    string.(round.(Int, -MAP_RADIUS:MAP_TICK_STEP:MAP_RADIUS)),
+)
+map_axis_kwargs = (; aspect=DataAspect(), xticks=map_ticks(release[1]), yticks=map_ticks(release[2]))
+
 fig = Figure(; size=(1100, 560))
 for (i, phase) in enumerate(phases)
-    ax = Axis(fig[1, i]; title=phase.title, aspect=DataAspect(), xlabel="x (m)", ylabel="y (m)")
+    ax = Axis(
+        fig[1, i];
+        title=phase.title, xlabel="x from release point (m)", ylabel="y from release point (m)", map_axis_kwargs...,
+    )
     image!(ax, trees_x, trees_y, trees_image; interpolate=false, rasterize=2)
     lines!(ax, track_segments(tracks, phase.range); color=(phase.color, 0.35), linewidth=1)
     # Positions at the end of the phase, of beetles still alive then.
@@ -117,7 +128,7 @@ for (k, track) in enumerate(tracks[1:min(GRID_ROWS*GRID_COLS, length(tracks))])
     row, col = fldmod1(k, GRID_COLS)
     died = length(track) < total_steps + 1
     title = died ? "Beetle $k (died week $(cld(length(track) - 1, steps_per_tick)))" : "Beetle $k"
-    ax = Axis(fig[row, col]; title=title, aspect=DataAspect())
+    ax = Axis(fig[row, col]; title=title, map_axis_kwargs...)
     image!(ax, trees_x, trees_y, trees_image; interpolate=false, rasterize=2)
     for phase in phases
         segment = track_range(track, phase.range)
