@@ -95,8 +95,8 @@ trees_x, trees_y, trees_image = tree_image(world; xlims=map_xlims, ylims=map_yli
 # Map ticks relative to the release point, which is the origin.
 const MAP_TICK_STEP = 100
 map_ticks(origin) = (
-    origin .+ (-MAP_RADIUS:MAP_TICK_STEP:MAP_RADIUS),
-    string.(round.(Int, -MAP_RADIUS:MAP_TICK_STEP:MAP_RADIUS)),
+    origin .+ ((-MAP_RADIUS):MAP_TICK_STEP:MAP_RADIUS),
+    string.(round.(Int, (-MAP_RADIUS):MAP_TICK_STEP:MAP_RADIUS)),
 )
 map_axis_kwargs = (; aspect=DataAspect(), xticks=map_ticks(release[1]), yticks=map_ticks(release[2]))
 
