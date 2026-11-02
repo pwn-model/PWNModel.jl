@@ -63,8 +63,8 @@ function do_setup_world(n)
             ),
             BeetleMovement(
                 steps_per_tick=7,
-                duration_feeding=6,
-                duration_egg_laying=6,
+                duration_feeding=3,
+                duration_egg_laying=8,
                 leave_tree_probability=0.1,
                 random_walk_probability=0.5,
             ),
