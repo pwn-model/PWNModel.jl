@@ -55,7 +55,13 @@ function simulate(init_trees)
         init_trees,
         UpdateTime(; ticks_per_year=52*steps_per_tick),
         # tick_of_year 0, so that both fields are calculated in the first tick, before any movement.
-        TreeAttraction(; tick_of_year=0, damaged_trees=false, half_distance=50.0, density_radius=20, density_weight=1.0),
+        TreeAttraction(;
+            tick_of_year=0,
+            damaged_trees=false,
+            half_distance=50.0,
+            density_radius=20,
+            density_weight=1.0,
+        ),
         TreeAttraction(; tick_of_year=0, damaged_trees=true, half_distance=50.0, density_radius=20, density_weight=1.0),
         # Life expectancy is in ticks, i.e. movement steps here: 5 weeks.
         ReleaseBeetles(; x=50, y=50, count=100, life_expectancy=5.0 * steps_per_tick),
