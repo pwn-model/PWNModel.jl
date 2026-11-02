@@ -9,7 +9,7 @@ How far do they get, and how strongly are they drawn towards trees?
 
 All parameters are set where the systems are created, in [`run.jl`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/beetle_trajectories/run.jl).
 
-- **Landscape**: 2 km × 2 km, 10 m cells.
+- **Landscape**: 1 km × 1 km, 10 m cells.
 - **Attraction**: two `TreeAttraction` fields (healthy and damaged trees), `half_distance` 50 m, `density_radius` 20 m, `density_weight` 1.
 - **Beetles**: 100 beetles released in the center of the world at tick 0.
 - **Mortality**: `BeetleMortality`, with life expectancy drawn from an exponential distribution with a mean of 5 weeks
