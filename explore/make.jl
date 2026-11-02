@@ -1,6 +1,7 @@
-# Builds the experiments web page from the README of this folder and of
-# each experiment, together with the experiments' figures in their `out/`
-# folders. Run the experiments first.
+# Builds the experiments web page from the landing page `index.md` (for
+# domain experts; this folder's README.md is for developers), the README of
+# each experiment, and the experiments' figures in their `out/` folders.
+# Run the experiments first.
 #
 # Run from the PWNModel.jl/ directory:
 #   julia --project=explore explore/make.jl
@@ -16,7 +17,7 @@ const EXPERIMENTS = [
 ]
 
 src = mktempdir()
-cp(joinpath(@__DIR__, "README.md"), joinpath(src, "index.md"))
+cp(joinpath(@__DIR__, "index.md"), joinpath(src, "index.md"))
 for (dir, _) in EXPERIMENTS
     mkpath(joinpath(src, dir))
     cp(joinpath(@__DIR__, dir, "README.md"), joinpath(src, dir, "index.md"))

@@ -30,6 +30,7 @@ julia --project=explore explore/make.jl
 ```
 
 The page is written to `explore/site/`. CI publishes it to GitHub Pages on `main`.
+Its landing page is [`index.md`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/index.md), written for domain experts. This README is for developers and is not part of the web page.
 Experiments are listed explicitly in `make.jl` and in the workflow `experiments.yml`: add new ones to both.
 
 ## Experiments
