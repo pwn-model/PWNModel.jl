@@ -71,7 +71,6 @@ function track_segments(tracks, range)
     return points
 end
 
-healthy_trees = tree_points(world; damaged=false)
 damaged_trees = tree_points(world; damaged=true)
 
 phases = (
@@ -89,12 +88,14 @@ phases = (
 
 # Maps show a fixed area around the release point.
 const MAP_RADIUS = 200.0
+map_xlims = (release[1] - MAP_RADIUS, release[1] + MAP_RADIUS)
+map_ylims = (release[2] - MAP_RADIUS, release[2] + MAP_RADIUS)
+trees_x, trees_y, trees_image = tree_image(world; xlims=map_xlims, ylims=map_ylims)
 
 fig = Figure(; size=(1100, 560))
 for (i, phase) in enumerate(phases)
     ax = Axis(fig[1, i]; title=phase.title, aspect=DataAspect(), xlabel="x (m)", ylabel="y (m)")
-    scatter!(ax, healthy_trees; color=HEALTHY_TREE_COLOR, markersize=3, rasterize=2)
-    scatter!(ax, damaged_trees; color=DAMAGED_TREE_COLOR, markersize=5, rasterize=2)
+    image!(ax, trees_x, trees_y, trees_image; interpolate=false, rasterize=2)
     lines!(ax, track_segments(tracks, phase.range); color=(phase.color, 0.35), linewidth=1)
     # Positions at the end of the phase, of beetles still alive then.
     scatter!(
@@ -104,7 +105,7 @@ for (i, phase) in enumerate(phases)
         markersize=6,
     )
     scatter!(ax, [release]; color=:black, marker=:star5, markersize=14)
-    limits!(ax, release[1] - MAP_RADIUS, release[1] + MAP_RADIUS, release[2] - MAP_RADIUS, release[2] + MAP_RADIUS)
+    limits!(ax, map_xlims..., map_ylims...)
 end
 save_figure(OUT_DIR, "trajectories", fig; png=true)
 
@@ -117,15 +118,14 @@ for (k, track) in enumerate(tracks[1:min(GRID_ROWS*GRID_COLS, length(tracks))])
     died = length(track) < total_steps + 1
     title = died ? "Beetle $k (died week $(cld(length(track) - 1, steps_per_tick)))" : "Beetle $k"
     ax = Axis(fig[row, col]; title=title, aspect=DataAspect())
-    scatter!(ax, healthy_trees; color=HEALTHY_TREE_COLOR, markersize=2, rasterize=2)
-    scatter!(ax, damaged_trees; color=DAMAGED_TREE_COLOR, markersize=4, rasterize=2)
+    image!(ax, trees_x, trees_y, trees_image; interpolate=false, rasterize=2)
     for phase in phases
         segment = track_range(track, phase.range)
         length(segment) > 1 && lines!(ax, segment; color=phase.color, linewidth=1.5)
     end
     scatter!(ax, [release]; color=:black, marker=:star5, markersize=10)
     died && scatter!(ax, [track[end]]; color=:black, marker=:xcross, markersize=10)
-    limits!(ax, release[1] - MAP_RADIUS, release[1] + MAP_RADIUS, release[2] - MAP_RADIUS, release[2] + MAP_RADIUS)
+    limits!(ax, map_xlims..., map_ylims...)
     row == GRID_ROWS || hidexdecorations!(ax; grid=false)
     col == 1 || hideydecorations!(ax; grid=false)
 end
