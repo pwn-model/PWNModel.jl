@@ -19,3 +19,5 @@
 /build/Manifest*.toml
 /build/PWNModelApp/
 .vscode
+/explore/Manifest*.toml
+/explore/*/out/
