@@ -15,7 +15,7 @@ All parameters are set where the systems are created, in [`run.jl`](https://gith
 - **Mortality**: `BeetleMortality`, with life expectancy drawn from an exponential distribution with a mean of 5 weeks
   (as in `BeetleEmergence`).
 - **Movement**: `BeetleMovement` with 7 steps per week, 3 weeks of maturation feeding (attracted by healthy trees),
-  then 5 weeks of egg laying (attracted by damaged trees). `leave_tree_probability` 0.25, `random_walk_probability` 0.6.
+  then 8 weeks of egg laying (attracted by damaged trees). `leave_tree_probability` 0.25, `random_walk_probability` 0.6.
 
 To record every single movement step, the model runs with one movement step per tick, and phase durations scaled by 7.
 As trees and attraction fields are static here, this gives the same movement behaviour as weekly ticks.
