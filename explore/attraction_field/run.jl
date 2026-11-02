@@ -38,7 +38,8 @@ function attraction(trees, density_weight)
         PlaceTrees(; positions=trees),
         UpdateTime(; ticks_per_year=52),
         TreeAttraction(;
-            tick_of_year=0, damaged_trees=false, half_distance=50.0, density_radius=20, density_weight=density_weight,
+            tick_of_year=0, damaged_trees=false, half_distance=50.0, density_radius=20,
+            density_weight=density_weight,
         ),
     )
     run!(Scheduler(world, systems), 1)
