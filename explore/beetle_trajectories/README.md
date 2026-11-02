@@ -12,8 +12,8 @@ All parameters are set where the systems are created, in [`run.jl`](run.jl).
 - **Landscape**: 2 km × 2 km, 10 m cells.
 - **Attraction**: two `TreeAttraction` fields (healthy and damaged trees), `half_distance` 50 m, `density_radius` 20 m, `density_weight` 1.
 - **Beetles**: 100 beetles released in the center of the world at tick 0. No mortality.
-- **Movement**: `BeetleMovement` with 7 steps per week, 6 weeks of maturation feeding (attracted by healthy trees),
-  then 6 weeks of egg laying (attracted by damaged trees). `leave_tree_probability` 0.25, `random_walk_probability` 0.6.
+- **Movement**: `BeetleMovement` with 7 steps per week, 3 weeks of maturation feeding (attracted by healthy trees),
+  then 5 weeks of egg laying (attracted by damaged trees). `leave_tree_probability` 0.25, `random_walk_probability` 0.6.
 
 To record every single movement step, the model runs with one movement step per tick, and phase durations scaled by 7.
 As trees and attraction fields are static here, this gives the same movement behaviour as weekly ticks.

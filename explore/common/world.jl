@@ -36,16 +36,20 @@ Base.@kwdef struct ReleaseBeetles <: PWNModel.System
     x::Int
     y::Int
     count::Int
+    life_expectancy::Float64
 end
 
 function PWNModel.initialize!(s::ReleaseBeetles, w::World)
+    tick = get_resource(w, Time).tick
+    rng = get_resource(w, Rng)
+
     new_entities!(
         w, s.count, (BeetlePosition, EmergenceTick, LifeExpectancy),
     ) do (entities, positions, emergence_ticks, life_expectancies)
         for i in eachindex(entities)
             positions[i] = BeetlePosition(s.x, s.y)
             emergence_ticks[i] = EmergenceTick(0)
-            life_expectancies[i] = LifeExpectancy(typemax(Int))
+            life_expectancies[i] = LifeExpectancy(tick + floor(Int, randexp(rng.xoshiro) * s.life_expectancy))
         end
     end
 end

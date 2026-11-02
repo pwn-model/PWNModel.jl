@@ -21,8 +21,8 @@ const OUT_DIR = joinpath(@__DIR__, "out")
 # static here, so this gives the same movement as the model's weekly ticks;
 # only the order of random numbers differs.
 const steps_per_tick = 7
-const duration_feeding = 6 * steps_per_tick
-const duration_egg_laying = 6 * steps_per_tick
+const duration_feeding = 3 * steps_per_tick
+const duration_egg_laying = 8 * steps_per_tick
 const total_steps = duration_feeding + duration_egg_laying
 
 world = new_world(; seed=1, width=2000, height=2000, cell_size=10)
@@ -36,7 +36,7 @@ systems = (
     # tick_of_year 0, so that both fields are calculated in the first tick, before any movement.
     TreeAttraction(; tick_of_year=0, damaged_trees=false, half_distance=50.0, density_radius=20, density_weight=1.0),
     TreeAttraction(; tick_of_year=0, damaged_trees=true, half_distance=50.0, density_radius=20, density_weight=1.0),
-    ReleaseBeetles(; x=100, y=100, count=100),
+    ReleaseBeetles(; x=100, y=100, count=100, life_expectancy=5.0),
     BeetleMovement(;
         steps_per_tick=1,
         duration_feeding=duration_feeding,
@@ -44,6 +44,7 @@ systems = (
         leave_tree_probability=0.25,
         random_walk_probability=0.6,
     ),
+    BeetleMortality(),
     trajectories,
 )
 
