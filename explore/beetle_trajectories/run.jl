@@ -77,40 +77,29 @@ damaged_trees = tree_points(world; damaged=true)
 phases = (
     (
         title="Maturation feeding (attracted by healthy trees)",
-        field=get_resource(world, HealthyTreeAttraction).grid,
         range=1:(duration_feeding+1),
         color=SERIES_COLORS[1],
     ),
     (
         title="Egg laying (attracted by damaged trees)",
-        field=get_resource(world, DamagedTreeAttraction).grid,
         range=(duration_feeding+1):(total_steps+1),
         color=SERIES_COLORS[2],
     ),
 )
 
-# Zoom the maps to the area visited by beetles, plus a margin.
-const MAP_MARGIN = 100.0
-visited = reduce(vcat, tracks)
-xlims = (max(0, minimum(first, visited) - MAP_MARGIN), maximum(first, visited) + MAP_MARGIN)
-ylims = (max(0, minimum(last, visited) - MAP_MARGIN), maximum(last, visited) + MAP_MARGIN)
+# Maps show a fixed area around the release point.
+const MAP_RADIUS = 200.0
 
-fig = Figure(; size=(1200, 520))
+fig = Figure(; size=(1100, 560))
 for (i, phase) in enumerate(phases)
     ax = Axis(fig[1, i]; title=phase.title, aspect=DataAspect(), xlabel="x (m)", ylabel="y (m)")
-    xs, ys = grid_axes(phase.field)
-    hm = heatmap!(
-        ax, xs, ys, log10.(max.(grid_matrix(phase.field), 1e-8));
-        colormap=FIELD_COLORMAP, colorrange=(-8, 0), rasterize=2,
-    )
     scatter!(ax, healthy_trees; color=HEALTHY_TREE_COLOR, markersize=3, rasterize=2)
     scatter!(ax, damaged_trees; color=DAMAGED_TREE_COLOR, markersize=5, rasterize=2)
     lines!(ax, track_segments(tracks, phase.range); color=(phase.color, 0.35), linewidth=1)
     # Positions at the end of the phase, of beetles still alive then.
     scatter!(ax, [t[last(phase.range)] for t in tracks if length(t) >= last(phase.range)]; color=phase.color, markersize=6)
     scatter!(ax, [release]; color=:black, marker=:star5, markersize=14)
-    limits!(ax, xlims..., ylims...)
-    i == length(phases) && Colorbar(fig[1, i+1], hm; label="log₁₀ attraction")
+    limits!(ax, release[1] - MAP_RADIUS, release[1] + MAP_RADIUS, release[2] - MAP_RADIUS, release[2] + MAP_RADIUS)
 end
 save_figure(OUT_DIR, "trajectories", fig; png=true)
 

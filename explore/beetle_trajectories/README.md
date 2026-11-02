@@ -31,7 +31,7 @@ Figures are written to `out/` as SVG (and PNG).
 ## Figures
 
 - `out/trajectories.svg`: trajectories during maturation feeding (left) and egg laying (right),
-  each over the attraction field that drives it (gray, log scale).
+  within 200 m of the release point.
   Green dots are healthy trees, brown dots damaged trees, the star is the release point,
   and colored dots are beetle positions at the end of the phase.
 - `out/displacement.svg`: distance of each beetle from the release point over movement steps (gray),

@@ -5,8 +5,8 @@ using PWNModel
 # Categorical colors, in fixed order. Use them in this order for series.
 const SERIES_COLORS = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300"]
 
-const HEALTHY_TREE_COLOR = "#008300"
-const DAMAGED_TREE_COLOR = "#8a4b08"
+const HEALTHY_TREE_COLOR = "#b3dab3"
+const DAMAGED_TREE_COLOR = "#d9b48f"
 
 # Light gray ramp for background fields, so that colored marks on top stay readable.
 const FIELD_COLORMAP = cgrad(["#ffffff", "#7a7a7a"])
