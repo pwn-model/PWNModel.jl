@@ -21,3 +21,4 @@
 .vscode
 /explore/Manifest*.toml
 /explore/*/out/
+/explore/site/

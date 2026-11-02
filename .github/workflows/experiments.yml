@@ -33,9 +33,22 @@ jobs:
       - name: Run experiments
         run: |
           julia --project=explore explore/beetle_trajectories/run.jl
-      - uses: actions/upload-artifact@v4
-        if: always()
+      - name: Build web page
+        run: julia --project=explore explore/make.jl
+      - uses: actions/upload-pages-artifact@v3
         with:
-          name: experiments-output
-          path: explore/*/out/
-          if-no-files-found: warn
+          path: explore/site
+  deploy:
+    name: Deploy web page
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: experiments
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
