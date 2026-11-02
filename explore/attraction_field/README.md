@@ -41,7 +41,7 @@ Green areas are trees.
 
 ### Maps
 
-The attraction field (natural log, same coloring as the attraction view of the default `config.yaml`)
+The attraction field (log₁₀, same coloring as the attraction view of the default `config.yaml`)
 with the trees (light green) and the transect (dashed).
 The orange line is where the fields of the tree and the forest meet.
 
