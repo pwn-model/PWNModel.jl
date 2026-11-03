@@ -11,24 +11,26 @@ TreeGrid(sx::Int, sy::Int, cell_size::Int) = TreeGrid(Grid(sx, sy, cell_size, ze
 
 # HealthyTreeAttraction resource: attraction field driven by healthy trees.
 struct HealthyTreeAttraction
-    grid::Grid{Float64}
+    # Attraction field of healthy trees, updated once per year.
+    attraction::Grid{Float64}
+    # Presence of healthy trees per cell, updated together with attraction.
+    presence::Grid{Bool}
+    # Source of the attraction value per cell, i.e. the index (see
+    # cell_index) of the tree cell it was propagated from. NO_CELL where
+    # there is no source at all.
+    source::Grid{UInt32}
 end
 
 # DamagedTreeAttraction resource: attraction field driven by damaged trees.
 struct DamagedTreeAttraction
-    grid::Grid{Float64}
-end
-
-# HealthyTreeAttractionCoarse resource: attraction field driven by healthy
-# trees, on the coarse grid of the CoarseTreeAttraction system.
-struct HealthyTreeAttractionCoarse
-    grid::Grid{Float64}
-end
-
-# DamagedTreeAttractionCoarse resource: attraction field driven by damaged
-# trees, on the coarse grid of the CoarseTreeAttraction system.
-struct DamagedTreeAttractionCoarse
-    grid::Grid{Float64}
+    # Attraction field of damaged trees, updated once per year.
+    attraction::Grid{Float64}
+    # Presence of damaged trees per cell, updated together with attraction.
+    presence::Grid{Bool}
+    # Source of the attraction value per cell, i.e. the index (see
+    # cell_index) of the tree cell it was propagated from. NO_CELL where
+    # there is no source at all.
+    source::Grid{UInt32}
 end
 
 # FeedingInfectedBeetles resource.

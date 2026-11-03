@@ -32,6 +32,7 @@ function do_setup_world(n)
                 tick_of_year=19,
                 beetles_per_tree=5,
                 life_expectancy=5.0,
+                max_age=18,
             ),
             TreeAttraction(
                 tick_of_year=18,
@@ -45,28 +46,14 @@ function do_setup_world(n)
                 damaged_trees=false,
                 half_distance=50.0,
                 density_radius=20,
-                density_weight=1.0,
-            ),
-            CoarseTreeAttraction(
-                tick_of_year=18,
-                damaged_trees=true,
-                cell_size=100,
-                half_distance=200.0,
-                density_weight=1.0,
-            ),
-            CoarseTreeAttraction(
-                tick_of_year=18,
-                damaged_trees=false,
-                cell_size=100,
-                half_distance=200.0,
                 density_weight=1.0,
             ),
             BeetleMovement(
                 steps_per_tick=7,
+                distance_per_step=2000.0,
                 duration_feeding=3,
-                duration_egg_laying=8,
+                feeding_probability=0.5,
                 leave_tree_probability=0.1,
-                random_walk_probability=0.5,
             ),
             BeetleMortality(),
             Colonization(

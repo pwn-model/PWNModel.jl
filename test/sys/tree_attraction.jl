@@ -47,7 +47,7 @@ end
     # propagate_attraction! decays multiplicatively rather than subtracting
     # a fixed cost per step.
     decay = exp(-10.0 * log(2) / half_distance)
-    grid = get_resource(world, PWNModel.HealthyTreeAttraction).grid
+    grid = get_resource(world, PWNModel.HealthyTreeAttraction).attraction
     @test isapprox(grid[60, 25], decay^10; atol=1e-9)
 end
 
@@ -80,8 +80,8 @@ end
     PWNModel.update!(healthy, world)
     PWNModel.update!(damaged, world)
 
-    healthy_grid = get_resource(world, PWNModel.HealthyTreeAttraction).grid
-    damaged_grid = get_resource(world, PWNModel.DamagedTreeAttraction).grid
+    healthy_grid = get_resource(world, PWNModel.HealthyTreeAttraction).attraction
+    damaged_grid = get_resource(world, PWNModel.DamagedTreeAttraction).attraction
 
     # The healthy field is driven only by the healthy tree at (50, 25), 10
     # cells from the query point, using the healthy instance's own decay.
@@ -112,7 +112,7 @@ end
     # Multiplicative decay never hits an exact 0, however far from any
     # source: even at the far opposite corner of the world, the value
     # must be strictly positive.
-    grid = get_resource(world, PWNModel.HealthyTreeAttraction).grid
+    grid = get_resource(world, PWNModel.HealthyTreeAttraction).attraction
     @test grid[200, 50] > 0.0
 end
 
@@ -135,9 +135,12 @@ end
     # max-relaxation just tracks the nearest source: the closer isolated
     # tree (10 cells away) must win over the farther cluster (39 cells to
     # its nearest tree).
-    grid = get_resource(world, PWNModel.HealthyTreeAttraction).grid
+    grid = get_resource(world, PWNModel.HealthyTreeAttraction).attraction
     decay = exp(-10.0 * log(2) / half_distance)
     @test isapprox(grid[60, 25], decay^10; atol=1e-9)
+
+    source = get_resource(world, PWNModel.HealthyTreeAttraction).source
+    @test source[60, 25] == PWNModel.cell_index(source, 50, 25)
 end
 
 @testset "TreeAttraction weight lets farther denser cluster win" begin
@@ -164,13 +167,17 @@ end
     # normalization -- a deterministic "pick the highest neighbour"
     # consumer is now pulled towards the farther, denser cluster instead
     # of the closer lone tree.
-    grid = get_resource(world, PWNModel.HealthyTreeAttraction).grid
+    grid = get_resource(world, PWNModel.HealthyTreeAttraction).attraction
     decay = exp(-10.0 * log(2) / half_distance)
     max_count = (2.0 * 2.0 + 1.0)^2 # density_radius=20, cell_size=10 -> density_radius_cells=2.
     isolated_value = (1.0 / max_count) * decay^10
     cluster_value = (9.0 / max_count) * decay^39
     @test cluster_value > isolated_value
     @test isapprox(grid[60, 25], cluster_value; atol=1e-9)
+
+    # The source is the cluster's nearest tree, not the closer lone tree.
+    source = get_resource(world, PWNModel.HealthyTreeAttraction).source
+    @test source[60, 25] == PWNModel.cell_index(source, 99, 25)
 end
 
 @testset "TreeAttraction field never exceeds one" begin
@@ -192,7 +199,7 @@ end
     # seed anywhere in the grid, no cell of the resulting field can exceed
     # 1 either, however densely populated the world is or how high
     # density_weight is set.
-    grid = get_resource(world, PWNModel.HealthyTreeAttraction).grid
+    grid = get_resource(world, PWNModel.HealthyTreeAttraction).attraction
     @test isapprox(grid[50, 25], 1.0; atol=1e-9)
     @test maximum(grid._values) <= 1.0 + 1e-9
 end
@@ -215,7 +222,7 @@ end
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
 
-    grid = get_resource(world, PWNModel.HealthyTreeAttraction).grid
+    grid = get_resource(world, PWNModel.HealthyTreeAttraction).attraction
     @test isapprox(grid[50, 25], 1.0; atol=1e-9)
 end
 
@@ -233,6 +240,156 @@ end
     PWNModel.initialize!(s, world)
     PWNModel.update!(s, world)
 
-    grid = get_resource(world, PWNModel.HealthyTreeAttraction).grid
+    grid = get_resource(world, PWNModel.HealthyTreeAttraction).attraction
     @test grid[50, 25] == 0.0
+end
+
+# Presence is updated together with the attraction field, only on
+# tick_of_year, and only for the instance's own tree type.
+@testset "TreeAttraction presence on tick of year" begin
+    world = _setup_tree_attraction_world()
+    e = _place_tree(world, 50, 25)
+
+    new_entities!(world, 1, (PWNModel.Position, PWNModel.Damaged)) do (entities, positions, _)
+        positions[1] = PWNModel.Position(80, 25)
+    end
+
+    healthy = PWNModel.TreeAttraction(
+        tick_of_year=0, damaged_trees=false, half_distance=50.0, density_radius=20, density_weight=1.0,
+    )
+    PWNModel.initialize!(healthy, world)
+    damaged = PWNModel.TreeAttraction(
+        tick_of_year=0, damaged_trees=true, half_distance=50.0, density_radius=20, density_weight=1.0,
+    )
+    PWNModel.initialize!(damaged, world)
+
+    PWNModel.update!(healthy, world)
+    PWNModel.update!(damaged, world)
+
+    healthy_presence = get_resource(world, PWNModel.HealthyTreeAttraction).presence
+    damaged_presence = get_resource(world, PWNModel.DamagedTreeAttraction).presence
+    @test healthy_presence[50, 25]
+    @test !healthy_presence[80, 25]
+    @test damaged_presence[80, 25]
+    @test !damaged_presence[50, 25]
+
+    # A tree becoming damaged is not reflected outside tick_of_year...
+    add_components!(world, e, (PWNModel.Damaged(),))
+    time = get_resource(world, PWNModel.Time)
+    time.tick_of_year = 1
+    PWNModel.update!(healthy, world)
+    PWNModel.update!(damaged, world)
+
+    @test healthy_presence[50, 25]
+    @test !damaged_presence[50, 25]
+
+    # ...but on the next tick_of_year.
+    time.tick_of_year = 0
+    PWNModel.update!(healthy, world)
+    PWNModel.update!(damaged, world)
+
+    @test !healthy_presence[50, 25]
+    @test damaged_presence[50, 25]
+end
+
+# The seeds computed by fill_from_query!, with the summed-area table and
+# the seeding fused into one pass, match a brute-force window count,
+# including near the world's edges.
+@testset "TreeAttraction seeds match brute force" begin
+    world = World(PWNModel.Position, PWNModel.Damaged)
+    ws = PWNModel.WorldSize(width=300, height=200, cell_size=10)
+    add_resource!(world, ws)
+    add_resource!(world, PWNModel.Time(0, 0, 0))
+
+    rng = PWNModel.Rng(1)
+    w, h = ws.width, ws.height
+    for _ in 1:200
+        _place_tree(world, floor(Int, rand(rng) * w) + 1, floor(Int, rand(rng) * h) + 1)
+    end
+
+    s = PWNModel.TreeAttraction(
+        tick_of_year=0, damaged_trees=false, half_distance=50.0, density_radius=40, density_weight=1.5,
+    )
+    PWNModel.initialize!(s, world)
+    PWNModel.fill_from_query!(s, s._filter)
+
+    r = s._density_radius_cells
+    mismatches = 0
+    for x in 1:w, y in 1:h
+        if !s._presence[x, y]
+            mismatches += s._attraction[x, y] != 0.0
+            continue
+        end
+        count = 0
+        for xx in max(x-r, 1):min(x+r, w), yy in max(y-r, 1):min(y+r, h)
+            count += s._presence[xx, yy]
+        end
+        mismatches += s._attraction[x, y] != (count / s._max_count)^s.density_weight
+    end
+    @test mismatches == 0
+end
+
+# Without any matching tree, no cell has a source.
+@testset "TreeAttraction no trees no source" begin
+    world = _setup_tree_attraction_world()
+
+    s = PWNModel.TreeAttraction(
+        tick_of_year=0, damaged_trees=false, half_distance=50.0, density_radius=20, density_weight=1.0,
+    )
+    PWNModel.initialize!(s, world)
+    PWNModel.update!(s, world)
+
+    source = get_resource(world, PWNModel.HealthyTreeAttraction).source
+    @test all(==(PWNModel.NO_CELL), source._values)
+end
+
+# Every cell's traced source is a tree cell, the cell's value is exactly
+# that source's seed decayed over the octile distance between them, and no
+# other tree contributes more -- i.e. the source is the tree that wins the
+# max-relaxation, checked by brute force over all trees.
+@testset "TreeAttraction source matches brute force" begin
+    world = World(PWNModel.Position, PWNModel.Damaged)
+    ws = PWNModel.WorldSize(width=300, height=200, cell_size=10)
+    add_resource!(world, ws)
+    add_resource!(world, PWNModel.Time(0, 0, 0))
+
+    rng = PWNModel.Rng(1)
+    w, h = ws.width, ws.height
+    for _ in 1:40
+        _place_tree(world, floor(Int, rand(rng) * w) + 1, floor(Int, rand(rng) * h) + 1)
+    end
+
+    s = PWNModel.TreeAttraction(
+        tick_of_year=0, damaged_trees=false, half_distance=50.0, density_radius=40, density_weight=1.5,
+    )
+    PWNModel.initialize!(s, world)
+    PWNModel.fill_from_query!(s, s._filter)
+
+    seeds = copy(s._attraction._values)
+    trees = [(x, y) for x in 1:w, y in 1:h if s._presence[x, y]]
+
+    PWNModel.propagate_attraction!(s._attraction, s._source, s.half_distance)
+
+    decay = exp(-ws.cell_size * log(2) / s.half_distance)
+    function contribution(x, y, (cx, cy))
+        dx, dy = abs(x - cx), abs(y - cy)
+        dist = max(dx, dy) + (sqrt(2.0) - 1) * min(dx, dy)
+        return seeds[cy, cx] * decay^dist
+    end
+
+    not_tree, wrong_value, outranked = 0, 0, 0
+    for x in 1:w, y in 1:h
+        idx = s._source[x, y]
+        if idx == PWNModel.NO_CELL || !s._presence[PWNModel.cell_coords(s._source, idx)...]
+            not_tree += 1
+            continue
+        end
+        c = PWNModel.cell_coords(s._source, idx)
+        v = s._attraction[x, y]
+        wrong_value += !isapprox(contribution(x, y, c), v; rtol=1e-9)
+        outranked += any(t -> contribution(x, y, t) > v * (1 + 1e-9), trees)
+    end
+    @test not_tree == 0
+    @test wrong_value == 0
+    @test outranked == 0
 end

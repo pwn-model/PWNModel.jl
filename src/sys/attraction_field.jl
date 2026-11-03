@@ -12,7 +12,13 @@
 # because the grid has no obstacles, so any shortest path from a source can
 # be split into one forward-monotone and one backward-monotone segment, each
 # fully resolved by one of the two passes.
-function propagate_attraction!(grid::Grid{Float64}, half_distance::Float64)
+#
+# Whenever a cell's value is replaced by one propagated from a neighbour,
+# the neighbour's source is copied into source along with it, so that each
+# cell ends up with the source cell its final value originates from. On
+# ties, a cell keeps its current value and source, and among neighbours
+# the first in sweep offset order wins.
+function propagate_attraction!(grid::Grid{Float64}, source::Grid{UInt32}, half_distance::Float64)
     w, h = grid.width, grid.height
     decay = exp(-grid.cell_size * log(2) / half_distance)
 
@@ -26,6 +32,7 @@ function propagate_attraction!(grid::Grid{Float64}, half_distance::Float64)
 
     function relax!(x, y, offsets)
         best = grid[x, y]
+        best_idx = 0
         for i in eachindex(offsets)
             dx, dy = offsets[i]
             nx, ny = x + dx, y + dy
@@ -35,9 +42,14 @@ function propagate_attraction!(grid::Grid{Float64}, half_distance::Float64)
             v = grid[nx, ny] * decays[i]
             if v > best
                 best = v
+                best_idx = i
             end
         end
-        grid[x, y] = best
+        if best_idx > 0
+            dx, dy = offsets[best_idx]
+            grid[x, y] = best
+            source[x, y] = source[x+dx, y+dy]
+        end
     end
 
     for x in 1:w, y in 1:h

@@ -6,10 +6,12 @@
 # usual low-53-bit rand override -- so that it stays bit-identical with the
 # sibling Go implementation's util.ExpFloat64 (see res/rng.jl and
 # pwn/util/random.go for why exponential draws need this separate path).
+# The drawn life span is capped at max_age ticks.
 Base.@kwdef struct BeetleEmergence <: System
     tick_of_year::Int
     beetles_per_tree::Int
     life_expectancy::Float64
+    max_age::Int
 
     _source_trees::Vector{Position} = Position[]
 end
@@ -36,7 +38,8 @@ function update!(s::BeetleEmergence, w::World)
             pos = s._source_trees[(i-1)÷s.beetles_per_tree+1]
             beetle_positions[i] = BeetlePosition(pos.x, pos.y)
             emergence_ticks[i] = EmergenceTick(tick)
-            life_expectancies[i] = LifeExpectancy(tick + floor(Int, randexp(rng.xoshiro) * s.life_expectancy))
+            life_expectancies[i] =
+                LifeExpectancy(tick + min(floor(Int, randexp(rng.xoshiro) * s.life_expectancy), s.max_age))
         end
     end
 

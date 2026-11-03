@@ -35,11 +35,11 @@ include("sys/damage_trees.jl")
 include("sys/beetle_emergence.jl")
 include("sys/beetle_mortality.jl")
 include("sys/beetle_movement.jl")
+include("sys/beetle_movement_by_field.jl")
 include("sys/nematode_infection.jl")
 include("sys/colonization.jl")
 include("sys/attraction_field.jl")
 include("sys/tree_attraction.jl")
-include("sys/coarse_tree_attraction.jl")
 
 include("obs/tree_population.jl")
 include("obs/tree_damage.jl")
@@ -47,7 +47,6 @@ include("obs/tree_colonization.jl")
 include("obs/maps/tree_colonization.jl")
 include("obs/maps/beetles.jl")
 include("obs/maps/tree_attraction.jl")
-include("obs/maps/coarse_tree_attraction.jl")
 
 include("util/print.jl")
 
@@ -67,18 +66,17 @@ export Config, load_config, parse_config, apply!, allow_external_module
 export RowObserver, header, row, CSV
 export Rng, Tick, Time
 export Termination, FixedTermination, SchedulerControl, next_tps
-export Grid, TreeGrid, WorldSize
+export Grid, NO_CELL, cell_index, cell_coords, TreeGrid, WorldSize
 export HealthyTreeAttraction, DamagedTreeAttraction, FeedingInfectedBeetles
-export HealthyTreeAttractionCoarse, DamagedTreeAttractionCoarse
 export Position, Damaged, Infected, Colonized
 export BeetlePosition, LifeExpectancy
 export InitGrids, InitTrees
 export UpdateTime, DiseaseCourse, RandomRelease, DamageTrees, Colonization
-export BeetleEmergence, EmergenceTick, BeetleMortality, BeetleMovement
+export BeetleEmergence, EmergenceTick, BeetleMortality, BeetleMovement, BeetleMovementByField
 export NematodeInfection
-export TreeAttraction, CoarseTreeAttraction
+export TreeAttraction
 export TreePopulation, TreeDamage, TreeColonization
-export TreeColonizationMap, BeetlesMap, TreeAttractionMap, CoarseTreeAttractionMap
+export TreeColonizationMap, BeetlesMap, TreeAttractionMap
 export trees_to_string
 
 end

@@ -46,7 +46,7 @@ function attraction(trees, density_weight)
     return world
 end
 
-field(world) = get_resource(world, HealthyTreeAttraction).grid
+field(world) = get_resource(world, HealthyTreeAttraction).attraction
 
 # For each density weight: the field of the whole landscape, and of the tree and the forest alone.
 results = [

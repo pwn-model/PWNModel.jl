@@ -1,5 +1,5 @@
 function max_field_neighbor_setup(seed)
-    s = PWNModel.BeetleMovement(;
+    s = PWNModel.BeetleMovementByField(;
         steps_per_tick=1, duration_feeding=1, duration_egg_laying=1,
         leave_tree_probability=0.0, random_walk_probability=0.0,
     )

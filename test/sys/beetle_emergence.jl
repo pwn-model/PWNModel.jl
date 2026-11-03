@@ -10,7 +10,7 @@ end
     add_resource!(world, PWNModel.Time(0, 1, 0))
     add_resource!(world, PWNModel.Rng(1))
 
-    s = PWNModel.BeetleEmergence(tick_of_year=0, beetles_per_tree=5, life_expectancy=10.0)
+    s = PWNModel.BeetleEmergence(tick_of_year=0, beetles_per_tree=5, life_expectancy=10.0, max_age=12)
 
     new_entities!(world, 1, (PWNModel.Position, PWNModel.Colonized, PWNModel.Infected)) do (_, positions, _, infected)
         positions[1] = PWNModel.Position(1, 2)
@@ -27,7 +27,7 @@ end
     time = add_resource!(world, PWNModel.Time(20, 3, 0))
     add_resource!(world, PWNModel.Rng(1))
 
-    s = PWNModel.BeetleEmergence(tick_of_year=3, beetles_per_tree=4, life_expectancy=10.0)
+    s = PWNModel.BeetleEmergence(tick_of_year=3, beetles_per_tree=4, life_expectancy=10.0, max_age=12)
 
     new_entities!(world, 2, (PWNModel.Position, PWNModel.Colonized, PWNModel.Infected)) do (_, positions, _, infected)
         positions[1] = PWNModel.Position(1, 2)
@@ -50,6 +50,7 @@ end
             # randexp is never negative, so death can never precede the
             # current tick.
             @test life_expectancies[i].tick_of_death >= time.tick
+            @test life_expectancies[i].tick_of_death <= time.tick + s.max_age
             total += 1
         end
     end
@@ -64,7 +65,7 @@ end
     add_resource!(world, PWNModel.Time(0, 3, 0))
     add_resource!(world, PWNModel.Rng(1))
 
-    s = PWNModel.BeetleEmergence(tick_of_year=3, beetles_per_tree=5, life_expectancy=10.0)
+    s = PWNModel.BeetleEmergence(tick_of_year=3, beetles_per_tree=5, life_expectancy=10.0, max_age=12)
 
     new_entities!(world, 1, (PWNModel.Position, PWNModel.Colonized)) do (_, positions, _)
         positions[1] = PWNModel.Position(1, 1)
@@ -85,7 +86,7 @@ end
     add_resource!(world, PWNModel.Time(0, 3, 0))
     add_resource!(world, PWNModel.Rng(1))
 
-    s = PWNModel.BeetleEmergence(tick_of_year=3, beetles_per_tree=5, life_expectancy=10.0)
+    s = PWNModel.BeetleEmergence(tick_of_year=3, beetles_per_tree=5, life_expectancy=10.0, max_age=12)
 
     PWNModel.update!(s, world)
 
@@ -97,7 +98,7 @@ end
     add_resource!(world, PWNModel.Time(0, 3, 0))
     add_resource!(world, PWNModel.Rng(1))
 
-    s = PWNModel.BeetleEmergence(tick_of_year=3, beetles_per_tree=2, life_expectancy=10.0)
+    s = PWNModel.BeetleEmergence(tick_of_year=3, beetles_per_tree=2, life_expectancy=10.0, max_age=12)
 
     new_entities!(world, 1, (PWNModel.Position, PWNModel.Colonized, PWNModel.Infected)) do (_, positions, _, infected)
         positions[1] = PWNModel.Position(1, 1)
@@ -111,4 +112,29 @@ end
     # it weren't, the second tick's query would append onto the first
     # tick's leftover entries and over-count emerged beetles.
     @test count_entities(Filter(world, (PWNModel.BeetlePosition,))) == 4
+end
+
+# With a life expectancy far above max_age, (almost) all life spans are
+# capped at max_age, and none exceeds it.
+@testset "BeetleEmergence caps life span at max_age" begin
+    world = _new_beetle_emergence_world()
+    time = add_resource!(world, PWNModel.Time(20, 3, 0))
+    add_resource!(world, PWNModel.Rng(1))
+
+    s = PWNModel.BeetleEmergence(tick_of_year=3, beetles_per_tree=100, life_expectancy=1000.0, max_age=12)
+
+    new_entities!(world, 1, (PWNModel.Position, PWNModel.Colonized, PWNModel.Infected)) do (_, positions, _, infected)
+        positions[1] = PWNModel.Position(1, 2)
+        infected[1] = PWNModel.Infected(0)
+    end
+
+    PWNModel.update!(s, world)
+
+    ticks_of_death = Int[]
+    for (_, life_expectancies) in Query(world, (PWNModel.LifeExpectancy,))
+        append!(ticks_of_death, le.tick_of_death for le in life_expectancies)
+    end
+    @test length(ticks_of_death) == 100
+    @test all(<=(time.tick + s.max_age), ticks_of_death)
+    @test count(==(time.tick + s.max_age), ticks_of_death) > 90
 end

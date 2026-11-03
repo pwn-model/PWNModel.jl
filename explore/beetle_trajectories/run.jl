@@ -53,6 +53,8 @@ function simulate(init_trees)
     systems = (
         InitGrids(),
         init_trees,
+        # The tree the beetles emerge from, at the release point.
+        DamageTree(; x=50, y=50),
         UpdateTime(; ticks_per_year=52*steps_per_tick),
         # tick_of_year 0, so that both fields are calculated in the first tick, before any movement.
         TreeAttraction(;
@@ -67,10 +69,10 @@ function simulate(init_trees)
         ReleaseBeetles(; x=50, y=50, count=100, life_expectancy=5.0 * steps_per_tick),
         BeetleMovement(;
             steps_per_tick=1,
+            distance_per_step=2000.0,
             duration_feeding=duration_feeding,
-            duration_egg_laying=duration_egg_laying,
+            feeding_probability=0.5,
             leave_tree_probability=0.25,
-            random_walk_probability=0.6,
         ),
         BeetleMortality(),
         trajectories,
@@ -115,7 +117,7 @@ phases = (
 )
 
 # Maps show a fixed area around the release point, which is the origin of the ticks.
-const MAP_RADIUS = 200.0
+const MAP_RADIUS = 300.0
 const MAP_TICK_STEP = 100
 map_ticks(origin) = (
     origin .+ ((-MAP_RADIUS):MAP_TICK_STEP:MAP_RADIUS),
