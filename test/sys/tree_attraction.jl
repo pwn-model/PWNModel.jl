@@ -314,7 +314,7 @@ end
             continue
         end
         count = 0
-        for xx in max(x - r, 1):min(x + r, w), yy in max(y - r, 1):min(y + r, h)
+        for xx in max(x-r, 1):min(x+r, w), yy in max(y-r, 1):min(y+r, h)
             count += s._presence[xx, yy]
         end
         mismatches += s._attraction[x, y] != (count / s._max_count)^s.density_weight
