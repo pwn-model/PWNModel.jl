@@ -27,6 +27,13 @@
 # together, max can never exceed the largest seed anywhere in the grid
 # (multiplying by a factor in (0,1) only ever shrinks a value), so the field
 # stays stable and bounded for any half_distance.
+#
+# Along with the field, propagate_attraction! traces each cell's source: the
+# tree cell its value was propagated from. This is not necessarily the
+# nearest tree: a cell won by a farther but denser cluster gets a cell of
+# that cluster as its source. With density_weight > 0, even a tree's own
+# cell can get another source, if a neighbouring dense cluster out-reaches
+# its own seed.
 mutable struct TreeAttraction <: System
     # tick_of_year when tree attraction is calculated.
     const tick_of_year::Int
@@ -92,6 +99,11 @@ mutable struct TreeAttraction <: System
     # other systems (e.g. BeetleMovement).
     _presence::Grid{Bool}
 
+    # _source is the tree cell each cell's attraction value was propagated
+    # from, NO_CELL where there is none. Recalculated together with the
+    # attraction field, and published along with it.
+    _source::Grid{Cell}
+
     # _sat is a reused (width+1)*(height+1) summed-area-table buffer for
     # counting each source's local density. Left undefined when
     # density_weight is 0, since fill_from_query!'s fast path never touches
@@ -106,7 +118,7 @@ mutable struct TreeAttraction <: System
         return new(
             tick_of_year, damaged_trees, half_distance, density_radius, density_weight,
             0, 0.0,
-            Grid(0, 0, 1, 0.0), Grid(0, 0, 1, false),
+            Grid(0, 0, 1, 0.0), Grid(0, 0, 1, false), Grid(0, 0, 1, NO_CELL),
         )
     end
 end
@@ -121,10 +133,11 @@ function initialize!(s::TreeAttraction, w::World)
 
     s._attraction = Grid(ws.width, ws.height, ws.cell_size, 0.0)
     s._presence = Grid(ws.width, ws.height, ws.cell_size, false)
+    s._source = Grid(ws.width, ws.height, ws.cell_size, NO_CELL)
     if s.damaged_trees
-        add_resource!(w, DamagedTreeAttraction(s._attraction, s._presence))
+        add_resource!(w, DamagedTreeAttraction(s._attraction, s._presence, s._source))
     else
-        add_resource!(w, HealthyTreeAttraction(s._attraction, s._presence))
+        add_resource!(w, HealthyTreeAttraction(s._attraction, s._presence, s._source))
     end
 
     # At density_weight 0, occupancy^0 is 1 regardless of local density (see
@@ -160,14 +173,15 @@ function update!(s::TreeAttraction, w::World)
     end
 
     fill_from_query!(s, s._filter)
-    propagate_attraction!(s._attraction, s.half_distance)
+    propagate_attraction!(s._attraction, s._source, s.half_distance)
 end
 
 # fill_from_query! marks every cell containing a matching tree in
 # s._presence and seeds the attraction grid: every such cell is set to that
 # source's own local occupancy fraction (local_count divided by _max_count,
-# always in (0, 1]) raised to density_weight, everything else to 0.
-# propagate_attraction! then propagates these seeds outward.
+# always in (0, 1]) raised to density_weight, everything else to 0. Every
+# such cell is its own source, every other cell has none (NO_CELL).
+# propagate_attraction! then propagates these seeds and sources outward.
 #
 # This is the only pass over the trees. It seeds every source at 1, which
 # is final for density_weight 0 (occupancy^0 is 1 for any occupancy);
@@ -183,11 +197,13 @@ end
 function fill_from_query!(s::TreeAttraction, filt::Filter)
     fill!(s._presence, false)
     fill!(s._attraction, 0.0)
+    fill!(s._source, NO_CELL)
 
     for (_, positions) in Query(filt)
         for pos in positions
             s._presence[pos.x, pos.y] = true
             s._attraction[pos.x, pos.y] = 1.0
+            s._source[pos.x, pos.y] = Cell(pos.x, pos.y)
         end
     end
 

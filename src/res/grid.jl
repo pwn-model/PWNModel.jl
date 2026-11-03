@@ -1,4 +1,15 @@
 
+# Cell coordinates on a grid.
+struct Cell
+    x::Int
+    y::Int
+end
+
+# NO_CELL is a placeholder for the absence of a cell, e.g. of an attraction
+# source. The sibling Go implementation uses (-1, -1), as its grid is
+# 0-based.
+const NO_CELL = Cell(0, 0)
+
 # Grid resource holding values of type T on a 2D grid.
 struct Grid{T}
     _values::Array{T,2}
