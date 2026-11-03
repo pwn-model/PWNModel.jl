@@ -15,9 +15,10 @@ struct HealthyTreeAttraction
     attraction::Grid{Float64}
     # Presence of healthy trees per cell, updated together with attraction.
     presence::Grid{Bool}
-    # Source of the attraction value per cell, i.e. the tree cell it was
-    # propagated from. NO_CELL where there is no source at all.
-    source::Grid{Cell}
+    # Source of the attraction value per cell, i.e. the index (see
+    # cell_index) of the tree cell it was propagated from. NO_CELL where
+    # there is no source at all.
+    source::Grid{UInt32}
 end
 
 # DamagedTreeAttraction resource: attraction field driven by damaged trees.
@@ -26,9 +27,10 @@ struct DamagedTreeAttraction
     attraction::Grid{Float64}
     # Presence of damaged trees per cell, updated together with attraction.
     presence::Grid{Bool}
-    # Source of the attraction value per cell, i.e. the tree cell it was
-    # propagated from. NO_CELL where there is no source at all.
-    source::Grid{Cell}
+    # Source of the attraction value per cell, i.e. the index (see
+    # cell_index) of the tree cell it was propagated from. NO_CELL where
+    # there is no source at all.
+    source::Grid{UInt32}
 end
 
 # FeedingInfectedBeetles resource.

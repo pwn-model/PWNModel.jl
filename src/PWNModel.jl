@@ -66,7 +66,7 @@ export Config, load_config, parse_config, apply!, allow_external_module
 export RowObserver, header, row, CSV
 export Rng, Tick, Time
 export Termination, FixedTermination, SchedulerControl, next_tps
-export Grid, Cell, NO_CELL, TreeGrid, WorldSize
+export Grid, NO_CELL, cell_index, cell_coords, TreeGrid, WorldSize
 export HealthyTreeAttraction, DamagedTreeAttraction, FeedingInfectedBeetles
 export Position, Damaged, Infected, Colonized
 export BeetlePosition, LifeExpectancy

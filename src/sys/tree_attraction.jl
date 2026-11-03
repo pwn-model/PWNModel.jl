@@ -99,10 +99,11 @@ mutable struct TreeAttraction <: System
     # other systems (e.g. BeetleMovementByField).
     _presence::Grid{Bool}
 
-    # _source is the tree cell each cell's attraction value was propagated
-    # from, NO_CELL where there is none. Recalculated together with the
-    # attraction field, and published along with it.
-    _source::Grid{Cell}
+    # _source is the index (see cell_index) of the tree cell each cell's
+    # attraction value was propagated from, NO_CELL where there is none.
+    # Recalculated together with the attraction field, and published along
+    # with it.
+    _source::Grid{UInt32}
 
     # _sat is a reused (width+1)*(height+1) summed-area-table buffer for
     # counting each source's local density. Left undefined when
@@ -133,6 +134,9 @@ function initialize!(s::TreeAttraction, w::World)
 
     s._attraction = Grid(ws.width, ws.height, ws.cell_size, 0.0)
     s._presence = Grid(ws.width, ws.height, ws.cell_size, false)
+    if ws.width * ws.height >= NO_CELL
+        throw(ArgumentError("world too large for UInt32 cell indices of attraction sources"))
+    end
     s._source = Grid(ws.width, ws.height, ws.cell_size, NO_CELL)
     if s.damaged_trees
         add_resource!(w, DamagedTreeAttraction(s._attraction, s._presence, s._source))
@@ -203,7 +207,7 @@ function fill_from_query!(s::TreeAttraction, filt::Filter)
         for pos in positions
             s._presence[pos.x, pos.y] = true
             s._attraction[pos.x, pos.y] = 1.0
-            s._source[pos.x, pos.y] = Cell(pos.x, pos.y)
+            s._source[pos.x, pos.y] = cell_index(s._source, pos.x, pos.y)
         end
     end
 

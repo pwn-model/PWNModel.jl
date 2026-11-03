@@ -18,7 +18,7 @@
 # cell ends up with the source cell its final value originates from. On
 # ties, a cell keeps its current value and source, and among neighbours
 # the first in sweep offset order wins.
-function propagate_attraction!(grid::Grid{Float64}, source::Grid{Cell}, half_distance::Float64)
+function propagate_attraction!(grid::Grid{Float64}, source::Grid{UInt32}, half_distance::Float64)
     w, h = grid.width, grid.height
     decay = exp(-grid.cell_size * log(2) / half_distance)
 

@@ -83,11 +83,11 @@ function update!(s::BeetleMovement, w::World)
 
             for _ in 1:(s.steps_per_tick)
                 if !presence[x, y] || rand(rng) < s.leave_tree_probability
-                    target = nearest[x, y]
-                    dx, dy = Float64(target.x - x), Float64(target.y - y)
+                    tx, ty = cell_coords(nearest, nearest[x, y])
+                    dx, dy = Float64(tx - x), Float64(ty - y)
                     dist_sq = dx * dx + dy * dy
                     if dist_sq <= max_step_sq
-                        x, y = target.x, target.y
+                        x, y = tx, ty
                     else
                         # Go's math.Round rounds halves away from zero,
                         # Julia's default round to even.

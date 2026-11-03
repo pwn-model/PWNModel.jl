@@ -140,7 +140,7 @@ end
     @test isapprox(grid[60, 25], decay^10; atol=1e-9)
 
     source = get_resource(world, PWNModel.HealthyTreeAttraction).source
-    @test source[60, 25] == PWNModel.Cell(50, 25)
+    @test source[60, 25] == PWNModel.cell_index(source, 50, 25)
 end
 
 @testset "TreeAttraction weight lets farther denser cluster win" begin
@@ -177,7 +177,7 @@ end
 
     # The source is the cluster's nearest tree, not the closer lone tree.
     source = get_resource(world, PWNModel.HealthyTreeAttraction).source
-    @test source[60, 25] == PWNModel.Cell(99, 25)
+    @test source[60, 25] == PWNModel.cell_index(source, 99, 25)
 end
 
 @testset "TreeAttraction field never exceeds one" begin
@@ -366,24 +366,25 @@ end
     PWNModel.fill_from_query!(s, s._filter)
 
     seeds = copy(s._attraction._values)
-    trees = [PWNModel.Cell(x, y) for x in 1:w, y in 1:h if s._presence[x, y]]
+    trees = [(x, y) for x in 1:w, y in 1:h if s._presence[x, y]]
 
     PWNModel.propagate_attraction!(s._attraction, s._source, s.half_distance)
 
     decay = exp(-ws.cell_size * log(2) / s.half_distance)
-    function contribution(x, y, c)
-        dx, dy = abs(x - c.x), abs(y - c.y)
+    function contribution(x, y, (cx, cy))
+        dx, dy = abs(x - cx), abs(y - cy)
         dist = max(dx, dy) + (sqrt(2.0) - 1) * min(dx, dy)
-        return seeds[c.y, c.x] * decay^dist
+        return seeds[cy, cx] * decay^dist
     end
 
     not_tree, wrong_value, outranked = 0, 0, 0
     for x in 1:w, y in 1:h
-        c = s._source[x, y]
-        if c == PWNModel.NO_CELL || !s._presence[c.x, c.y]
+        idx = s._source[x, y]
+        if idx == PWNModel.NO_CELL || !s._presence[PWNModel.cell_coords(s._source, idx)...]
             not_tree += 1
             continue
         end
+        c = PWNModel.cell_coords(s._source, idx)
         v = s._attraction[x, y]
         wrong_value += !isapprox(contribution(x, y, c), v; rtol=1e-9)
         outranked += any(t -> contribution(x, y, t) > v * (1 + 1e-9), trees)
