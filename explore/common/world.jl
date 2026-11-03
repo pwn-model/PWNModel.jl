@@ -58,6 +58,28 @@ function PWNModel.initialize!(s::ReleaseBeetles, w::World)
 end
 
 """
+    DamageTree(; x, y)
+
+Initialization system that makes the tree in cell `(x, y)` damaged, or
+creates a damaged tree there if the cell is empty. Requires `InitGrids`,
+and runs after any system that places trees, like `InitTrees`.
+"""
+Base.@kwdef struct DamageTree <: PWNModel.System
+    x::Int
+    y::Int
+end
+
+function PWNModel.initialize!(s::DamageTree, w::World)
+    trees = get_resource(w, TreeGrid).grid
+    e = trees[s.x, s.y]
+    if is_zero(e)
+        e = new_entity!(w, (Position(s.x, s.y),))
+        trees[s.x, s.y] = e
+    end
+    has_components(w, e, (Damaged,)) || add_components!(w, e, (Damaged(),))
+end
+
+"""
     PlaceTrees(; positions, damaged=false)
 
 Initialization system that creates a tree in each of the given cells

@@ -53,6 +53,8 @@ function simulate(init_trees)
     systems = (
         InitGrids(),
         init_trees,
+        # The tree the beetles emerge from, at the release point.
+        DamageTree(; x=50, y=50),
         UpdateTime(; ticks_per_year=52*steps_per_tick),
         # tick_of_year 0, so that both fields are calculated in the first tick, before any movement.
         TreeAttraction(;

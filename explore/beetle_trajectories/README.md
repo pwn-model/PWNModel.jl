@@ -11,7 +11,8 @@ All parameters are set where the systems are created, in [`run.jl`](https://gith
 
 - **Landscape**: 1 km × 1 km, 10 m cells.
 - **Attraction**: two `TreeAttraction` fields (healthy and damaged trees), `half_distance` 50 m, `density_radius` 20 m, `density_weight` 1.
-- **Beetles**: 100 beetles released in the center of the world at tick 0.
+- **Beetles**: 100 beetles released in the center of the world at tick 0, from a damaged tree placed there
+  (or an existing tree there made damaged).
 - **Mortality**: `BeetleMortality`, with life expectancy drawn from an exponential distribution with a mean of 5 weeks
   (as in `BeetleEmergence`).
 - **Movement**: `BeetleMovementByField` with 7 steps per week, 3 weeks of maturation feeding (attracted by healthy trees),
