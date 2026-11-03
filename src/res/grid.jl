@@ -19,6 +19,16 @@ end
 Base.getindex(grid::Grid, x::Int, y::Int) = grid._values[y, x]
 Base.setindex!(grid::Grid, value, x::Int, y::Int) = (grid._values[y, x] = value)
 
+# checkbounds for cells (x, y) of a grid: with Bool as first argument,
+# reports whether (x, y) is within the grid, otherwise throws a BoundsError
+# if it is not. Mirrors the sibling Go implementation's `Grid.Contains`.
+Base.checkbounds(::Type{Bool}, grid::Grid, x::Int, y::Int) = checkbounds(Bool, grid._values, y, x)
+
+function Base.checkbounds(grid::Grid, x::Int, y::Int)
+    checkbounds(Bool, grid, x, y) || throw(BoundsError(grid, (x, y)))
+    return nothing
+end
+
 # cell_index returns the (1-based) linear index of the cell at (x, y), as
 # used for the grid's own storage. Only valid for grids with less than
 # NO_CELL cells, so that NO_CELL is never a valid index. Mirrors the sibling

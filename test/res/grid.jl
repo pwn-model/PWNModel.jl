@@ -24,3 +24,19 @@ end
     grid[4, 8] = 42
     @test grid._values[PWNModel.cell_index(grid, 4, 8)] == 42
 end
+
+@testset "Grid checkbounds" begin
+    grid = Grid(20, 10, 1, false)
+
+    @test checkbounds(Bool, grid, 1, 1)
+    @test checkbounds(Bool, grid, 20, 10)
+    @test checkbounds(Bool, grid, 5, 5)
+
+    @test !checkbounds(Bool, grid, 0, 1)
+    @test !checkbounds(Bool, grid, 1, 0)
+    @test !checkbounds(Bool, grid, 21, 1)
+    @test !checkbounds(Bool, grid, 1, 11)
+
+    @test checkbounds(grid, 20, 10) === nothing
+    @test_throws BoundsError checkbounds(grid, 21, 1)
+end

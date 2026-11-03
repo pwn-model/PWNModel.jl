@@ -1,3 +1,14 @@
+# NEIGHBOR_OFFSETS are the (dx, dy) offsets of the 8 Moore-neighborhood
+# cells around a beetle's current cell, in the same order as the sibling Go
+# implementation's `neighborOffsets` (pwn/sys/beetle_movement_by_field.go)
+# -- so that random_neighbor and max_field_neighbor draw/break ties
+# identically in both implementations from the same seed.
+const NEIGHBOR_OFFSETS = (
+    (-1, -1), (0, -1), (1, -1),
+    (-1, 0), (1, 0),
+    (-1, 1), (0, 1), (1, 1),
+)
+
 # BeetleMovement system. Moves beetles straight towards the attraction
 # source of their current cell (see TreeAttraction), by up to
 # distance_per_step meters per step. Mirrors the sibling Go implementation's
@@ -56,9 +67,6 @@ function update!(s::BeetleMovement, w::World)
     tick = time.tick
     rng = get_resource(w, Rng)
 
-    max_step = s._distance_in_cells
-    max_step_sq = max_step * max_step
-
     healthy = get_resource(w, HealthyTreeAttraction)
     damaged = get_resource(w, DamagedTreeAttraction)
 
@@ -82,29 +90,53 @@ function update!(s::BeetleMovement, w::World)
             x, y = pos.x, pos.y
 
             for _ in 1:(s.steps_per_tick)
-                if !presence[x, y] || rand(rng) < s.leave_tree_probability
-                    tx, ty = cell_coords(nearest, nearest[x, y])
-                    dx, dy = Float64(tx - x), Float64(ty - y)
-                    dist_sq = dx * dx + dy * dy
-                    if dist_sq <= max_step_sq
-                        x, y = tx, ty
-                    else
-                        # Go's math.Round rounds halves away from zero,
-                        # Julia's default round to even.
-                        frac = max_step / sqrt(dist_sq)
-                        x += round(Int, dx * frac, RoundNearestTiesAway)
-                        y += round(Int, dy * frac, RoundNearestTiesAway)
+                max_step = s._distance_in_cells
+                if presence[x, y] && rand(rng) < s.leave_tree_probability
+                    last_tree = nearest[x, y]
+                    offset = random_offset(rng)
+                    while nearest[x, y] == last_tree && max_step >= 1
+                        x += offset[1]
+                        y += offset[2]
+                        max_step -= 1 # TODO: exact cost for diagonal steps?
+                        if !checkbounds(Bool, presence, x, y)
+                            x -= offset[1]
+                            y -= offset[2]
+                            offset = random_offset(rng)
+                            continue
+                        end
                     end
                 end
 
-                if !presence[x, y]
+                if presence[x, y]
+                    s._feeding_infected[x, y] += UInt32(1)
                     continue
                 end
 
-                s._feeding_infected[x, y] += UInt32(1)
+                max_step_sq = max_step * max_step
+
+                tx, ty = cell_coords(nearest, nearest[x, y])
+                dx, dy = Float64(tx - x), Float64(ty - y)
+                dist_sq = dx * dx + dy * dy
+                if dist_sq <= max_step_sq
+                    x, y = tx, ty
+                else
+                    # Go's math.Round rounds halves away from zero,
+                    # Julia's default round to even.
+                    frac = max_step / sqrt(dist_sq)
+                    x += round(Int, dx * frac, RoundNearestTiesAway)
+                    y += round(Int, dy * frac, RoundNearestTiesAway)
+                end
+
+                if presence[x, y]
+                    s._feeding_infected[x, y] += UInt32(1)
+                end
             end
 
             beetle_positions[i] = BeetlePosition(x, y)
         end
     end
+end
+
+function random_offset(rng::Rng)
+    return NEIGHBOR_OFFSETS[frozen_rand_range(rng.xoshiro, UInt64(length(NEIGHBOR_OFFSETS)))+1]
 end

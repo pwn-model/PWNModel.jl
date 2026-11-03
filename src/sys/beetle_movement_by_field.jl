@@ -1,15 +1,3 @@
-
-# NEIGHBOR_OFFSETS are the (dx, dy) offsets of the 8 Moore-neighborhood
-# cells around a beetle's current cell, in the same order as the sibling Go
-# implementation's `neighborOffsets` (pwn/sys/beetle_movement_by_field.go)
-# -- so that random_neighbor and max_field_neighbor draw/break ties
-# identically in both implementations from the same seed.
-const NEIGHBOR_OFFSETS = (
-    (-1, -1), (0, -1), (1, -1),
-    (-1, 0), (1, 0),
-    (-1, 1), (0, 1), (1, 1),
-)
-
 # BeetleMovementByField system. Mirrors the sibling Go implementation's
 # `sys.BeetleMovementByField`.
 mutable struct BeetleMovementByField <: System
