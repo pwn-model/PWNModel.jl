@@ -65,7 +65,7 @@ function do_setup_world(n)
                 trees_per_beetle=1.0,
             ),
             NematodeInfection(
-                infection_probability=0.01,
+                infection_probability=0.02,
             ),
 
             # Stop criterion
