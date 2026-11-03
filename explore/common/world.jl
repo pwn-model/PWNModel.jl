@@ -27,18 +27,19 @@ Center of grid cell `(x, y)` in meters, for 1-based cell coordinates.
 cell_center(x::Int, y::Int, cell_size::Int) = ((x - 0.5) * cell_size, (y - 0.5) * cell_size)
 
 """
-    ReleaseBeetles(; x, y, count, life_expectancy)
+    ReleaseBeetles(; x, y, count, life_expectancy, max_age)
 
 Initialization system that creates `count` beetles in cell `(x, y)`, all
-emerging at the current tick. Life expectancy in ticks is drawn from an
-exponential distribution with mean `life_expectancy`, like in
-`BeetleEmergence`. It only matters if `BeetleMortality` is used.
+emerging at the current tick. Life span in ticks is drawn from an
+exponential distribution with mean `life_expectancy`, capped at `max_age`
+ticks, like in `BeetleEmergence`. It only matters if `BeetleMortality` is used.
 """
 Base.@kwdef struct ReleaseBeetles <: PWNModel.System
     x::Int
     y::Int
     count::Int
     life_expectancy::Float64
+    max_age::Int
 end
 
 function PWNModel.initialize!(s::ReleaseBeetles, w::World)
@@ -51,7 +52,8 @@ function PWNModel.initialize!(s::ReleaseBeetles, w::World)
         for i in eachindex(entities)
             positions[i] = BeetlePosition(s.x, s.y)
             emergence_ticks[i] = EmergenceTick(tick)
-            life_expectancies[i] = LifeExpectancy(tick + floor(Int, randexp(rng.xoshiro) * s.life_expectancy))
+            life_expectancies[i] =
+                LifeExpectancy(tick + min(floor(Int, randexp(rng.xoshiro) * s.life_expectancy), s.max_age))
         end
     end
 end

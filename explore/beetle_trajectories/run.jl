@@ -22,8 +22,9 @@ const OUT_DIR = joinpath(@__DIR__, "out")
 # only the order of random numbers differs.
 const steps_per_tick = 7
 const duration_feeding = 3 * steps_per_tick
-const duration_egg_laying = 8 * steps_per_tick
-const total_steps = duration_feeding + duration_egg_laying
+# Maximum beetle age of 18 weeks. The simulation runs until all beetles are dead.
+const max_age = 18 * steps_per_tick
+const total_steps = max_age
 
 # Scenarios differ only in the tree landscape. Everything else is the same,
 # including the random seed.
@@ -65,8 +66,8 @@ function simulate(init_trees)
             density_weight=1.0,
         ),
         TreeAttraction(; tick_of_year=0, damaged_trees=true, half_distance=50.0, density_radius=20, density_weight=1.0),
-        # Life expectancy is in ticks, i.e. movement steps here: 5 weeks.
-        ReleaseBeetles(; x=100, y=100, count=100, life_expectancy=5.0 * steps_per_tick),
+        # Life expectancy and maximum age are in ticks, i.e. movement steps here: 5 and 18 weeks.
+        ReleaseBeetles(; x=100, y=100, count=100, life_expectancy=5.0 * steps_per_tick, max_age=max_age),
         BeetleMovement(;
             steps_per_tick=1,
             distance_per_step=2000.0,
@@ -79,7 +80,8 @@ function simulate(init_trees)
         trajectories,
     )
 
-    run!(Scheduler(world, systems), total_steps)
+    # One more tick than steps, for BeetleMortality to remove beetles that reached the maximum age.
+    run!(Scheduler(world, systems), total_steps + 1)
 
     cs = get_resource(world, WorldSize).cell_size
     tracks = [[Point2f(cell_center(p.x, p.y, cs)...) for p in trajectories.tracks[e]] for e in trajectories.entities]
@@ -152,10 +154,10 @@ for (row, (scenario, result)) in enumerate(zip(SCENARIOS, results))
         )
         image!(ax, m.trees...; interpolate=false, rasterize=2)
         lines!(ax, track_segments(result.tracks, phase.range); color=(phase.color, 0.35), linewidth=1)
-        # Positions at the end of the phase, of beetles still alive then.
+        # Positions at the end of the phase, or at death during the phase.
         scatter!(
             ax,
-            [t[last(phase.range)] for t in result.tracks if length(t) >= last(phase.range)];
+            [last(track_range(t, phase.range)) for t in result.tracks if length(t) > first(phase.range)];
             color=phase.color,
             markersize=6,
         )
@@ -229,15 +231,19 @@ for (i, (scenario, result)) in enumerate(zip(SCENARIOS, results))
     i == 1 && axislegend(ax; position=:lt)
 
     damaged_set = Set(tree_points(result.world; damaged=true))
-    survivors = [t for t in result.tracks if length(t) == total_steps + 1]
+    egg_layers = [t for t in result.tracks if length(t) > duration_feeding + 1]
     println(scenario.title)
     println("  Beetles released:                   ", length(result.tracks))
-    println("  Beetles alive at the end:           ", length(survivors))
+    println("  Beetles alive after feeding:        ", length(egg_layers))
     println("  Median distance after feeding:      ", round(q50[duration_feeding+1]; digits=1), " m (beetles alive)")
-    println("  Median distance after egg laying:   ", round(q50[end]; digits=1), " m (beetles alive)")
-    isempty(survivors) || println(
-        "  Survivors ending on a damaged tree: ",
-        round(mean(t[end] in damaged_set for t in survivors); digits=2),
+    println(
+        "  Median distance at death:           ",
+        round(median(hypot((t[end] - result.release)...) for t in result.tracks); digits=1),
+        " m",
+    )
+    isempty(egg_layers) || println(
+        "  Egg layers dying on a damaged tree: ",
+        round(mean(t[end] in damaged_set for t in egg_layers); digits=2),
     )
 end
 linkyaxes!(displacement_axes...)
