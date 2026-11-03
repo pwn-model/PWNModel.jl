@@ -22,7 +22,7 @@ function update!(s::RandomRelease, w::World)
 
     rng = get_resource(w, Rng)
 
-    query = Query(w, (Position,); without=(Damaged, Infected))
+    query = Query(w, (Position,); with=(Damaged,), without=(Infected,))
     to_infect = Entity[]
     sizehint!(to_infect, count_entities(query))
     for (entities, _) in query

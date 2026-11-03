@@ -6,7 +6,7 @@ function _setup_random_release_world()
         PWNModel.Colonized,
     )
 
-    # 20x20 cells, one tree per cell.
+    # 20x20 cells, one damaged tree per cell.
     ws = PWNModel.WorldSize(width=200, height=200, cell_size=10)
     add_resource!(world, ws)
     add_resource!(world, PWNModel.Rng(1))
@@ -15,7 +15,7 @@ function _setup_random_release_world()
     gs = PWNModel.InitGrids()
     PWNModel.initialize!(gs, world)
 
-    ts = PWNModel.InitTrees(km2_probability=1.0, tree_probability=1.0, damage_prevalence=0.0, beetle_prevalence=0.0)
+    ts = PWNModel.InitTrees(km2_probability=1.0, tree_probability=1.0, damage_prevalence=1.0, beetle_prevalence=0.0)
     PWNModel.initialize!(ts, world)
 
     return world, time
@@ -54,21 +54,14 @@ end
 @testset "RandomRelease skips ineligible trees" begin
     world, _time = _setup_random_release_world()
 
-    # Mark all trees as already infected, except one.
-    spared = nothing
-    to_pre_infect = Entity[]
-    first_seen = false
+    # Mark one tree as undamaged and all others as already infected, except one.
+    all = Entity[]
     for (entities, _) in Query(world, (PWNModel.Position,))
-        for e in entities
-            if !first_seen
-                spared = e
-                first_seen = true
-                continue
-            end
-            push!(to_pre_infect, e)
-        end
+        append!(all, entities)
     end
-    for e in to_pre_infect
+    spared = all[1]
+    remove_components!(world, all[2], (PWNModel.Damaged,))
+    for e in all[3:end]
         add_components!(world, e, (PWNModel.Infected(-1),))
     end
 

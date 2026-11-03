@@ -72,7 +72,7 @@ systems:
     trees_per_beetle: 1.0
 
   - type: NematodeInfection
-    infection_probability: 0.01
+    infection_probability: 0.02
 
   # Stop criterion
   - type: FixedTermination
@@ -111,7 +111,7 @@ systems:
       type: BeetlesMap
       cell_size: 10
     colormap: viridis
-    colorrange: [0.0, 10.0]
+    colorrange: [0.0, 5.0]
 
   - type: Main.Image
     title: Attraction
