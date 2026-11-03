@@ -39,7 +39,6 @@ include("sys/nematode_infection.jl")
 include("sys/colonization.jl")
 include("sys/attraction_field.jl")
 include("sys/tree_attraction.jl")
-include("sys/coarse_tree_attraction.jl")
 
 include("obs/tree_population.jl")
 include("obs/tree_damage.jl")
@@ -47,7 +46,6 @@ include("obs/tree_colonization.jl")
 include("obs/maps/tree_colonization.jl")
 include("obs/maps/beetles.jl")
 include("obs/maps/tree_attraction.jl")
-include("obs/maps/coarse_tree_attraction.jl")
 
 include("util/print.jl")
 
