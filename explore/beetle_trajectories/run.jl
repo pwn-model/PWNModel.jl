@@ -46,7 +46,7 @@ const SCENARIOS = [
 
 # Runs the model for one scenario. Returns its world, and the beetle tracks and release point in meters.
 function simulate(init_trees)
-    world = new_world(; seed=1, width=1000, height=1000, cell_size=10)
+    world = new_world(; seed=1, width=2000, height=2000, cell_size=10)
 
     trajectories = BeetleTrajectories()
 
@@ -54,7 +54,7 @@ function simulate(init_trees)
         InitGrids(),
         init_trees,
         # The tree the beetles emerge from, at the release point.
-        DamageTree(; x=50, y=50),
+        DamageTree(; x=100, y=100),
         UpdateTime(; ticks_per_year=52*steps_per_tick),
         # tick_of_year 0, so that both fields are calculated in the first tick, before any movement.
         TreeAttraction(;
@@ -66,7 +66,7 @@ function simulate(init_trees)
         ),
         TreeAttraction(; tick_of_year=0, damaged_trees=true, half_distance=50.0, density_radius=20, density_weight=1.0),
         # Life expectancy is in ticks, i.e. movement steps here: 5 weeks.
-        ReleaseBeetles(; x=50, y=50, count=100, life_expectancy=5.0 * steps_per_tick),
+        ReleaseBeetles(; x=100, y=100, count=100, life_expectancy=5.0 * steps_per_tick),
         BeetleMovement(;
             steps_per_tick=1,
             distance_per_step=2000.0,
@@ -117,12 +117,14 @@ phases = (
 )
 
 # Maps show a fixed area around the release point, which is the origin of the ticks.
-const MAP_RADIUS = 300.0
-const MAP_TICK_STEP = 100
-map_ticks(origin) = (
-    origin .+ ((-MAP_RADIUS):MAP_TICK_STEP:MAP_RADIUS),
-    string.(round.(Int, (-MAP_RADIUS):MAP_TICK_STEP:MAP_RADIUS)),
-)
+const MAP_RADIUS = 500.0
+const MAP_TICK_STEP = 200
+function map_ticks(origin)
+    # Ticks at multiples of MAP_TICK_STEP, so that there is always one at the origin.
+    n = floor(Int, MAP_RADIUS / MAP_TICK_STEP)
+    offsets = ((-n):n) .* MAP_TICK_STEP
+    return (origin .+ offsets, string.(offsets))
+end
 
 # Map area, tree bitmap and axis settings for a scenario's result.
 function map_setup(result)
