@@ -16,7 +16,7 @@ include("../common/plotting.jl")
 const OUT_DIR = joinpath(@__DIR__, "out")
 
 # Model time step is one week, with `steps_per_tick` movement steps per week.
-# To record every single step, we run BeetleMovement with one step per tick
+# To record every single step, we run BeetleMovementByField with one step per tick
 # and scale the phase durations accordingly. Trees and attraction fields are
 # static here, so this gives the same movement as the model's weekly ticks;
 # only the order of random numbers differs.
@@ -65,7 +65,7 @@ function simulate(init_trees)
         TreeAttraction(; tick_of_year=0, damaged_trees=true, half_distance=50.0, density_radius=20, density_weight=1.0),
         # Life expectancy is in ticks, i.e. movement steps here: 5 weeks.
         ReleaseBeetles(; x=50, y=50, count=100, life_expectancy=5.0 * steps_per_tick),
-        BeetleMovement(;
+        BeetleMovementByField(;
             steps_per_tick=1,
             duration_feeding=duration_feeding,
             duration_egg_laying=duration_egg_laying,

@@ -1,18 +1,18 @@
 
 # NEIGHBOR_OFFSETS are the (dx, dy) offsets of the 8 Moore-neighborhood
 # cells around a beetle's current cell, in the same order as the sibling Go
-# implementation's `neighborOffsets` (pwn/sys/beetle_movement.go) -- so that
-# random_neighbor and max_field_neighbor draw/break ties identically in
-# both implementations from the same seed.
+# implementation's `neighborOffsets` (pwn/sys/beetle_movement_by_field.go)
+# -- so that random_neighbor and max_field_neighbor draw/break ties
+# identically in both implementations from the same seed.
 const NEIGHBOR_OFFSETS = (
     (-1, -1), (0, -1), (1, -1),
     (-1, 0), (1, 0),
     (-1, 1), (0, 1), (1, 1),
 )
 
-# BeetleMovement system. Mirrors the sibling Go implementation's
-# `sys.BeetleMovement`.
-mutable struct BeetleMovement <: System
+# BeetleMovementByField system. Mirrors the sibling Go implementation's
+# `sys.BeetleMovementByField`.
+mutable struct BeetleMovementByField <: System
     const steps_per_tick::Int
     const duration_feeding::Int
     const duration_egg_laying::Int
@@ -28,7 +28,7 @@ mutable struct BeetleMovement <: System
     _width::Int
     _height::Int
 
-    function BeetleMovement(
+    function BeetleMovementByField(
         steps_per_tick::Int, duration_feeding::Int, duration_egg_laying::Int,
         leave_tree_probability::Float64, random_walk_probability::Float64,
     )
@@ -41,10 +41,10 @@ mutable struct BeetleMovement <: System
     end
 end
 
-BeetleMovement(;
+BeetleMovementByField(;
     steps_per_tick::Int, duration_feeding::Int, duration_egg_laying::Int,
     leave_tree_probability::Float64, random_walk_probability::Float64,
-) = BeetleMovement(
+) = BeetleMovementByField(
     steps_per_tick,
     duration_feeding,
     duration_egg_laying,
@@ -52,7 +52,7 @@ BeetleMovement(;
     random_walk_probability,
 )
 
-function initialize!(s::BeetleMovement, w::World)
+function initialize!(s::BeetleMovementByField, w::World)
     ws = get_resource(w, WorldSize)
     s._feeding_infected = Grid(ws.width, ws.height, ws.cell_size, UInt32(0))
     s._width, s._height = ws.width, ws.height
@@ -60,7 +60,7 @@ function initialize!(s::BeetleMovement, w::World)
     add_resource!(w, FeedingInfectedBeetles(s._feeding_infected))
 end
 
-function update!(s::BeetleMovement, w::World)
+function update!(s::BeetleMovementByField, w::World)
     time = get_resource(w, Time)
     tick = time.tick
     rng = get_resource(w, Rng)
@@ -117,8 +117,9 @@ end
 # than `rand(rng.xoshiro, 1:8)`: Julia's own range sampler is not a stable
 # target (see frozen_shuffle!'s docstring), and this keeps the draw
 # bit-identical with the sibling Go implementation's util.RandRange (see
-# pwn/util/random.go and pwn/sys/beetle_movement.go's randomNeighbor).
-function random_neighbor(s::BeetleMovement, rng::Rng, x::Int, y::Int)
+# pwn/util/random.go and pwn/sys/beetle_movement_by_field.go's
+# randomNeighbor).
+function random_neighbor(s::BeetleMovementByField, rng::Rng, x::Int, y::Int)
     while true
         o = NEIGHBOR_OFFSETS[frozen_rand_range(rng.xoshiro, UInt64(length(NEIGHBOR_OFFSETS)))+1]
         nx, ny = x + o[1], y + o[2]
@@ -134,7 +135,7 @@ end
 # Draws a random number only if there is a tie, via frozen_rand_range (see
 # random_neighbor). Mirrors the sibling Go implementation's maxFieldNeighbor,
 # which uses a stack array instead of the reused _candidates buffer.
-function max_field_neighbor(s::BeetleMovement, rng::Rng, field::Grid{Float64}, x::Int, y::Int)
+function max_field_neighbor(s::BeetleMovementByField, rng::Rng, field::Grid{Float64}, x::Int, y::Int)
     candidates = s._candidates
     n = 0
     best_v = 0.0

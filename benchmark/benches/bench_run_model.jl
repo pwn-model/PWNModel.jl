@@ -47,7 +47,7 @@ function do_setup_world(n)
                 density_radius=20,
                 density_weight=1.0,
             ),
-            BeetleMovement(
+            BeetleMovementByField(
                 steps_per_tick=7,
                 duration_feeding=3,
                 duration_egg_laying=8,
