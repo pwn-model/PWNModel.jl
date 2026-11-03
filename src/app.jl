@@ -30,7 +30,7 @@ end
 function _run_model(cfg::Config)
     world = World(
         Position, Damaged, Infected, Colonized,
-        BeetlePosition, EmergenceTick, LifeExpectancy, LastTree,
+        BeetlePosition, EmergenceTick, LifeExpectancy,
     )
     add_resource!(world, Rng(cfg.seed))
     apply!(cfg, world)

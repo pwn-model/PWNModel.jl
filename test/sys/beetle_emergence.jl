@@ -1,7 +1,7 @@
 function _new_beetle_emergence_world()
     return World(
         PWNModel.Position, PWNModel.Colonized, PWNModel.Infected,
-        PWNModel.BeetlePosition, PWNModel.EmergenceTick, PWNModel.LifeExpectancy, PWNModel.LastTree,
+        PWNModel.BeetlePosition, PWNModel.EmergenceTick, PWNModel.LifeExpectancy,
     )
 end
 
@@ -40,8 +40,8 @@ end
 
     counts = Dict{Tuple{Int,Int},Int}()
     total = 0
-    for (_, beetle_positions, emergence_ticks, life_expectancies, last_trees) in
-        Query(world, (PWNModel.BeetlePosition, PWNModel.EmergenceTick, PWNModel.LifeExpectancy, PWNModel.LastTree))
+    for (_, beetle_positions, emergence_ticks, life_expectancies) in
+        Query(world, (PWNModel.BeetlePosition, PWNModel.EmergenceTick, PWNModel.LifeExpectancy))
         for i in eachindex(beetle_positions)
             bp = beetle_positions[i]
             key = (bp.x, bp.y)
@@ -51,8 +51,6 @@ end
             # current tick.
             @test life_expectancies[i].tick_of_death >= time.tick
             @test life_expectancies[i].tick_of_death <= time.tick + s.max_age
-            # Freshly emerged beetles have not visited any tree yet.
-            @test last_trees[i].index == PWNModel.NO_CELL
             total += 1
         end
     end
