@@ -67,16 +67,15 @@ export Rng, Tick, Time
 export Termination, FixedTermination, SchedulerControl, next_tps
 export Grid, Cell, NO_CELL, TreeGrid, WorldSize
 export HealthyTreeAttraction, DamagedTreeAttraction, FeedingInfectedBeetles
-export HealthyTreeAttractionCoarse, DamagedTreeAttractionCoarse
 export Position, Damaged, Infected, Colonized
 export BeetlePosition, LifeExpectancy
 export InitGrids, InitTrees
 export UpdateTime, DiseaseCourse, RandomRelease, DamageTrees, Colonization
 export BeetleEmergence, EmergenceTick, BeetleMortality, BeetleMovement
 export NematodeInfection
-export TreeAttraction, CoarseTreeAttraction
+export TreeAttraction
 export TreePopulation, TreeDamage, TreeColonization
-export TreeColonizationMap, BeetlesMap, TreeAttractionMap, CoarseTreeAttractionMap
+export TreeColonizationMap, BeetlesMap, TreeAttractionMap
 export trees_to_string
 
 end

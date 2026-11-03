@@ -48,7 +48,7 @@ function propagate_attraction!(grid::Grid{Float64}, source::Grid{Cell}, half_dis
         if best_idx > 0
             dx, dy = offsets[best_idx]
             grid[x, y] = best
-            source[x, y] = source[x + dx, y + dy]
+            source[x, y] = source[x+dx, y+dy]
         end
     end
 
