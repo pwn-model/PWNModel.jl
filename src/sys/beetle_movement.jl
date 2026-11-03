@@ -17,6 +17,10 @@ mutable struct BeetleMovement <: System
     const steps_per_tick::Int
     const distance_per_step::Float64
     const duration_feeding::Int
+    # feeding_probability is the probability that a beetle past
+    # duration_feeding feeds (targets healthy trees) instead of laying eggs
+    # (targets damaged trees), drawn anew each tick.
+    const feeding_probability::Float64
     const leave_tree_probability::Float64
 
     _feeding_infected::Grid{UInt32}
@@ -27,11 +31,11 @@ mutable struct BeetleMovement <: System
 
     function BeetleMovement(
         steps_per_tick::Int, distance_per_step::Float64, duration_feeding::Int,
-        leave_tree_probability::Float64,
+        feeding_probability::Float64, leave_tree_probability::Float64,
     )
         return new(
             steps_per_tick, distance_per_step, duration_feeding,
-            leave_tree_probability,
+            feeding_probability, leave_tree_probability,
             Grid(0, 0, 1, UInt32(0)),
             0.0, 0, 0,
         )
@@ -40,11 +44,12 @@ end
 
 BeetleMovement(;
     steps_per_tick::Int, distance_per_step::Float64, duration_feeding::Int,
-    leave_tree_probability::Float64,
+    feeding_probability::Float64, leave_tree_probability::Float64,
 ) = BeetleMovement(
     steps_per_tick,
     distance_per_step,
     duration_feeding,
+    feeding_probability,
     leave_tree_probability,
 )
 
@@ -74,9 +79,7 @@ function update!(s::BeetleMovement, w::World)
 
             is_feeding = true
             if tick >= et.tick_of_emergence + s.duration_feeding
-                if rand(rng) < 0.5  # TODO: make parameter
-                    is_feeding = false
-                end
+                is_feeding = rand(rng) < s.feeding_probability
             end
 
             if is_feeding

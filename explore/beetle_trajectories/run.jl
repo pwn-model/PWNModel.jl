@@ -71,6 +71,7 @@ function simulate(init_trees)
             steps_per_tick=1,
             distance_per_step=2000.0,
             duration_feeding=duration_feeding,
+            feeding_probability=0.5,
             leave_tree_probability=0.25,
         ),
         BeetleMortality(),
