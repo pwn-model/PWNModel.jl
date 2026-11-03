@@ -73,6 +73,7 @@ function simulate(init_trees)
             duration_feeding=duration_feeding,
             feeding_probability=0.5,
             leave_tree_probability=0.25,
+            emergence_flight_distance=100.0,
         ),
         BeetleMortality(),
         trajectories,

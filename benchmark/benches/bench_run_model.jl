@@ -51,6 +51,7 @@ function do_setup_world(n)
             BeetleMovement(
                 steps_per_tick=7,
                 distance_per_step=2000.0,
+                emergence_flight_distance=100.0,
                 duration_feeding=3,
                 feeding_probability=0.5,
                 leave_tree_probability=0.1,
