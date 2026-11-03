@@ -16,7 +16,7 @@ include("../common/plotting.jl")
 const OUT_DIR = joinpath(@__DIR__, "out")
 
 # Model time step is one week, with `steps_per_tick` movement steps per week.
-# To record every single step, we run BeetleMovementByField with one step per tick
+# To record every single step, we run BeetleMovement with one step per tick
 # and scale the phase durations accordingly. Trees and attraction fields are
 # static here, so this gives the same movement as the model's weekly ticks;
 # only the order of random numbers differs.
