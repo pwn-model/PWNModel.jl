@@ -16,6 +16,13 @@ const NEIGHBOR_OFFSETS = (
 mutable struct BeetleMovement <: System
     const steps_per_tick::Int
     const distance_per_step::Float64
+    # emergence_flight_distance is the maximum distance, in meters, of the
+    # undirected flight that beetles make in their first movement step after
+    # emergence, before flying towards a target. The actual distance is
+    # drawn uniformly between 0 and this value. Spreads out the beetles
+    # emerging from the same tree, which would otherwise all fly to the same
+    # first target.
+    const emergence_flight_distance::Float64
     const duration_feeding::Int
     # feeding_probability is the probability that a beetle past
     # duration_feeding feeds (targets healthy trees) instead of laying eggs
@@ -25,32 +32,37 @@ mutable struct BeetleMovement <: System
 
     _feeding_infected::Grid{UInt32}
 
+    # _to_remove is a reused buffer for beetles that left the world.
+    _to_remove::Vector{Entity}
+
     _distance_in_cells::Float64
+    _emergence_flight_in_cells::Float64
     _width::Int
     _height::Int
 
     function BeetleMovement(
         steps_per_tick::Int, distance_per_step::Float64, duration_feeding::Int,
-        feeding_probability::Float64, leave_tree_probability::Float64,
+        feeding_probability::Float64, leave_tree_probability::Float64, emergence_flight_distance::Float64,
     )
         return new(
             steps_per_tick, distance_per_step, duration_feeding,
-            feeding_probability, leave_tree_probability,
-            Grid(0, 0, 1, UInt32(0)),
-            0.0, 0, 0,
+            feeding_probability, leave_tree_probability, emergence_flight_distance,
+            Grid(0, 0, 1, UInt32(0)), Entity[],
+            0.0, 0.0, 0, 0,
         )
     end
 end
 
 BeetleMovement(;
     steps_per_tick::Int, distance_per_step::Float64, duration_feeding::Int,
-    feeding_probability::Float64, leave_tree_probability::Float64,
+    feeding_probability::Float64, leave_tree_probability::Float64, emergence_flight_distance::Float64,
 ) = BeetleMovement(
     steps_per_tick,
     distance_per_step,
     duration_feeding,
     feeding_probability,
     leave_tree_probability,
+    emergence_flight_distance,
 )
 
 function initialize!(s::BeetleMovement, w::World)
@@ -61,6 +73,7 @@ function initialize!(s::BeetleMovement, w::World)
     add_resource!(w, FeedingInfectedBeetles(s._feeding_infected))
 
     s._distance_in_cells = s.distance_per_step / ws.cell_size
+    s._emergence_flight_in_cells = s.emergence_flight_distance / ws.cell_size
 end
 
 function update!(s::BeetleMovement, w::World)
@@ -80,7 +93,7 @@ function update!(s::BeetleMovement, w::World)
             pos = beetle_positions[i]
             x, y = pos.x, pos.y
 
-            for _ in 1:(s.steps_per_tick)
+            for step in 1:(s.steps_per_tick)
                 is_feeding = true
                 if tick >= et.tick_of_emergence + s.duration_feeding
                     is_feeding = rand(rng) < s.feeding_probability
@@ -95,20 +108,26 @@ function update!(s::BeetleMovement, w::World)
                 end
 
                 max_step = s._distance_in_cells
-                if presence[x, y] && rand(rng) < s.leave_tree_probability
-                    last_tree = nearest[x, y]
+                inside = true
+                if step == 1 && tick == et.tick_of_emergence
+                    # Undirected flight away from the tree the beetle emerged
+                    # from, in one go. Costs 1 per cell, like walk.
+                    flight = rand(rng) * s._emergence_flight_in_cells
                     offset = random_offset(rng)
-                    while nearest[x, y] == last_tree && max_step >= 1
-                        x += offset[1]
-                        y += offset[2]
-                        max_step -= 1 # TODO: exact cost for diagonal steps?
-                        if !checkbounds(Bool, presence, x, y)
-                            x -= offset[1]
-                            y -= offset[2]
-                            offset = random_offset(rng)
-                            continue
-                        end
-                    end
+                    cells = floor(min(flight, max_step))
+                    x += offset[1] * Int(cells)
+                    y += offset[2] * Int(cells)
+                    max_step -= cells
+                    inside = checkbounds(Bool, nearest, x, y)
+                elseif presence[x, y] && rand(rng) < s.leave_tree_probability
+                    # Walk out of the area attracted by the tree the beetle leaves.
+                    x, y, max_step, inside = walk(rng, nearest, x, y, max_step)
+                end
+
+                if !inside
+                    # The beetle left the world and dies.
+                    push!(s._to_remove, entities[i])
+                    break
                 end
 
                 if presence[x, y]
@@ -139,6 +158,31 @@ function update!(s::BeetleMovement, w::World)
             beetle_positions[i] = BeetlePosition(x, y)
         end
     end
+
+    for e in s._to_remove
+        remove_entity!(w, e)
+    end
+    empty!(s._to_remove)
+end
+
+# walk moves (x, y) cell by cell in a random one of the NEIGHBOR_OFFSETS,
+# out of the area of the source the beetle is in: it stops as soon as the
+# cell's source differs, or the remaining budget (in cells) is below 1. Each
+# cell costs 1 of the budget, also diagonal ones. Returns the new position,
+# the remaining budget, and false if the beetle left the grid (the position
+# is then outside of it). Mirrors the sibling Go implementation's walk.
+function walk(rng::Rng, source::Grid{UInt32}, x::Int, y::Int, budget::Float64)
+    leaving = source[x, y]
+    offset = random_offset(rng)
+    while budget >= 1 && source[x, y] == leaving
+        x += offset[1]
+        y += offset[2]
+        budget -= 1 # TODO: exact cost for diagonal steps?
+        if !checkbounds(Bool, source, x, y)
+            return x, y, budget, false
+        end
+    end
+    return x, y, budget, true
 end
 
 function random_offset(rng::Rng)
