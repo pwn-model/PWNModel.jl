@@ -13,8 +13,9 @@ All parameters are set where the systems are created, in [`run.jl`](https://gith
 - **Attraction**: two `TreeAttraction` fields (healthy and damaged trees), `half_distance` 50 m, `density_radius` 20 m, `density_weight` 1.
 - **Beetles**: 100 beetles released in the center of the world at tick 0, from a damaged tree placed there
   (or an existing tree there made damaged).
-- **Mortality**: `BeetleMortality`, with life expectancy drawn from an exponential distribution with a mean of 5 weeks
-  (as in `BeetleEmergence`).
+- **Mortality**: `BeetleMortality`, with life span drawn from an exponential distribution with a mean of 5 weeks,
+  capped at a maximum age of 18 weeks (as in `BeetleEmergence`).
+  The simulation runs for 18 weeks, until all beetles are dead.
 - **Movement**: `BeetleMovement` with 7 steps per week and up to 2 km per step, 3 weeks of maturation feeding
   (attracted by healthy trees), then each step feeding or egg laying (attracted by damaged trees) with probability 0.5.
   `leave_tree_probability` 0.25.
@@ -49,7 +50,7 @@ Figures are written to `out/` as SVG (and PNG). They are not committed, but show
 Trajectories during maturation feeding (left) and egg laying (right), within 200 m of the release point,
 for both scenarios (rows).
 Green cells are healthy trees, brown cells damaged trees, the star is the release point,
-and colored dots are beetle positions at the end of the phase.
+and colored dots are beetle positions at the end of the phase, or where they died during the phase.
 
 ![Trajectories by phase](out/trajectories.svg)
 
