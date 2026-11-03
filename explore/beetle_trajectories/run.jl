@@ -71,9 +71,7 @@ function simulate(init_trees)
             steps_per_tick=1,
             distance_per_step=2000.0,
             duration_feeding=duration_feeding,
-            duration_egg_laying=duration_egg_laying,
             leave_tree_probability=0.25,
-            random_walk_probability=0.6,
         ),
         BeetleMortality(),
         trajectories,
@@ -118,7 +116,7 @@ phases = (
 )
 
 # Maps show a fixed area around the release point, which is the origin of the ticks.
-const MAP_RADIUS = 200.0
+const MAP_RADIUS = 300.0
 const MAP_TICK_STEP = 100
 map_ticks(origin) = (
     origin .+ ((-MAP_RADIUS):MAP_TICK_STEP:MAP_RADIUS),

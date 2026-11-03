@@ -1,6 +1,6 @@
 # NEIGHBOR_OFFSETS are the (dx, dy) offsets of the 8 Moore-neighborhood
 # cells around a beetle's current cell, in the same order as the sibling Go
-# implementation's `neighborOffsets` (pwn/sys/beetle_movement_by_field.go)
+# implementation's `neighborOffsets` (pwn/sys/beetle_movement.go)
 # -- so that random_neighbor and max_field_neighbor draw/break ties
 # identically in both implementations from the same seed.
 const NEIGHBOR_OFFSETS = (
@@ -17,9 +17,7 @@ mutable struct BeetleMovement <: System
     const steps_per_tick::Int
     const distance_per_step::Float64
     const duration_feeding::Int
-    const duration_egg_laying::Int
     const leave_tree_probability::Float64
-    const random_walk_probability::Float64
 
     _feeding_infected::Grid{UInt32}
 
@@ -28,12 +26,12 @@ mutable struct BeetleMovement <: System
     _height::Int
 
     function BeetleMovement(
-        steps_per_tick::Int, distance_per_step::Float64, duration_feeding::Int, duration_egg_laying::Int,
-        leave_tree_probability::Float64, random_walk_probability::Float64,
+        steps_per_tick::Int, distance_per_step::Float64, duration_feeding::Int,
+        leave_tree_probability::Float64,
     )
         return new(
-            steps_per_tick, distance_per_step, duration_feeding, duration_egg_laying,
-            leave_tree_probability, random_walk_probability,
+            steps_per_tick, distance_per_step, duration_feeding,
+            leave_tree_probability,
             Grid(0, 0, 1, UInt32(0)),
             0.0, 0, 0,
         )
@@ -41,15 +39,13 @@ mutable struct BeetleMovement <: System
 end
 
 BeetleMovement(;
-    steps_per_tick::Int, distance_per_step::Float64, duration_feeding::Int, duration_egg_laying::Int,
-    leave_tree_probability::Float64, random_walk_probability::Float64,
+    steps_per_tick::Int, distance_per_step::Float64, duration_feeding::Int,
+    leave_tree_probability::Float64,
 ) = BeetleMovement(
     steps_per_tick,
     distance_per_step,
     duration_feeding,
-    duration_egg_laying,
     leave_tree_probability,
-    random_walk_probability,
 )
 
 function initialize!(s::BeetleMovement, w::World)
@@ -76,14 +72,19 @@ function update!(s::BeetleMovement, w::World)
         for i in eachindex(entities)
             et = emergence_ticks[i]
 
-            if tick < et.tick_of_emergence + s.duration_feeding
+            is_feeding = true
+            if tick >= et.tick_of_emergence + s.duration_feeding
+                if rand(rng) < 0.5  # TODO: make parameter
+                    is_feeding = false
+                end
+            end
+
+            if is_feeding
                 nearest = healthy.source
                 presence = healthy.presence
-            elseif tick < et.tick_of_emergence + s.duration_feeding + s.duration_egg_laying
+            else
                 nearest = damaged.source
                 presence = damaged.presence
-            else
-                continue # TODO: remove beetle?
             end
 
             pos = beetle_positions[i]

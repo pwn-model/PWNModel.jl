@@ -32,6 +32,7 @@ function do_setup_world(n)
                 tick_of_year=19,
                 beetles_per_tree=5,
                 life_expectancy=5.0,
+                max_age=18,
             ),
             TreeAttraction(
                 tick_of_year=18,
