@@ -69,7 +69,7 @@ export Termination, FixedTermination, SchedulerControl, next_tps
 export Grid, NO_CELL, cell_index, cell_coords, TreeGrid, WorldSize
 export HealthyTreeAttraction, DamagedTreeAttraction, FeedingInfectedBeetles
 export Position, Damaged, Infected, Colonized
-export BeetlePosition, LifeExpectancy
+export BeetlePosition, LifeExpectancy, LastTree
 export InitGrids, InitTrees
 export UpdateTime, DiseaseCourse, RandomRelease, DamageTrees, Colonization
 export BeetleEmergence, EmergenceTick, BeetleMortality, BeetleMovement, BeetleMovementByField

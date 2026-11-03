@@ -2,7 +2,7 @@
 function do_setup_world(n)
     world = World(
         Position, Damaged, Infected, Colonized,
-        BeetlePosition, EmergenceTick, LifeExpectancy,
+        BeetlePosition, EmergenceTick, LifeExpectancy, LastTree,
     )
 
     # Resources
