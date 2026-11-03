@@ -19,7 +19,7 @@ mutable struct BeetleMovement <: System
     const duration_feeding::Int
     # feeding_probability is the probability that a beetle past
     # duration_feeding feeds (targets healthy trees) instead of laying eggs
-    # (targets damaged trees), drawn anew each tick.
+    # (targets damaged trees), drawn anew each movement step.
     const feeding_probability::Float64
     const leave_tree_probability::Float64
 
@@ -77,23 +77,23 @@ function update!(s::BeetleMovement, w::World)
         for i in eachindex(entities)
             et = emergence_ticks[i]
 
-            is_feeding = true
-            if tick >= et.tick_of_emergence + s.duration_feeding
-                is_feeding = rand(rng) < s.feeding_probability
-            end
-
-            if is_feeding
-                nearest = healthy.source
-                presence = healthy.presence
-            else
-                nearest = damaged.source
-                presence = damaged.presence
-            end
-
             pos = beetle_positions[i]
             x, y = pos.x, pos.y
 
             for _ in 1:(s.steps_per_tick)
+                is_feeding = true
+                if tick >= et.tick_of_emergence + s.duration_feeding
+                    is_feeding = rand(rng) < s.feeding_probability
+                end
+
+                if is_feeding
+                    nearest = healthy.source
+                    presence = healthy.presence
+                else
+                    nearest = damaged.source
+                    presence = damaged.presence
+                end
+
                 max_step = s._distance_in_cells
                 if presence[x, y] && rand(rng) < s.leave_tree_probability
                     last_tree = nearest[x, y]
