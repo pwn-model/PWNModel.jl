@@ -25,3 +25,20 @@ function Base.rand(rng::Rng)
     mask = (UInt64(1) << 53) - UInt64(1)
     return Float64(u & mask) / Float64(UInt64(1) << 53)
 end
+
+# random_direction draws a uniformly distributed direction, as a unit vector
+# (dx, dy), by rejection sampling of points in the unit disk. It uses only
+# arithmetic and square roots, which are correctly rounded, rather than
+# trigonometric functions, so that it stays bit-identical with the sibling Go
+# implementation's util.RandomDirection.
+function random_direction(rng::Rng)
+    while true
+        x = 2 * rand(rng) - 1
+        y = 2 * rand(rng) - 1
+        s = x * x + y * y
+        if s > 0 && s <= 1
+            l = sqrt(s)
+            return x / l, y / l
+        end
+    end
+end

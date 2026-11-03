@@ -1,14 +1,3 @@
-# NEIGHBOR_OFFSETS are the (dx, dy) offsets of the 8 Moore-neighborhood
-# cells around a beetle's current cell, in the same order as the sibling Go
-# implementation's `neighborOffsets` (pwn/sys/beetle_movement.go)
-# -- so that random_neighbor and max_field_neighbor draw/break ties
-# identically in both implementations from the same seed.
-const NEIGHBOR_OFFSETS = (
-    (-1, -1), (0, -1), (1, -1),
-    (-1, 0), (1, 0),
-    (-1, 1), (0, 1), (1, 1),
-)
-
 # BeetleMovement system. Moves beetles straight towards the attraction
 # source of their current cell (see TreeAttraction), by up to
 # distance_per_step meters per step. Mirrors the sibling Go implementation's
@@ -41,12 +30,12 @@ mutable struct BeetleMovement <: System
     _height::Int
 
     function BeetleMovement(
-        steps_per_tick::Int, distance_per_step::Float64, duration_feeding::Int,
-        feeding_probability::Float64, leave_tree_probability::Float64, emergence_flight_distance::Float64,
+        steps_per_tick::Int, distance_per_step::Float64, emergence_flight_distance::Float64, duration_feeding::Int,
+        feeding_probability::Float64, leave_tree_probability::Float64,
     )
         return new(
-            steps_per_tick, distance_per_step, duration_feeding,
-            feeding_probability, leave_tree_probability, emergence_flight_distance,
+            steps_per_tick, distance_per_step, emergence_flight_distance, duration_feeding,
+            feeding_probability, leave_tree_probability,
             Grid(0, 0, 1, UInt32(0)), Entity[],
             0.0, 0.0, 0, 0,
         )
@@ -54,15 +43,15 @@ mutable struct BeetleMovement <: System
 end
 
 BeetleMovement(;
-    steps_per_tick::Int, distance_per_step::Float64, duration_feeding::Int,
-    feeding_probability::Float64, leave_tree_probability::Float64, emergence_flight_distance::Float64,
+    steps_per_tick::Int, distance_per_step::Float64, emergence_flight_distance::Float64, duration_feeding::Int,
+    feeding_probability::Float64, leave_tree_probability::Float64,
 ) = BeetleMovement(
     steps_per_tick,
     distance_per_step,
+    emergence_flight_distance,
     duration_feeding,
     feeding_probability,
     leave_tree_probability,
-    emergence_flight_distance,
 )
 
 function initialize!(s::BeetleMovement, w::World)
@@ -111,13 +100,12 @@ function update!(s::BeetleMovement, w::World)
                 inside = true
                 if step == 1 && tick == et.tick_of_emergence
                     # Undirected flight away from the tree the beetle emerged
-                    # from, in one go. Costs 1 per cell, like walk.
-                    flight = rand(rng) * s._emergence_flight_in_cells
-                    offset = random_offset(rng)
-                    cells = floor(min(flight, max_step))
-                    x += offset[1] * Int(cells)
-                    y += offset[2] * Int(cells)
-                    max_step -= cells
+                    # from, in one go, in a uniformly random direction.
+                    flight = min(rand(rng) * s._emergence_flight_in_cells, max_step)
+                    dx, dy = random_direction(rng)
+                    x += round(Int, dx * flight, RoundNearestTiesAway)
+                    y += round(Int, dy * flight, RoundNearestTiesAway)
+                    max_step -= flight
                     inside = checkbounds(Bool, nearest, x, y)
                 elseif presence[x, y] && rand(rng) < s.leave_tree_probability
                     # Walk out of the area attracted by the tree the beetle leaves.
@@ -165,26 +153,26 @@ function update!(s::BeetleMovement, w::World)
     empty!(s._to_remove)
 end
 
-# walk moves (x, y) cell by cell in a random one of the NEIGHBOR_OFFSETS,
-# out of the area of the source the beetle is in: it stops as soon as the
-# cell's source differs, or the remaining budget (in cells) is below 1. Each
-# cell costs 1 of the budget, also diagonal ones. Returns the new position,
-# the remaining budget, and false if the beetle left the grid (the position
-# is then outside of it). Mirrors the sibling Go implementation's walk.
+# walk moves (x, y) along a straight line in a uniformly random direction,
+# out of the area of the source the beetle is in. It advances in steps of
+# one cell size of distance, each costing 1 of the budget, and stops as soon
+# as the cell's source differs, or the remaining budget (in cells) is below
+# 1. Returns the new position, the remaining budget, and false if the beetle
+# left the grid (the position is then outside of it). Mirrors the sibling Go
+# implementation's walk.
 function walk(rng::Rng, source::Grid{UInt32}, x::Int, y::Int, budget::Float64)
     leaving = source[x, y]
-    offset = random_offset(rng)
+    dx, dy = random_direction(rng)
+    x0, y0 = x, y
+    k = 1
     while budget >= 1 && source[x, y] == leaving
-        x += offset[1]
-        y += offset[2]
-        budget -= 1 # TODO: exact cost for diagonal steps?
+        x = x0 + round(Int, k * dx, RoundNearestTiesAway)
+        y = y0 + round(Int, k * dy, RoundNearestTiesAway)
+        budget -= 1
         if !checkbounds(Bool, source, x, y)
             return x, y, budget, false
         end
+        k += 1
     end
     return x, y, budget, true
-end
-
-function random_offset(rng::Rng)
-    return NEIGHBOR_OFFSETS[frozen_rand_range(rng.xoshiro, UInt64(length(NEIGHBOR_OFFSETS)))+1]
 end

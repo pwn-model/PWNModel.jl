@@ -50,3 +50,34 @@ end
         @test randexp(rng.xoshiro) == exp
     end
 end
+
+@testset "random_direction matches Go implementation" begin
+    # The same values are hard-coded in the sibling Go implementation's test
+    # of util.RandomDirection (pwn/util/random_test.go), for the same seed.
+    expected = [
+        (-0.6960820844311084, -0.7179622077338357),
+        (-0.851964016542242, 0.5236003385380975),
+        (0.59490343410105, 0.8037971784565915),
+    ]
+
+    rng = PWNModel.Rng(1)
+    for e in expected
+        @test PWNModel.random_direction(rng) == e
+    end
+end
+
+@testset "random_direction is a uniform unit vector" begin
+    rng = PWNModel.Rng(1)
+
+    n = 80000
+    sectors = 16
+    counts = zeros(Int, sectors)
+    for _ in 1:n
+        dx, dy = PWNModel.random_direction(rng)
+        @test isapprox(dx * dx + dy * dy, 1.0; atol=1e-12)
+
+        angle = atan(dy, dx) + pi
+        counts[min(floor(Int, angle / (2pi) * sectors) + 1, sectors)] += 1
+    end
+    @test all(c -> abs(c - n ÷ sectors) <= 300, counts)
+end
