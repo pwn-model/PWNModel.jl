@@ -11,12 +11,18 @@ TreeGrid(sx::Int, sy::Int, cell_size::Int) = TreeGrid(Grid(sx, sy, cell_size, ze
 
 # HealthyTreeAttraction resource: attraction field driven by healthy trees.
 struct HealthyTreeAttraction
-    grid::Grid{Float64}
+    # Attraction field of healthy trees, updated once per year.
+    attraction::Grid{Float64}
+    # Presence of healthy trees per cell, updated together with attraction.
+    presence::Grid{Bool}
 end
 
 # DamagedTreeAttraction resource: attraction field driven by damaged trees.
 struct DamagedTreeAttraction
-    grid::Grid{Float64}
+    # Attraction field of damaged trees, updated once per year.
+    attraction::Grid{Float64}
+    # Presence of damaged trees per cell, updated together with attraction.
+    presence::Grid{Bool}
 end
 
 # HealthyTreeAttractionCoarse resource: attraction field driven by healthy

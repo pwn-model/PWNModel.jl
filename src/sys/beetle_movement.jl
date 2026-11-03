@@ -19,8 +19,6 @@ mutable struct BeetleMovement <: System
     const leave_tree_probability::Float64
     const random_walk_probability::Float64
 
-    _healthy_presence::Grid{Bool}
-    _damaged_presence::Grid{Bool}
     _feeding_infected::Grid{UInt32}
 
     # _candidates is a reused buffer for max_field_neighbor's tied
@@ -37,7 +35,7 @@ mutable struct BeetleMovement <: System
         return new(
             steps_per_tick, duration_feeding, duration_egg_laying,
             leave_tree_probability, random_walk_probability,
-            Grid(0, 0, 1, false), Grid(0, 0, 1, false), Grid(0, 0, 1, UInt32(0)),
+            Grid(0, 0, 1, UInt32(0)),
             Vector{UInt8}(undef, length(NEIGHBOR_OFFSETS)), 0, 0,
         )
     end
@@ -56,8 +54,6 @@ BeetleMovement(;
 
 function initialize!(s::BeetleMovement, w::World)
     ws = get_resource(w, WorldSize)
-    s._healthy_presence = Grid(ws.width, ws.height, ws.cell_size, false)
-    s._damaged_presence = Grid(ws.width, ws.height, ws.cell_size, false)
     s._feeding_infected = Grid(ws.width, ws.height, ws.cell_size, UInt32(0))
     s._width, s._height = ws.width, ws.height
 
@@ -68,27 +64,21 @@ function update!(s::BeetleMovement, w::World)
     time = get_resource(w, Time)
     tick = time.tick
     rng = get_resource(w, Rng)
-    healthy_field = get_resource(w, HealthyTreeAttraction).grid
-    damaged_field = get_resource(w, DamagedTreeAttraction).grid
+    healthy = get_resource(w, HealthyTreeAttraction)
+    damaged = get_resource(w, DamagedTreeAttraction)
 
-    presence_calculated = false
     fill!(s._feeding_infected, UInt32(0))
 
     for (entities, beetle_positions, emergence_ticks) in Query(w, (BeetlePosition, EmergenceTick))
-        if !presence_calculated
-            calc_presence!(s, w)
-            presence_calculated = true
-        end
-
         for i in eachindex(entities)
             et = emergence_ticks[i]
 
             if tick < et.tick_of_emergence + s.duration_feeding
-                field = healthy_field
-                presence = s._healthy_presence
+                field = healthy.attraction
+                presence = healthy.presence
             elseif tick < et.tick_of_emergence + s.duration_feeding + s.duration_egg_laying
-                field = damaged_field
-                presence = s._damaged_presence
+                field = damaged.attraction
+                presence = damaged.presence
             else
                 continue # TODO: remove beetle?
             end
@@ -172,22 +162,5 @@ function max_field_neighbor(s::BeetleMovement, rng::Rng, field::Grid{Float64}, x
     else
         o = NEIGHBOR_OFFSETS[candidates[frozen_rand_range(rng.xoshiro, UInt64(n))+1]]
         return x + o[1], y + o[2]
-    end
-end
-
-function calc_presence!(s::BeetleMovement, w::World)
-    fill!(s._healthy_presence, false)
-    fill!(s._damaged_presence, false)
-
-    for (_, positions) in Query(w, (Position,); without=(Damaged,))
-        for pos in positions
-            s._healthy_presence[pos.x, pos.y] = true
-        end
-    end
-
-    for (_, positions) in Query(w, (Position,); with=(Damaged,))
-        for pos in positions
-            s._damaged_presence[pos.x, pos.y] = true
-        end
     end
 end

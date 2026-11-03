@@ -22,9 +22,9 @@ end
 
 function initialize!(o::TreeAttractionMap, w::World)
     o._grid = if o.damaged_trees
-        get_resource(w, DamagedTreeAttraction).grid
+        get_resource(w, DamagedTreeAttraction).attraction
     else
-        get_resource(w, HealthyTreeAttraction).grid
+        get_resource(w, HealthyTreeAttraction).attraction
     end
     o._values = zeros(Float64, o._grid.width, o._grid.height)
 end

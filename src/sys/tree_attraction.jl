@@ -87,10 +87,10 @@ mutable struct TreeAttraction <: System
 
     _attraction::Grid{Float64}
 
-    # _presence is a reused 0/1 scratch grid for seeding. Left undefined
-    # when density_weight is 0, since fill_from_query!'s fast path never
-    # touches it.
-    _presence::Grid{Float64}
+    # _presence marks the cells containing a matching tree. Recalculated
+    # together with the attraction field, and published along with it for
+    # other systems (e.g. BeetleMovement).
+    _presence::Grid{Bool}
 
     # _sat is a reused (width+1)*(height+1) summed-area-table buffer for
     # counting each source's local density. Left undefined when
@@ -106,7 +106,7 @@ mutable struct TreeAttraction <: System
         return new(
             tick_of_year, damaged_trees, half_distance, density_radius, density_weight,
             0, 0.0,
-            Grid(0, 0, 1, 0.0),
+            Grid(0, 0, 1, 0.0), Grid(0, 0, 1, false),
         )
     end
 end
@@ -120,15 +120,16 @@ function initialize!(s::TreeAttraction, w::World)
     ws = get_resource(w, WorldSize)
 
     s._attraction = Grid(ws.width, ws.height, ws.cell_size, 0.0)
+    s._presence = Grid(ws.width, ws.height, ws.cell_size, false)
     if s.damaged_trees
-        add_resource!(w, DamagedTreeAttraction(s._attraction))
+        add_resource!(w, DamagedTreeAttraction(s._attraction, s._presence))
     else
-        add_resource!(w, HealthyTreeAttraction(s._attraction))
+        add_resource!(w, HealthyTreeAttraction(s._attraction, s._presence))
     end
 
     # At density_weight 0, occupancy^0 is 1 regardless of local density (see
     # fill_from_query!'s fast path), so density_radius is never consulted:
-    # don't require it to be valid, and don't allocate the buffers that only
+    # don't require it to be valid, and don't allocate the buffer that only
     # the density count needs.
     if s.density_weight != 0
         if s.density_radius % ws.cell_size != 0
@@ -141,7 +142,6 @@ function initialize!(s::TreeAttraction, w::World)
         s._density_radius_cells = s.density_radius ÷ ws.cell_size
         s._max_count = Float64((2 * s._density_radius_cells + 1)^2)
 
-        s._presence = Grid(ws.width, ws.height, ws.cell_size, 0.0)
         s._sat = zeros(Float64, (ws.width + 1) * (ws.height + 1))
     end
 
@@ -159,19 +159,20 @@ function update!(s::TreeAttraction, w::World)
         return
     end
 
-    calc_attraction!(s)
-end
-
-function calc_attraction!(s::TreeAttraction)
-    fill_from_query!(s, s._attraction, s._filter)
+    fill_from_query!(s, s._filter)
     propagate_attraction!(s._attraction, s.half_distance)
 end
 
-# fill_from_query! seeds the attraction grid: every cell containing a
-# matching tree is set to that source's own local occupancy fraction
-# (local_count divided by _max_count, always in (0, 1]) raised to
-# density_weight, everything else to 0. propagate_attraction! then
-# propagates these seeds outward.
+# fill_from_query! marks every cell containing a matching tree in
+# s._presence and seeds the attraction grid: every such cell is set to that
+# source's own local occupancy fraction (local_count divided by _max_count,
+# always in (0, 1]) raised to density_weight, everything else to 0.
+# propagate_attraction! then propagates these seeds outward.
+#
+# This is the only pass over the trees. It seeds every source at 1, which
+# is final for density_weight 0 (occupancy^0 is 1 for any occupancy);
+# otherwise, seed_density! rescales the seeds in a single pass over the
+# grid.
 #
 # Takes a pre-built Filter (see the field docstring on TreeAttraction)
 # rather than `with`/`without` tuples, so that Query(filt) below hits Ark's
@@ -179,41 +180,35 @@ end
 # element types aren't compile-time constants here.
 #
 # TODO: can we do better here and get rid of the dynamic dispatch?
-function fill_from_query!(s::TreeAttraction, grid::Grid{Float64}, filt::Filter)
-    fill!(grid, 0.0)
-
-    if s.density_weight == 0
-        # occupancy^0 is 1 for any occupancy, so every source's seed is 1
-        # regardless of local density: skip counting it altogether.
-        for (_, positions) in Query(filt)
-            for pos in positions
-                grid[pos.x, pos.y] = 1.0
-            end
-        end
-        return
-    end
-
-    fill!(s._presence, 0.0)
-    for (_, positions) in Query(filt)
-        for pos in positions
-            s._presence[pos.x, pos.y] = 1.0
-        end
-    end
-
-    build_sat!(s)
+function fill_from_query!(s::TreeAttraction, filt::Filter)
+    fill!(s._presence, false)
+    fill!(s._attraction, 0.0)
 
     for (_, positions) in Query(filt)
         for pos in positions
-            occupancy = local_count(s, pos.x, pos.y) / s._max_count
-            grid[pos.x, pos.y] = occupancy^s.density_weight
+            s._presence[pos.x, pos.y] = true
+            s._attraction[pos.x, pos.y] = 1.0
         end
+    end
+
+    if s.density_weight != 0
+        seed_density!(s)
     end
 end
 
-# build_sat! computes a summed-area table of s._presence into s._sat, so
-# that local_count can answer a windowed tree count in O(1) instead of
-# O(radius^2) per source.
-function build_sat!(s::TreeAttraction)
+# seed_density! computes a summed-area table of s._presence (counting each
+# occupied cell as 1) into s._sat, so that local_count can answer a
+# windowed tree count in O(1) instead of O(radius^2) per source, and sets
+# the seed of every source from it.
+#
+# Both happen in the same pass over the grid: a source's local_count only
+# needs the table up to column x+_density_radius_cells, so the sources of
+# each column are seeded as soon as that table column is complete, lagging
+# _density_radius_cells columns behind, plus all remaining columns once the
+# last table column is done. Mirrors the sibling Go implementation's
+# seedDensity, whose lag is one more column only because its grid columns
+# are 0-based while the table's are shifted by one.
+function seed_density!(s::TreeAttraction)
     w, h = s._presence.width, s._presence.height
     stride = h + 1
     idx(x, y) = x * stride + y + 1
@@ -225,15 +220,32 @@ function build_sat!(s::TreeAttraction)
     for y in 0:h
         sat[idx(0, y)] = 0.0
     end
-    for x in 1:w, y in 1:h
-        sat[idx(x, y)] = s._presence[x, y] + sat[idx(x - 1, y)] + sat[idx(x, y - 1)] - sat[idx(x - 1, y - 1)]
+
+    r = s._density_radius_cells
+    next = 1 # next grid column to seed
+    for x in 1:w
+        for y in 1:h
+            v = s._presence[x, y] ? 1.0 : 0.0
+            sat[idx(x, y)] = v + sat[idx(x - 1, y)] + sat[idx(x, y - 1)] - sat[idx(x - 1, y - 1)]
+        end
+
+        last = x == w ? w : x - r
+        while next <= last
+            for y in 1:h
+                if s._presence[next, y]
+                    occupancy = local_count(s, next, y) / s._max_count
+                    s._attraction[next, y] = occupancy^s.density_weight
+                end
+            end
+            next += 1
+        end
     end
 end
 
 # local_count returns the number of same-type trees within density_radius
 # of (x, y), inclusive of the tree at (x, y) itself (so the result is
 # always >= 1 when called on an actual source cell), via the summed-area
-# table built by build_sat!.
+# table built by seed_density!.
 function local_count(s::TreeAttraction, x::Int, y::Int)
     w, h = s._presence.width, s._presence.height
     stride = h + 1
