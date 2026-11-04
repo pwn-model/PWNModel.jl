@@ -189,6 +189,36 @@ for (col, (scenario, result)) in enumerate(zip(SCENARIOS, results))
 end
 save_figure(OUT_DIR, "trajectories", fig; png=true)
 
+# Attraction sources: one column per scenario, one row per attraction field (healthy, damaged trees).
+# Cells of one color draw beetles towards the same tree.
+fields = (
+    (title="Healthy trees (maturation feeding)", damaged=false),
+    (title="Damaged trees (egg laying)", damaged=true),
+)
+
+fig = Figure(; size=(1500, 1100))
+for (col, (scenario, result)) in enumerate(zip(SCENARIOS, results))
+    m = map_setup(result)
+    for (row, field) in enumerate(fields)
+        col == 1 && Label(fig[row, 0], field.title; rotation=pi / 2, font=:bold, tellheight=false)
+        ax = Axis(
+            fig[row, col];
+            title=row == 1 ? scenario.title : "",
+            xlabel=row == length(fields) ? "x from release point (m)" : "",
+            ylabel=col == 1 ? "y from release point (m)" : "",
+            m.axis_kwargs...,
+        )
+        sources = attraction_source_image(result.world; damaged=field.damaged, xlims=m.xlims, ylims=m.ylims)
+        image!(
+            ax, sources...;
+            colormap=SOURCE_COLORMAP, colorrange=(0.0, 1.0), nan_color=:white, interpolate=false, rasterize=2,
+        )
+        scatter!(ax, [result.release]; color=:black, marker=:star5, markersize=14)
+        limits!(ax, m.xlims..., m.ylims...)
+    end
+end
+save_figure(OUT_DIR, "attraction_sources", fig; png=true)
+
 # Individual trajectories of the first beetles, both phases per panel. One figure per scenario.
 const GRID_ROWS, GRID_COLS = 4, 5
 
