@@ -43,6 +43,24 @@ const SCENARIOS = [
             km2_probability=1.0, tree_probability=0.025, damage_prevalence=0.25, beetle_prevalence=0.0,
         ),
     ),
+    (
+        name="mixed",
+        title="Half dense, half sparse",
+        # Dense forest in the west half, sparse forest in the east half. The release point
+        # is in the easternmost column of cells of the dense half, right at the boundary.
+        init_trees=InitTreeStands(;
+            stands=[
+                TreeStand(;
+                    x_min=0, y_min=0, x_max=1000, y_max=2000,
+                    tree_probability=0.9, damage_prevalence=0.03, beetle_prevalence=0.0,
+                ),
+                TreeStand(;
+                    x_min=1000, y_min=0, x_max=2000, y_max=2000,
+                    tree_probability=0.025, damage_prevalence=0.25, beetle_prevalence=0.0,
+                ),
+            ],
+        ),
+    ),
 ]
 
 # Runs the model for one scenario. Returns its world, and the beetle tracks and release point in meters.
@@ -144,7 +162,7 @@ function map_setup(result)
 end
 
 # Trajectories by phase: one column per scenario, one row per phase.
-fig = Figure(; size=(1050, 1100))
+fig = Figure(; size=(1500, 1100))
 for (col, (scenario, result)) in enumerate(zip(SCENARIOS, results))
     m = map_setup(result)
     for (row, phase) in enumerate(phases)
@@ -211,9 +229,9 @@ end
 steps = 0:total_steps
 alive_quantile(col, q) = (alive=filter(!isnan, col); isempty(alive) ? NaN : quantile(alive, q))
 
-fig = Figure(; size=(1100, 470))
+fig = Figure(; size=(1600, 470))
 displacement_axes = Axis[]
-# Upper y limit from the 90 % quantiles of both scenarios, as single beetles go much further.
+# Upper y limit from the 90 % quantiles of all scenarios, as single beetles go much further.
 displacement_ymax = 0.0
 for (i, (scenario, result)) in enumerate(zip(SCENARIOS, results))
     # NaN after a beetle's death. Quantiles are over the beetles alive at each step.
@@ -282,7 +300,7 @@ const DISTANCE_BIN_WIDTH = 50.0
 distance_bins =
     0:DISTANCE_BIN_WIDTH:(ceil(maximum(maximum, filter(!isempty, distances))/DISTANCE_BIN_WIDTH)*DISTANCE_BIN_WIDTH)
 
-fig = Figure(; size=(1100, 1100))
+fig = Figure(; size=(1600, 1100))
 distance_axes = Axis[]
 for (row, week) in enumerate(DISTANCE_WEEKS), (col, scenario) in enumerate(SCENARIOS)
     d = distances[row, col]
