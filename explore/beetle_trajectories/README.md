@@ -59,6 +59,19 @@ and colored dots are beetle positions at the end of the phase, or where they die
 
 ![Trajectories by phase](out/trajectories.svg)
 
+### Attraction sources
+
+Source tree of the attraction field per cell, for healthy trees (top, drawing beetles during maturation feeding)
+and damaged trees (bottom, drawing beetles during egg laying), within 500 m of the release point,
+for all scenarios (columns).
+Cells of one color get their attraction from the same tree, so a beetle in any of them steers towards that tree.
+Colors are random per source tree; neighbouring patches can occasionally get similar colors.
+As the attraction is seeded with local tree density, a source is not necessarily the nearest tree:
+a dense cluster can draw beetles from cells closer to a lone tree.
+The star is the release point.
+
+![Attraction sources](out/attraction_sources.svg)
+
 ### Displacement
 
 Distance of the first 100 beetles from the release point over movement steps (gray),

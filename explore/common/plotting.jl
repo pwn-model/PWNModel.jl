@@ -11,6 +11,9 @@ const DAMAGED_TREE_COLOR = "#d9b48f"
 # Light gray ramp for background fields, so that colored marks on top stay readable.
 const FIELD_COLORMAP = cgrad(["#ffffff", "#7a7a7a"])
 
+# Many distinct colors in random-looking order, for maps of categories like attraction sources.
+const SOURCE_COLORMAP = :glasbey_hv_n256
+
 """
     save_figure(dir, name, fig; png=false)
 
@@ -61,6 +64,41 @@ function tree_points(world::World; damaged::Bool)
 end
 
 """
+    cell_bounds(grid; xlims, ylims) -> (x1, x2, y1, y2)
+
+Range of cells `x1:x2`, `y1:y2` of `grid` covering `xlims`/`ylims` (in
+meters), clipped to the grid. The covered area in meters is
+`((x1 - 1) * cs, x2 * cs)` resp. `((y1 - 1) * cs, y2 * cs)`, with `cs` the
+grid's cell size.
+"""
+function cell_bounds(grid::Grid; xlims, ylims)
+    cs = grid.cell_size
+    x1, x2 = max(1, floor(Int, xlims[1] / cs) + 1), min(grid.width, ceil(Int, xlims[2] / cs))
+    y1, y2 = max(1, floor(Int, ylims[1] / cs) + 1), min(grid.height, ceil(Int, ylims[2] / cs))
+    return x1, x2, y1, y2
+end
+
+"""
+    attraction_source_image(world; damaged, xlims, ylims) -> (xrange, yrange, image)
+
+Map of the attraction sources (see `TreeAttractionSourceMap`) of healthy
+(`damaged=false`) resp. damaged trees within `xlims`/`ylims` (in meters),
+with one pixel per grid cell. Values are pseudo-random in [0, 1) per source
+tree, `NaN` where there is no source. Draw it with
+`image!(ax, xrange, yrange, image; colormap=SOURCE_COLORMAP, colorrange=(0, 1), interpolate=false)`.
+"""
+function attraction_source_image(world::World; damaged::Bool, xlims, ylims)
+    observer = TreeAttractionSourceMap(; damaged_trees=damaged)
+    PWNModel.initialize!(observer, world)
+    values = PWNModel.data(observer, world)
+
+    grid = get_resource(world, TreeGrid).grid
+    cs = grid.cell_size
+    x1, x2, y1, y2 = cell_bounds(grid; xlims=xlims, ylims=ylims)
+    return ((x1 - 1) * cs, x2 * cs), ((y1 - 1) * cs, y2 * cs), values[x1:x2, y1:y2]
+end
+
+"""
     tree_image(world; xlims, ylims) -> (xrange, yrange, image)
 
 Bitmap of the trees within `xlims`/`ylims` (in meters), with one pixel per
@@ -72,8 +110,7 @@ and `yrange` in meters. Draw it with
 function tree_image(world::World; xlims, ylims)
     grid = get_resource(world, TreeGrid).grid
     cs = grid.cell_size
-    x1, x2 = max(1, floor(Int, xlims[1] / cs) + 1), min(grid.width, ceil(Int, xlims[2] / cs))
-    y1, y2 = max(1, floor(Int, ylims[1] / cs) + 1), min(grid.height, ceil(Int, ylims[2] / cs))
+    x1, x2, y1, y2 = cell_bounds(grid; xlims=xlims, ylims=ylims)
 
     image = fill(RGBAf(0, 0, 0, 0), x2 - x1 + 1, y2 - y1 + 1)
     for (damaged, color) in ((false, HEALTHY_TREE_COLOR), (true, DAMAGED_TREE_COLOR))
