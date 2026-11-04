@@ -9,7 +9,7 @@ How far do they get, and how strongly are they drawn towards trees?
 
 All parameters are set where the systems are created, in [`run.jl`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/beetle_trajectories/run.jl).
 
-- **Landscape**: 1 km × 1 km, 10 m cells.
+- **Landscape**: 2 km × 2 km, 10 m cells.
 - **Attraction**: two `TreeAttraction` fields (healthy and damaged trees), `half_distance` 50 m, `density_radius` 20 m, `density_weight` 1.
 - **Beetles**: 10,000 beetles released in the center of the world at tick 0, from a damaged tree placed there
   (or an existing tree there made damaged).
@@ -25,13 +25,18 @@ As trees and attraction fields are static here, this gives the same movement beh
 
 ### Scenarios
 
-The experiment runs two scenarios that differ only in the tree landscape, created by `InitTrees`.
+The experiment runs three scenarios that differ only in the tree landscape.
 Everything else is the same, including the random seed.
 
-| Scenario      | `tree_probability` | `damage_prevalence` |
-| ------------- | ------------------ | ------------------- |
-| Dense forest  | 0.9                | 0.03                |
-| Sparse forest | 0.025              | 0.25                |
+| Scenario                | `tree_probability`  | `damage_prevalence` |
+| ----------------------- | ------------------- | ------------------- |
+| Dense forest            | 0.9                 | 0.03                |
+| Sparse forest           | 0.025               | 0.25                |
+| Half dense, half sparse | 0.9 (W) / 0.025 (E) | 0.03 (W) / 0.25 (E) |
+
+The first two are created by `InitTrees`, the third by `InitTreeStands` with two stands:
+dense forest in the west half and sparse forest in the east half.
+The release point is in the easternmost column of cells of the dense half, right at the boundary.
 
 ## Running
 
@@ -48,7 +53,7 @@ Figures are written to `out/` as SVG (and PNG). They are not committed, but show
 ### Trajectories by phase
 
 Trajectories of the first 100 beetles during maturation feeding (top) and egg laying (bottom), within 500 m of the release point,
-for both scenarios (columns).
+for all scenarios (columns).
 Green cells are healthy trees, brown cells damaged trees, the star is the release point,
 and colored dots are beetle positions at the end of the phase, or where they died during the phase.
 
@@ -57,7 +62,7 @@ and colored dots are beetle positions at the end of the phase, or where they die
 ### Displacement
 
 Distance of the first 100 beetles from the release point over movement steps (gray),
-with median and 10–90 % quantile band over all beetles, for both scenarios.
+with median and 10–90 % quantile band over all beetles, for all scenarios.
 The y axis is limited to the 90 % quantile, so a few far-flying beetles are cut off.
 
 ![Displacement](out/displacement.svg)
@@ -65,7 +70,7 @@ The y axis is limited to the 90 % quantile, so a few far-flying beetles are cut 
 ### Distance distribution
 
 Distribution of distances from the release point after 2, 4, 8, 12 and 16 weeks (rows),
-over the beetles alive at that time, for both scenarios (columns). Bins are 50 m wide.
+over the beetles alive at that time, for all scenarios (columns). Bins are 50 m wide.
 Each panel gives the number of beetles alive and their median distance.
 
 ![Distance distribution](out/distance_distribution.svg)
@@ -82,6 +87,10 @@ A cross marks where a beetle died, and the panel title gives the week of death.
 #### Sparse forest
 
 ![Individual trajectories, sparse forest](out/trajectories_individual_sparse.svg)
+
+#### Half dense, half sparse
+
+![Individual trajectories, half dense, half sparse](out/trajectories_individual_mixed.svg)
 
 ## Observations
 
