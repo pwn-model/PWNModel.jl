@@ -121,3 +121,11 @@ systems:
       damaged_trees: true
     colormap: viridis
     colorrange: [-4.0, 0.0]
+
+  - type: Main.Image
+    title: Attraction sources
+    observer:
+      type: TreeAttractionSourceMap
+      damaged_trees: true
+    colormap: glasbey_hv_n256
+    colorrange: [0.0, 1.0]
