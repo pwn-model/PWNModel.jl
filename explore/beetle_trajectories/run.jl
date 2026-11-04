@@ -67,7 +67,7 @@ function simulate(init_trees)
         ),
         TreeAttraction(; tick_of_year=0, damaged_trees=true, half_distance=50.0, density_radius=20, density_weight=1.0),
         # Life expectancy and maximum age are in ticks, i.e. movement steps here: 5 and 18 weeks.
-        ReleaseBeetles(; x=100, y=100, count=100, life_expectancy=5.0 * steps_per_tick, max_age=max_age),
+        ReleaseBeetles(; x=100, y=100, count=10_000, life_expectancy=5.0 * steps_per_tick, max_age=max_age),
         BeetleMovement(;
             steps_per_tick=1,
             distance_per_step=2000.0,
@@ -89,6 +89,10 @@ function simulate(init_trees)
 end
 
 results = [simulate(scenario.init_trees) for scenario in SCENARIOS]
+
+# Statistics and distributions use all beetles, trajectory plots only the first ones, to keep them readable.
+const N_TRAJECTORIES = 100
+shown_tracks(result) = result.tracks[1:min(N_TRAJECTORIES, length(result.tracks))]
 
 # ---------------------------------------------------------------------------
 # Analysis and plots
@@ -139,25 +143,25 @@ function map_setup(result)
     return (; xlims, ylims, trees, axis_kwargs)
 end
 
-# Trajectories by phase: one row per scenario, one column per phase.
-fig = Figure(; size=(1100, 1050))
-for (row, (scenario, result)) in enumerate(zip(SCENARIOS, results))
+# Trajectories by phase: one column per scenario, one row per phase.
+fig = Figure(; size=(1050, 1100))
+for (col, (scenario, result)) in enumerate(zip(SCENARIOS, results))
     m = map_setup(result)
-    Label(fig[row, 0], scenario.title; rotation=pi / 2, font=:bold, fontsize=18, tellheight=false)
-    for (col, phase) in enumerate(phases)
+    for (row, phase) in enumerate(phases)
+        col == 1 && Label(fig[row, 0], phase.title; rotation=pi / 2, font=:bold, tellheight=false)
         ax = Axis(
             fig[row, col];
-            title=row == 1 ? phase.title : "",
-            xlabel=row == length(SCENARIOS) ? "x from release point (m)" : "",
-            ylabel="y from release point (m)",
+            title=row == 1 ? scenario.title : "",
+            xlabel=row == length(phases) ? "x from release point (m)" : "",
+            ylabel=col == 1 ? "y from release point (m)" : "",
             m.axis_kwargs...,
         )
         image!(ax, m.trees...; interpolate=false, rasterize=2)
-        lines!(ax, track_segments(result.tracks, phase.range); color=(phase.color, 0.35), linewidth=1)
+        lines!(ax, track_segments(shown_tracks(result), phase.range); color=(phase.color, 0.35), linewidth=1)
         # Positions at the end of the phase, or at death during the phase.
         scatter!(
             ax,
-            [last(track_range(t, phase.range)) for t in result.tracks if length(t) > first(phase.range)];
+            [last(track_range(t, phase.range)) for t in shown_tracks(result) if length(t) > first(phase.range)];
             color=phase.color,
             markersize=6,
         )
@@ -207,12 +211,15 @@ end
 steps = 0:total_steps
 alive_quantile(col, q) = (alive=filter(!isnan, col); isempty(alive) ? NaN : quantile(alive, q))
 
-fig = Figure(; size=(1100, 420))
+fig = Figure(; size=(1100, 470))
 displacement_axes = Axis[]
+# Upper y limit from the 90 % quantiles of both scenarios, as single beetles go much further.
+displacement_ymax = 0.0
 for (i, (scenario, result)) in enumerate(zip(SCENARIOS, results))
     # NaN after a beetle's death. Quantiles are over the beetles alive at each step.
     dist = [s + 1 <= length(t) ? hypot((t[s+1] - result.release)...) : NaN for t in result.tracks, s in steps]
     q10, q50, q90 = (map(c -> alive_quantile(c, q), eachcol(dist)) for q in (0.1, 0.5, 0.9))
+    global displacement_ymax = max(displacement_ymax, maximum(filter(!isnan, q90)))
 
     ax = Axis(
         fig[1, i];
@@ -221,14 +228,15 @@ for (i, (scenario, result)) in enumerate(zip(SCENARIOS, results))
         title=scenario.title,
     )
     push!(displacement_axes, ax)
-    for row in eachrow(dist)
+    for row in eachrow(dist[1:min(N_TRAJECTORIES, end), :])
         lines!(ax, steps, row; color=(:gray, 0.15), linewidth=1)
     end
-    band!(ax, steps, q10, q90; color=(SERIES_COLORS[1], 0.2), label="10–90 % quantiles")
-    lines!(ax, steps, q50; color=SERIES_COLORS[1], linewidth=2, label="Median")
+    band!(ax, steps, q10, q90; color=(SERIES_COLORS[1], 0.2))
+    lines!(ax, steps, q50; color=SERIES_COLORS[1], linewidth=2)
     vlines!(ax, [duration_feeding]; color=:black, linestyle=:dash, linewidth=1)
-    text!(ax, duration_feeding, 0; text=" feeding | egg laying", align=(:center, :bottom), offset=(0, 4))
-    i == 1 && axislegend(ax; position=:lt)
+    # Phase names left and right of the phase boundary.
+    text!(ax, duration_feeding, 0; text="feeding", align=(:right, :bottom), offset=(-4, 4))
+    text!(ax, duration_feeding, 0; text="egg laying", align=(:left, :bottom), offset=(4, 4))
 
     damaged_set = Set(tree_points(result.world; damaged=true))
     egg_layers = [t for t in result.tracks if length(t) > duration_feeding + 1]
@@ -246,5 +254,53 @@ for (i, (scenario, result)) in enumerate(zip(SCENARIOS, results))
         round(mean(t[end] in damaged_set for t in egg_layers); digits=2),
     )
 end
-linkyaxes!(displacement_axes...)
+for ax in displacement_axes
+    ylims!(ax, -0.03 * displacement_ymax, 1.05 * displacement_ymax)
+end
+Legend(
+    fig[2, :],
+    [
+        LineElement(; color=(:gray, 0.5), linewidth=1),
+        PolyElement(; color=(SERIES_COLORS[1], 0.2)),
+        LineElement(; color=SERIES_COLORS[1], linewidth=2),
+    ],
+    ["Individual beetles (first $N_TRAJECTORIES)", "10–90 % quantiles", "Median"];
+    orientation=:horizontal, framevisible=false,
+)
 save_figure(OUT_DIR, "displacement", fig; png=true)
+
+# Distribution of distances from the release point after selected weeks, over the beetles alive then.
+# One row per week, one column per scenario, with shared bins and axes.
+const DISTANCE_WEEKS = [2, 4, 8, 12, 16]
+
+# Distances of the beetles alive after `week` weeks.
+distances_at(result, week) =
+    [hypot((t[week*steps_per_tick+1] - result.release)...) for t in result.tracks if length(t) > week * steps_per_tick]
+
+distances = [distances_at(result, week) for week in DISTANCE_WEEKS, result in results]
+const DISTANCE_BIN_WIDTH = 50.0
+distance_bins =
+    0:DISTANCE_BIN_WIDTH:(ceil(maximum(maximum, filter(!isempty, distances))/DISTANCE_BIN_WIDTH)*DISTANCE_BIN_WIDTH)
+
+fig = Figure(; size=(1100, 1100))
+distance_axes = Axis[]
+for (row, week) in enumerate(DISTANCE_WEEKS), (col, scenario) in enumerate(SCENARIOS)
+    d = distances[row, col]
+    ax = Axis(
+        fig[row, col];
+        title=row == 1 ? scenario.title : "",
+        xlabel=row == length(DISTANCE_WEEKS) ? "Distance from release point (m)" : "",
+        ylabel=col == 1 ? "Beetles" : "",
+    )
+    push!(distance_axes, ax)
+    isempty(d) || hist!(ax, d; bins=distance_bins, color=SERIES_COLORS[1], strokecolor=:white, strokewidth=0.5)
+    median_text = isempty(d) ? "" : ", median $(round(Int, median(d))) m"
+    text!(
+        ax, 1, 1;
+        text="Week $week: $(length(d)) alive$median_text",
+        space=:relative, align=(:right, :top), offset=(-6, -6),
+    )
+    row == length(DISTANCE_WEEKS) || hidexdecorations!(ax; grid=false)
+end
+linkaxes!(distance_axes...)
+save_figure(OUT_DIR, "distance_distribution", fig; png=true)
