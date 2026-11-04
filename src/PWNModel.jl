@@ -28,6 +28,7 @@ include("res/time.jl")
 
 include("sys/init_grids.jl")
 include("sys/init_trees.jl")
+include("sys/init_tree_stands.jl")
 include("sys/update_time.jl")
 include("sys/disease_course.jl")
 include("sys/random_release.jl")
@@ -70,7 +71,7 @@ export Grid, NO_CELL, cell_index, cell_coords, TreeGrid, WorldSize
 export HealthyTreeAttraction, DamagedTreeAttraction, FeedingInfectedBeetles
 export Position, Damaged, Infected, Colonized
 export BeetlePosition, LifeExpectancy
-export InitGrids, InitTrees
+export InitGrids, InitTrees, InitTreeStands, TreeStand
 export UpdateTime, DiseaseCourse, RandomRelease, DamageTrees, Colonization
 export BeetleEmergence, EmergenceTick, BeetleMortality, BeetleMovement, BeetleMovementByField
 export NematodeInfection
