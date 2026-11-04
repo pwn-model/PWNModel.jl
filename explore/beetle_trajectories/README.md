@@ -11,7 +11,7 @@ All parameters are set where the systems are created, in [`run.jl`](https://gith
 
 - **Landscape**: 1 km × 1 km, 10 m cells.
 - **Attraction**: two `TreeAttraction` fields (healthy and damaged trees), `half_distance` 50 m, `density_radius` 20 m, `density_weight` 1.
-- **Beetles**: 100 beetles released in the center of the world at tick 0, from a damaged tree placed there
+- **Beetles**: 10,000 beetles released in the center of the world at tick 0, from a damaged tree placed there
   (or an existing tree there made damaged).
 - **Mortality**: `BeetleMortality`, with life span drawn from an exponential distribution with a mean of 5 weeks,
   capped at a maximum age of 18 weeks (as in `BeetleEmergence`).
@@ -47,8 +47,8 @@ Figures are written to `out/` as SVG (and PNG). They are not committed, but show
 
 ### Trajectories by phase
 
-Trajectories during maturation feeding (left) and egg laying (right), within 200 m of the release point,
-for both scenarios (rows).
+Trajectories of the first 100 beetles during maturation feeding (top) and egg laying (bottom), within 500 m of the release point,
+for both scenarios (columns).
 Green cells are healthy trees, brown cells damaged trees, the star is the release point,
 and colored dots are beetle positions at the end of the phase, or where they died during the phase.
 
@@ -56,10 +56,19 @@ and colored dots are beetle positions at the end of the phase, or where they die
 
 ### Displacement
 
-Distance of each beetle from the release point over movement steps (gray), with median and 10–90 % quantile band,
-for both scenarios.
+Distance of the first 100 beetles from the release point over movement steps (gray),
+with median and 10–90 % quantile band over all beetles, for both scenarios.
+The y axis is limited to the 90 % quantile, so a few far-flying beetles are cut off.
 
 ![Displacement](out/displacement.svg)
+
+### Distance distribution
+
+Distribution of distances from the release point after 2, 4, 8, 12 and 16 weeks (rows),
+over the beetles alive at that time, for both scenarios (columns). Bins are 50 m wide.
+Each panel gives the number of beetles alive and their median distance.
+
+![Distance distribution](out/distance_distribution.svg)
 
 ### Individual trajectories
 
