@@ -14,6 +14,7 @@ using Documenter
 const EXPERIMENTS = [
     "attraction_field" => "Attraction field",
     "beetle_trajectories" => "Beetle trajectories",
+    "attraction_half_distance" => "Attraction half distance",
 ]
 
 src = mktempdir()
