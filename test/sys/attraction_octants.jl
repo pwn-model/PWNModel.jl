@@ -1,18 +1,42 @@
 const _NO_OFFSET = (Int16(0), Int16(0))
 
-# _in_octant reports whether offset (dx, dy) lies in the closed octant k (see
-# PWNModel.OctantSources).
+# _in_octant reports whether offset (dx, dy) lies in the half-open octant k
+# (see PWNModel.OctantSources).
 function _in_octant(k::Int, dx::Int, dy::Int)
-    (dx, dy) == (0, 0) && return false
-    k == 1 && return 0 <= dy <= dx
-    k == 2 && return 0 <= dx <= dy
-    k == 3 && return 0 <= -dx <= dy
-    k == 4 && return 0 <= dy <= -dx
-    k == 5 && return 0 <= -dy <= -dx
-    k == 6 && return 0 <= -dx <= -dy
-    k == 7 && return 0 <= dx <= -dy
-    k == 8 && return 0 <= -dy <= dx
+    k == 1 && return 0 <= dy < dx
+    k == 2 && return 0 < dx <= dy
+    k == 3 && return 0 <= -dx < dy
+    k == 4 && return 0 < dy <= -dx
+    k == 5 && return 0 <= -dy < -dx
+    k == 6 && return 0 < -dx <= -dy
+    k == 7 && return 0 <= dx < -dy
+    k == 8 && return 0 < -dy <= dx
     error("invalid octant $k")
+end
+
+# _octant_of returns the half-open octant of offset (dx, dy) from its angle,
+# independently of _in_octant.
+function _octant_of(dx::Int, dy::Int)
+    a = mod(atan(dy, dx), 2π)
+    return floor(Int, a / (π / 4)) + 1
+end
+
+@testset "half-open octants partition the plane" begin
+    for dx in (-6):6, dy in (-6):6
+        n = count(k -> _in_octant(k, dx, dy), 1:8)
+        if (dx, dy) == (0, 0)
+            @test n == 0
+        else
+            @test n == 1
+            # Rays exactly on a multiple of 45° are the only cases where
+            # floating-point atan could round across a boundary; check them
+            # by construction instead.
+            if dx == 0 || dy == 0 || abs(dx) == abs(dy)
+                continue
+            end
+            @test _in_octant(_octant_of(dx, dy), dx, dy)
+        end
+    end
 end
 
 # _octant_attraction is the attraction of a source with the given seed at
@@ -47,11 +71,11 @@ end
     @test all(==(_NO_OFFSET), r.offsets)
     @test all(==(0.0f0), r.attraction)
 
-    # Due west of the tree, it lies on the +x axis, shared by octants 8 and
-    # 1; all other octants are empty.
+    # West of the tree, it lies on the +x axis, which belongs to octant 1
+    # only; all other octants are empty.
     r = sources[5, 10]
     for k in 1:8
-        if k in (1, 8)
+        if k == 1
             @test r.offsets[k] == (Int16(10), Int16(0))
             @test r.attraction[k] == Float32(decay^10)
         else
@@ -68,6 +92,25 @@ end
             @test r.attraction[k] ≈ Float32(_octant_attraction(1.0, 3, 7, decay))
         else
             @test r.offsets[k] == _NO_OFFSET
+        end
+    end
+end
+
+@testset "propagate_octants! boundary rays belong to the octant they start" begin
+    # The ray at 45°*(k-1) belongs to octant k only.
+    directions = ((1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1))
+    for (k, (ux, uy)) in enumerate(directions)
+        seeds = PWNModel.Grid(30, 20, 10, 0.0)
+        seeds[15+3*ux, 10+3*uy] = 1.0
+        r = _run_octants(seeds, 50.0)[15, 10]
+        for kk in 1:8
+            if kk == k
+                @test r.offsets[kk] == (Int16(3 * ux), Int16(3 * uy))
+                @test r.attraction[kk] > 0
+            else
+                @test r.offsets[kk] == _NO_OFFSET
+                @test r.attraction[kk] == 0.0f0
+            end
         end
     end
 end
