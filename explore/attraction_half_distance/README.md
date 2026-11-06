@@ -124,6 +124,19 @@ The dashed line marks the default of 50 m.
   0.06 at 12.5 m, 0.17 at 50 m and 0.58 at 200 m.
   Clusters do not take over in a sharp, all-or-nothing way as with radial attraction:
   their pull fades out gradually, along the 8 directions.
+- The maps of the probability of selecting a cluster tree show 8 darker stripes radiating out from each cluster:
+  horizontal, vertical and diagonal.
+  These come from the octant model itself, not from the plotting.
+  The octants are fixed in the landscape, with their boundaries at 0°, 45°, 90° and so on, seen from each cell.
+  Seen from a distance, a cluster usually lies entirely within one octant, so the cluster is the target of one of the 8 octants.
+  From a cell on one of these lines through the cluster, an octant boundary cuts the cluster in two.
+  Two octants then each have a cluster tree as their most attractive tree, and the cluster gets two of the 8 choices instead of one.
+  The stripes are as wide as the cluster, however far they reach.
+  For example, 400 m south of the largest cluster at `half_distance` 200 m,
+  the probability of selecting a cluster tree is 0.54–0.65 within the stripe, and 0.32–0.41 just outside it.
+  So beetles are more likely to head for a cluster when they are in one of these 8 directions from it,
+  which may bias dispersal around clusters towards these directions.
+  The effect grows with `half_distance`, as distant clusters then keep more of their attraction.
 - At small `half_distance`, distance decides: beetles on scattered trees mostly select the nearest tree or two,
   with an effective number of 3 octants at 12.5 m.
   At 50 m and above, the effective number is around 6.
