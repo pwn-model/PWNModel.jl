@@ -8,3 +8,4 @@ const SECONDS = 0.5
 const SUITE = BenchmarkGroup()
 
 include("bench_rng.jl")
+include("bench_attraction.jl")
