@@ -42,6 +42,7 @@ include("sys/beetle_emergence.jl")
 include("sys/beetle_mortality.jl")
 include("sys/beetle_movement.jl")
 include("sys/beetle_movement_by_field.jl")
+include("sys/beetle_movement_octants.jl")
 include("sys/nematode_infection.jl")
 include("sys/colonization.jl")
 include("sys/tree_attraction.jl")
@@ -80,7 +81,7 @@ export Position, Damaged, Infected, Colonized
 export BeetlePosition, LifeExpectancy
 export InitGrids, InitTrees, InitTreeStands, TreeStand
 export UpdateTime, DiseaseCourse, RandomRelease, DamageTrees, Colonization
-export BeetleEmergence, EmergenceTick, BeetleMortality, BeetleMovement, BeetleMovementByField
+export BeetleEmergence, EmergenceTick, BeetleMortality, BeetleMovement, BeetleMovementByField, BeetleMovementOctants
 export NematodeInfection
 export TreeAttraction, TreeAttractionOctants
 export TreePopulation, TreeDamage, TreeColonization
