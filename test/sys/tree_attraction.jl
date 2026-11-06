@@ -311,7 +311,7 @@ end
         tick_of_year=0, damaged_trees=false, half_distance=50.0, density_radius=40, density_weight=1.5,
     )
     PWNModel.initialize!(s, world)
-    PWNModel.fill_from_query!(s, s._filter)
+    PWNModel.fill_from_query!(s, world)
 
     r = s._density.radius_cells
     mismatches = 0
@@ -363,7 +363,7 @@ end
         tick_of_year=0, damaged_trees=false, half_distance=50.0, density_radius=40, density_weight=1.5,
     )
     PWNModel.initialize!(s, world)
-    PWNModel.fill_from_query!(s, s._filter)
+    PWNModel.fill_from_query!(s, world)
 
     seeds = copy(s._attraction._values)
     trees = [(x, y) for x in 1:w, y in 1:h if s._presence[x, y]]

@@ -97,8 +97,6 @@ mutable struct TreeAttraction <: System
     # _density scales each source's seed by its local density.
     _density::DensitySeeding
 
-    _filter::Filter
-
     function TreeAttraction(
         tick_of_year::Int, damaged_trees::Bool, half_distance::Float64, density_radius::Int, density_weight::Float64,
     )
@@ -130,12 +128,6 @@ function initialize!(s::TreeAttraction, w::World)
     end
 
     s._density = DensitySeeding(s.density_weight, s.density_radius, ws)
-
-    s._filter = if s.damaged_trees
-        Filter(w, (Position,); with=(Damaged,))
-    else
-        Filter(w, (Position,); without=(Damaged,))
-    end
 end
 
 function update!(s::TreeAttraction, w::World)
@@ -145,8 +137,9 @@ function update!(s::TreeAttraction, w::World)
         return
     end
 
-    fill_from_query!(s, s._filter)
+    fill_from_query!(s, w)
     propagate_attraction!(s._attraction, s._source, s.half_distance)
+    return nothing
 end
 
 # fill_from_query! marks every cell containing a matching tree in
@@ -161,24 +154,31 @@ end
 # otherwise, seed_density! rescales the seeds in a single pass over the
 # grid.
 #
-# Takes a pre-built Filter (see the field docstring on TreeAttraction)
-# rather than `with`/`without` tuples, so that Query(filt) below hits Ark's
-# fast, specialized path instead of re-deriving a filter from tuples whose
-# element types aren't compile-time constants here.
-#
-# TODO: can we do better here and get rid of the dynamic dispatch?
-function fill_from_query!(s::TreeAttraction, filt::Filter)
+# The query is created in one of two branches, each with literal component
+# types, so that both are concretely typed and _mark_trees! is specialized
+# for them, without any dynamic dispatch.
+function fill_from_query!(s::TreeAttraction, w::World)
     fill!(s._presence, false)
     fill!(s._attraction, 0.0)
     fill!(s._source, NO_CELL)
 
-    for (_, positions) in Query(filt)
+    if s.damaged_trees
+        _mark_trees!(s, Query(w, (Position,); with=(Damaged,)))
+    else
+        _mark_trees!(s, Query(w, (Position,); without=(Damaged,)))
+    end
+
+    seed_density!(s._density, s._presence, s._attraction)
+end
+
+# _mark_trees! marks the cells of the trees matched by query as present,
+# seeds them at 1, and makes them their own sources.
+function _mark_trees!(s::TreeAttraction, query::Query)
+    for (_, positions) in query
         for pos in positions
             s._presence[pos.x, pos.y] = true
             s._attraction[pos.x, pos.y] = 1.0
             s._source[pos.x, pos.y] = cell_index(s._source, pos.x, pos.y)
         end
     end
-
-    seed_density!(s._density, s._presence, s._attraction)
 end
