@@ -313,7 +313,7 @@ end
     PWNModel.initialize!(s, world)
     PWNModel.fill_from_query!(s, s._filter)
 
-    r = s._density_radius_cells
+    r = s._density.radius_cells
     mismatches = 0
     for x in 1:w, y in 1:h
         if !s._presence[x, y]
@@ -324,7 +324,7 @@ end
         for xx in max(x-r, 1):min(x+r, w), yy in max(y-r, 1):min(y+r, h)
             count += s._presence[xx, yy]
         end
-        mismatches += s._attraction[x, y] != (count / s._max_count)^s.density_weight
+        mismatches += s._attraction[x, y] != (count / s._density.max_count)^s.density_weight
     end
     @test mismatches == 0
 end

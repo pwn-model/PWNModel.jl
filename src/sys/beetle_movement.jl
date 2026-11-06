@@ -101,6 +101,9 @@ function update!(s::BeetleMovement, w::World)
                 if step == 1 && tick == et.tick_of_emergence
                     # Undirected flight away from the tree the beetle emerged
                     # from, in one go, in a uniformly random direction.
+                    # TODO: skip the random draws (distance and direction) when
+                    # emergence_flight_distance is 0. Changes RNG consumption, so it must
+                    # be done in the sibling Go implementation, too.
                     flight = min(rand(rng) * s._emergence_flight_in_cells, max_step)
                     dx, dy = random_direction(rng)
                     x += round(Int, dx * flight, RoundNearestTiesAway)
