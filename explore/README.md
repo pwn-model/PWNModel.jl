@@ -37,3 +37,4 @@ Experiments are listed explicitly in `make.jl` and in the workflow `experiments.
 
 - [`attraction_field`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/attraction_field): cross-sections of the attraction field around a single tree and a small forest.
 - [`beetle_trajectories`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/beetle_trajectories): movement of beetles during maturation feeding and egg laying.
+- [`attraction_half_distance`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/attraction_half_distance): how `half_distance` affects the dominance of tree clusters, for radial attraction and octant selection.
