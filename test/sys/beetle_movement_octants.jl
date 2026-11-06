@@ -212,3 +212,16 @@ end
     @test s.emergence_flight_distance === 200.0
     @test s.leave_tree_probability == 0.2
 end
+
+# Without an emergence flight, no random numbers are drawn for it. Without
+# healthy trees, emerging beetles (still feeding, not on a healthy tree)
+# don't draw any others either.
+@testset "BeetleMovementOctants without emergence flight draws no random numbers" begin
+    world = _setup_beetle_movement_octants_world(())
+    s = _beetle_movement_octants(; emergence_flight_distance=0.0)
+    PWNModel.initialize!(s, world)
+    PWNModel.update!(s, world)
+
+    @test _beetle_cells(world) == Dict((100, 25) => 50)
+    @test rand(get_resource(world, PWNModel.Rng)) == rand(PWNModel.Rng(1))
+end

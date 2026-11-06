@@ -113,3 +113,15 @@ end
 
     @test isempty(_beetle_cells(world))
 end
+
+# Without an emergence flight, no random numbers are drawn for it: emerging
+# beetles still feeding (no feeding draw), not on a healthy tree (no leave
+# draw), fly to their target without using the RNG at all.
+@testset "BeetleMovement without emergence flight draws no random numbers" begin
+    world = _setup_beetle_movement_world(_RING)
+    s = _beetle_movement(; emergence_flight_distance=0.0)
+    PWNModel.initialize!(s, world)
+    PWNModel.update!(s, world)
+
+    @test rand(get_resource(world, PWNModel.Rng)) == rand(PWNModel.Rng(1))
+end
