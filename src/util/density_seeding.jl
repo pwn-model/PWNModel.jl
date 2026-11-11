@@ -2,9 +2,8 @@
 # density: each source cell's seed is set to its local occupancy fraction
 # (the number of source cells within density_radius, divided by the number
 # of cells that fit in that radius -- so always in (0, 1]) raised to
-# density_weight. Shared by the systems computing attraction fields from
-# trees (TreeAttraction, TreeAttractionOctants); see their docs for the
-# meaning of density_radius and density_weight.
+# density_weight. Used by TreeAttraction; see its docs for the meaning of
+# density_radius and density_weight.
 struct DensitySeeding
     density_weight::Float64
 

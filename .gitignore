@@ -21,4 +21,5 @@
 .vscode
 /explore/Manifest*.toml
 /explore/*/out/
+/explore/archive/*/out/
 /explore/site/

@@ -63,8 +63,8 @@ const SCENARIOS = [
     ),
 ]
 
-# Movement models: the attraction system (for healthy and damaged trees) and the movement system using it,
-# with the same parameters. All figures are made for each model, with the model's suffix in the file names.
+# Movement model: the attraction system (for healthy and damaged trees) and the movement system using it,
+# with the same parameters.
 attraction_kwargs(damaged) =
     (; tick_of_year=0, damaged_trees=damaged, half_distance=50.0, density_radius=20, density_weight=1.0)
 const movement_kwargs = (;
@@ -75,25 +75,14 @@ const movement_kwargs = (;
     leave_tree_probability=0.25,
     emergence_flight_distance=100.0,
 )
-const MODELS = [
-    (
-        name="radial",
-        title="Radial attraction",
-        suffix="",
-        # tick_of_year 0, so that both fields are calculated in the first tick, before any movement.
-        attraction=damaged -> TreeAttraction(; attraction_kwargs(damaged)...),
-        movement=() -> BeetleMovement(; movement_kwargs...),
-        source_image=attraction_source_image,
-    ),
-    (
-        name="octants",
-        title="Octant attraction",
-        suffix="_octants",
-        attraction=damaged -> TreeAttractionOctants(; attraction_kwargs(damaged)...),
-        movement=() -> BeetleMovementOctants(; movement_kwargs...),
-        source_image=octant_source_image,
-    ),
-]
+const MODEL = (
+    name="radial",
+    title="Radial attraction",
+    # tick_of_year 0, so that both fields are calculated in the first tick, before any movement.
+    attraction=damaged -> TreeAttraction(; attraction_kwargs(damaged)...),
+    movement=() -> BeetleMovement(; movement_kwargs...),
+    source_image=attraction_source_image,
+)
 
 # Runs the model for one scenario and movement model. Returns its world, and the beetle tracks and release point
 # in meters.
@@ -205,11 +194,11 @@ function plot_trajectories(model, results)
             limits!(ax, m.xlims..., m.ylims...)
         end
     end
-    save_figure(OUT_DIR, "trajectories$(model.suffix)", fig; png=true)
+    save_figure(OUT_DIR, "trajectories", fig; png=true)
 end
 
 # Attraction sources: one column per scenario, one row per attraction field (healthy, damaged trees).
-# Cells of one color draw beetles towards the same tree (for octants: most likely).
+# Cells of one color draw beetles towards the same tree.
 const fields = (
     (title="Healthy trees (maturation feeding)", damaged=false),
     (title="Damaged trees (egg laying)", damaged=true),
@@ -237,7 +226,7 @@ function plot_attraction_sources(model, results)
             limits!(ax, m.xlims..., m.ylims...)
         end
     end
-    save_figure(OUT_DIR, "attraction_sources$(model.suffix)", fig; png=true)
+    save_figure(OUT_DIR, "attraction_sources", fig; png=true)
 end
 
 # Individual trajectories of the first beetles, both phases per panel. One figure per scenario.
@@ -274,7 +263,7 @@ function plot_individual_trajectories(model, results)
             ["Maturation feeding", "Egg laying", "Release point", "Death"];
             orientation=:horizontal, framevisible=false,
         )
-        save_figure(OUT_DIR, "trajectories_individual_$(scenario.name)$(model.suffix)", fig; png=true)
+        save_figure(OUT_DIR, "trajectories_individual_$(scenario.name)", fig; png=true)
     end
 end
 
@@ -344,7 +333,7 @@ function plot_displacement(model, results)
         ["Individual beetles (first $N_TRAJECTORIES)", "10–90 % quantiles", "Median"];
         orientation=:horizontal, framevisible=false,
     )
-    save_figure(OUT_DIR, "displacement$(model.suffix)", fig; png=true)
+    save_figure(OUT_DIR, "displacement", fig; png=true)
 end
 
 # Distribution of distances from the release point after selected weeks, over the beetles alive then.
@@ -382,10 +371,10 @@ function plot_distance_distribution(model, results)
         row == length(DISTANCE_WEEKS) || hidexdecorations!(ax; grid=false)
     end
     linkaxes!(distance_axes...)
-    save_figure(OUT_DIR, "distance_distribution$(model.suffix)", fig; png=true)
+    save_figure(OUT_DIR, "distance_distribution", fig; png=true)
 end
 
-for model in MODELS
+let model = MODEL
     results = [simulate(scenario.init_trees, model) for scenario in SCENARIOS]
     plot_trajectories(model, results)
     plot_attraction_sources(model, results)
