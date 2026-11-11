@@ -1,6 +1,7 @@
 # Builds the experiments web page from the landing page `index.md` (for
 # domain experts; this folder's README.md is for developers), the README of
 # each experiment, and the experiments' figures in their `out/` folders.
+# Archived experiments (in `archive/`) are listed in a separate section.
 # Run the experiments first.
 #
 # Run from the PWNModel.jl/ directory:
@@ -17,9 +18,15 @@ const EXPERIMENTS = [
     "attraction_half_distance" => "Attraction half distance",
 ]
 
+# Archived experiments, as paths below this folder, and their page titles, in page order.
+const ARCHIVE = [
+    "archive/attraction_half_distance_octants" => "Attraction half distance (octants)",
+    "archive/beetle_trajectories_octants" => "Beetle trajectories (octants)",
+]
+
 src = mktempdir()
 cp(joinpath(@__DIR__, "index.md"), joinpath(src, "index.md"))
-for (dir, _) in EXPERIMENTS
+for (dir, _) in [EXPERIMENTS; ARCHIVE]
     mkpath(joinpath(src, dir))
     cp(joinpath(@__DIR__, dir, "README.md"), joinpath(src, dir, "index.md"))
     cp(joinpath(@__DIR__, dir, "out"), joinpath(src, dir, "out"))
@@ -30,7 +37,11 @@ makedocs(;
     root=@__DIR__,
     source=src,
     build="site",
-    pages=["Home" => "index.md", ("$title" => "$dir/index.md" for (dir, title) in EXPERIMENTS)...],
+    pages=[
+        "Home" => "index.md",
+        ("$title" => "$dir/index.md" for (dir, title) in EXPERIMENTS)...,
+        "Archive" => ["$title" => "$dir/index.md" for (dir, title) in ARCHIVE],
+    ],
     format=Documenter.HTML(; prettyurls=false, edit_link=nothing, repolink=nothing),
     remotes=nothing,
 )

@@ -1,6 +1,5 @@
-# Benchmarks of the two attraction models (TreeAttraction, TreeAttractionOctants)
-# and the two beetle movement models using them (BeetleMovement,
-# BeetleMovementOctants), on a 10 km x 10 km world with 10 m cells and a
+# Benchmarks of tree attraction (TreeAttraction) and the beetle movement
+# using it (BeetleMovement), on a 10 km x 10 km world with 10 m cells and a
 # tree in 90 % of the cells, 3 % of them damaged.
 #
 # Attraction benchmarks measure one calculation of the healthy-tree field
@@ -55,22 +54,18 @@ function benchmark_attraction(args)
 end
 
 init_tree_attraction() = setup_attraction(TreeAttraction(; attraction_kwargs(false)...))
-init_tree_attraction_octants() = setup_attraction(TreeAttractionOctants(; attraction_kwargs(false)...))
 
 # The world is set up once (init), as each calculation starts from scratch.
 SUITE["benchmark_tree_attraction n=1"] = @be init_tree_attraction _ benchmark_attraction(_) _ seconds = 2 * SECONDS
 
-SUITE["benchmark_tree_attraction_octants n=1"] =
-    @be init_tree_attraction_octants _ benchmark_attraction(_) _ seconds = 2 * SECONDS
-
 # Movement
 
-# init: the world, with both attraction fields of the given type computed,
-# and the movement system.
-function init_movement(attraction_type, movement)
+# init: the world, with both attraction fields computed, and the movement
+# system.
+function init_movement(movement)
     world = attraction_bench_world()
     for damaged in (false, true)
-        a = attraction_type(; attraction_kwargs(damaged)...)
+        a = TreeAttraction(; attraction_kwargs(damaged)...)
         PWNModel.initialize!(a, world)
         PWNModel.update!(a, world)
     end
@@ -112,13 +107,9 @@ movement_kwargs() = (;
     leave_tree_probability=0.25,
 )
 
-init_beetle_movement() = init_movement(TreeAttraction, BeetleMovement(; movement_kwargs()...))
-init_beetle_movement_octants() = init_movement(TreeAttractionOctants, BeetleMovementOctants(; movement_kwargs()...))
+init_beetle_movement() = init_movement(BeetleMovement(; movement_kwargs()...))
 
 const N_MOVEMENT = MOVEMENT_BEETLES * MOVEMENT_STEPS
 
 SUITE["benchmark_beetle_movement n=$N_MOVEMENT"] =
     @be init_beetle_movement setup_movement benchmark_movement _ evals = 1 seconds = SECONDS
-
-SUITE["benchmark_beetle_movement_octants n=$N_MOVEMENT"] =
-    @be init_beetle_movement_octants setup_movement benchmark_movement _ evals = 1 seconds = SECONDS

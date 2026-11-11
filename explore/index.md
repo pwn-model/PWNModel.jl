@@ -6,6 +6,7 @@ for example how beetles move through a forest, or how strongly trees attract the
 The aim is to make the model's behaviour visible and open for discussion.
 
 The experiments are listed in the navigation menu.
+Experiments on approaches that were tried but not adopted for the model are kept in the *Archive* section of the menu.
 
 For the full model description, see the [model specification](https://github.com/pwn-model/model-spec).
 

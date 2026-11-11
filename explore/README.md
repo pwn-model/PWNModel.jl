@@ -37,4 +37,17 @@ Experiments are listed explicitly in `make.jl` and in the workflow `experiments.
 
 - [`attraction_field`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/attraction_field): cross-sections of the attraction field around a single tree and a small forest.
 - [`beetle_trajectories`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/beetle_trajectories): movement of beetles during maturation feeding and egg laying.
-- [`attraction_half_distance`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/attraction_half_distance): how `half_distance` affects the dominance of tree clusters, for radial attraction and octant selection.
+- [`attraction_half_distance`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/attraction_half_distance): how `half_distance` affects the dominance of tree clusters.
+
+## Archive
+
+Experiments on approaches that were not adopted are kept in [`archive/`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/archive),
+together with the model code they need, which is no longer part of the `PWNModel` package.
+They are still run and shown on the web page, in a separate *Archive* section.
+To archive an experiment, move it to `archive/` (adjusting relative paths), move code it needs that is removed from the package to `archive/` as well,
+and list it under `ARCHIVE` in `make.jl` and in the archived experiments step of `experiments.yml`.
+If an archived experiment breaks due to changes in the package and is not worth fixing, remove it from both lists.
+
+- [`archive/octants`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/archive/octants): code of the octant attraction model (`TreeAttractionOctants`, `BeetleMovementOctants`), not an experiment.
+- [`archive/attraction_half_distance_octants`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/archive/attraction_half_distance_octants): how `half_distance` affects octant selection and the dominance of tree clusters, with octant attraction.
+- [`archive/beetle_trajectories_octants`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/archive/beetle_trajectories_octants): movement of beetles during maturation feeding and egg laying, with octant attraction.

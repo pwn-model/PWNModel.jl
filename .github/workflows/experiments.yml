@@ -35,6 +35,10 @@ jobs:
           julia --project=explore explore/attraction_field/run.jl
           julia --project=explore explore/beetle_trajectories/run.jl
           julia --project=explore explore/attraction_half_distance/run.jl
+      - name: Run archived experiments
+        run: |
+          julia --project=explore explore/archive/attraction_half_distance_octants/run.jl
+          julia --project=explore explore/archive/beetle_trajectories_octants/run.jl
       - name: Build web page
         run: julia --project=explore explore/make.jl
       - uses: actions/upload-pages-artifact@v3
