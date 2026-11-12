@@ -109,14 +109,15 @@ function event_distances(grid::Grid)
     return (; distances, counts)
 end
 
-# Median of values weighted by integer counts.
-function weighted_median(values, counts)
+# Quantile `q` of values weighted by integer counts: the smallest value with at least
+# a fraction `q` of the counts at or below it.
+function weighted_quantile(values, counts, q)
     order = sortperm(values)
-    half = sum(counts) / 2
+    threshold = q * sum(counts)
     total = 0
     for i in order
         total += counts[i]
-        total >= half && return values[i]
+        total >= threshold && return values[i]
     end
     return NaN
 end
@@ -143,8 +144,11 @@ end
 # Event distances of all seeds pooled.
 pool(events) = (; distances=reduce(vcat, e.distances for e in events), counts=reduce(vcat, e.counts for e in events))
 
-# Weighted median of event distances, NaN without events.
-event_median(e) = isempty(e.counts) ? NaN : weighted_median(e.distances, e.counts)
+# Quantile `q` of event distances, NaN without events.
+event_quantile(e, q) = isempty(e.counts) ? NaN : weighted_quantile(e.distances, e.counts, q)
+
+# Quantiles shown in the plots, besides the median.
+const UPPER_QUANTILE = 0.95
 
 # Histograms of event distances, pooled over all seeds and given as the mean per run:
 # one row per scenario, one column per event type, with a map of the landscape of the first seed
@@ -173,27 +177,33 @@ function plot_event_distances(results)
         panel_axes[row, col] = ax
         n_runs = length(SEEDS)
         mean_total = round(Int, sum(e.counts; init=0) / n_runs)
-        median_text = ""
+        quantile_text = ""
         if mean_total > 0
             hist!(
                 ax, e.distances;
                 weights=e.counts ./ n_runs, bins=bins, color=et.color, strokecolor=:white, strokewidth=0.5,
             )
-            # Median over all seeds, and range of the medians of the single seeds.
-            seed_medians = filter(!isnan, map(event_median, per_seed[row, col]))
-            lo, hi = round.(Int, extrema(seed_medians))
-            median_text = "median $(round(Int, event_median(e))) m (seeds $(lo)–$(hi) m)"
+            # Quantiles over all seeds, and range of the quantiles of the single seeds.
+            texts = map(((0.5, "median"), (UPPER_QUANTILE, "$(round(Int, 100UPPER_QUANTILE)) %"))) do (q, name)
+                seed_values = filter(!isnan, [event_quantile(s, q) for s in per_seed[row, col]])
+                lo, hi = round.(Int, extrema(seed_values))
+                "$name $(round(Int, event_quantile(e, q))) m (seeds $(lo)–$(hi) m)"
+            end
+            quantile_text = join(texts, "
+")
+            vlines!(ax, [event_quantile(e, UPPER_QUANTILE)]; color=:black, linestyle=:dash, linewidth=1)
         end
         text!(
             ax, 1, 1;
             text="$mean_total events per run
-$median_text",
+$quantile_text",
             space=:relative, align=(:right, :top), justification=:right, offset=(-6, -6),
         )
         row == length(SCENARIOS) || hidexdecorations!(ax; grid=false)
 
         col == 1 && println("  ", scenario.title)
-        println("    ", rpad(et.title * ":", 28), lpad(mean_total, 9), " events per run, ", median_text)
+        println("    ", rpad(et.title * ":", 28), lpad(mean_total, 9), " events per run, ", replace(quantile_text, "
+" => ", "))
     end
     linkxaxes!(panel_axes...)
     for col in axes(panel_axes, 2)

@@ -55,8 +55,9 @@ Figures are written to `out/` as SVG (and PNG). They are not committed, but show
 
 Number of feeding events (left) and egg laying events (right) by distance from the release point,
 for all forest densities (rows), summed over the whole simulation and averaged over the 10 runs. Bins are 50 m wide.
-Each panel gives the mean total number of events per run, the median distance over the events of all runs,
-and the range of the median distances of the single runs.
+Each panel gives the mean total number of events per run, and the median and 95 % quantile of the distances
+over the events of all runs, each with its range over the single runs.
+The dashed line is the 95 % quantile over all runs.
 The maps on the left show the trees of the first run in a 200 m × 200 m section around the release point (star):
 green cells are healthy trees, brown cells damaged trees.
 
