@@ -140,9 +140,11 @@ function crossed(track, range, gap, cell_size)
 end
 
 # Kinds of events counted, with the kind's index in `GapEvents` counts, and the range of track positions
-# (as in PHASES) to count them in. Feeding only during maturation feeding, egg laying over the whole life.
+# (as in PHASES) to count them in. Feeding during maturation feeding and over the whole life,
+# egg laying over the whole life.
 const EVENTS = (
-    (label="Feeding events", kind=1, range=PHASES[1].range, color=SERIES_COLORS[1]),
+    (label="Feeding events immature", kind=1, range=PHASES[1].range, color=SERIES_COLORS[1]),
+    (label="Feeding events lifetime", kind=1, range=PHASES[2].range, color=SERIES_COLORS[2]),
     (label="Egg-laying events", kind=2, range=PHASES[2].range, color=SERIES_COLORS[3]),
 )
 
