@@ -20,6 +20,7 @@ const EXPERIMENTS = [
     "attraction_field" => "Attraction field",
     "beetle_trajectories" => "Beetle trajectories",
     "forest_density" => "Forest density",
+    "forest_gap" => "Forest gap",
     "attraction_half_distance" => "Attraction half distance",
 ]
 
