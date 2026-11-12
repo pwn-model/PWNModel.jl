@@ -40,7 +40,8 @@ Beetles that die or leave the world before crossing count as not crossed.
 (as counted by `BeetleMovement` in the `FeedingInfectedBeetles` grid, so a beetle staying on a tree counts once per step).
 Events on damaged trees are egg laying, all others feeding.
 The event share is the share of events (of all runs) that are in the east forest,
-for feeding events during maturation feeding, resp. for egg laying events over the beetles' lifetime.
+for feeding events during maturation feeding and over the beetles' lifetime (also feeding in the egg laying phase,
+in the steps in which a beetle feeds instead of laying eggs), and for egg laying events over the beetles' lifetime.
 
 ### Scenarios
 
@@ -78,7 +79,8 @@ Crossing probabilities and event shares by gap width, as a figure and as a table
 
 - **Probability immature**: probability that a beetle crosses the gap during maturation feeding (the first 3 weeks).
 - **Probability lifetime**: probability that a beetle crosses the gap at any time during its life.
-- **Feeding events**: share of maturation feeding events that are on the other side of the gap, in the east forest.
+- **Feeding events immature**: share of maturation feeding events that are on the other side of the gap, in the east forest.
+- **Feeding events lifetime**: share of feeding events, over the beetles' whole life, that are on the other side of the gap.
 - **Egg-laying events**: share of egg laying events, over the beetles' whole life, that are on the other side of the gap.
 
 Both axes of the figure are logarithmic.
