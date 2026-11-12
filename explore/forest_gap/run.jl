@@ -147,7 +147,7 @@ const EVENTS = (
 )
 
 # Updates whose events belong to a range of track positions, as update k gives position k + 1.
-range_updates(range, events) = max(first(range) - 1, 1):min(last(range) - 1, length(events.total))
+range_updates(range, events) = max(first(range)-1, 1):min(last(range)-1, length(events.total))
 
 # Runs the model for one gap width with all seeds. Returns the world of the first seed,
 # the number of released beetles, per phase the number of beetles that crossed the gap,
