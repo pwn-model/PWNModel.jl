@@ -21,11 +21,15 @@ const duration_feeding = 3
 const max_age = 18
 
 # Scenarios differ only in the tree probability per cell. Everything else is the same,
-# including the random seed.
+# including the random seeds.
 const DAMAGE_PREVALENCE = 0.03
 const SCENARIOS = [
     (title="$(round(Int, 100p)) % trees", tree_probability=p) for p in (0.9, 0.75, 0.5, 0.25)
 ]
+
+# Each scenario runs with these seeds, and results are aggregated over them.
+# Landscape maps show the first seed only.
+const SEEDS = 1:10
 
 # Release point, as a cell, in the center of the world.
 const RELEASE_X, RELEASE_Y = 100, 100
@@ -41,9 +45,9 @@ const movement_kwargs = (;
     emergence_flight_distance=100.0,
 )
 
-# Runs the model for one scenario. Returns its world, and the summed feeding and egg laying events per cell.
-function simulate(scenario)
-    world = new_world(; seed=1, width=2000, height=2000, cell_size=10)
+# Runs the model for one scenario and seed. Returns its world, and the summed feeding and egg laying events per cell.
+function simulate(scenario, seed)
+    world = new_world(; seed=seed, width=2000, height=2000, cell_size=10)
     visits = TreeVisits()
 
     systems = (
@@ -67,6 +71,26 @@ function simulate(scenario)
     # One more tick than the maximum age, for BeetleMortality to remove beetles that reached it.
     run!(Scheduler(world, systems), max_age + 1)
     return (; world, visits)
+end
+
+const EVENT_TYPES = (
+    (title="Feeding (healthy trees)", field=:healthy, color=SERIES_COLORS[1]),
+    (title="Egg laying (damaged trees)", field=:damaged, color=SERIES_COLORS[2]),
+)
+
+# Runs the model for one scenario with all seeds. Returns the world of the first seed,
+# and per event type the event distances of each seed (see `event_distances`).
+function simulate_seeds(scenario)
+    world = nothing
+    events = Dict(et.field => [] for et in EVENT_TYPES)
+    for seed in SEEDS
+        result = simulate(scenario, seed)
+        seed == first(SEEDS) && (world = result.world)
+        for et in EVENT_TYPES
+            push!(events[et.field], event_distances(getfield(result.visits, et.field)))
+        end
+    end
+    return (; world, events)
 end
 
 # ---------------------------------------------------------------------------
@@ -97,10 +121,6 @@ function weighted_median(values, counts)
     return NaN
 end
 
-const EVENT_TYPES = (
-    (title="Feeding (healthy trees)", field=:healthy, color=SERIES_COLORS[1]),
-    (title="Egg laying (damaged trees)", field=:damaged, color=SERIES_COLORS[2]),
-)
 const DISTANCE_BIN_WIDTH = 50.0
 
 # Landscape maps show a small section of the world around the release point.
@@ -120,14 +140,22 @@ function plot_landscape(pos, world; title)
     return ax
 end
 
-# Histograms of event distances: one row per scenario, one column per event type,
-# with a map of the landscape in front of each row.
+# Event distances of all seeds pooled.
+pool(events) = (; distances=reduce(vcat, e.distances for e in events), counts=reduce(vcat, e.counts for e in events))
+
+# Weighted median of event distances, NaN without events.
+event_median(e) = isempty(e.counts) ? NaN : weighted_median(e.distances, e.counts)
+
+# Histograms of event distances, pooled over all seeds and given as the mean per run:
+# one row per scenario, one column per event type, with a map of the landscape of the first seed
+# in front of each row.
 function plot_event_distances(results)
-    events = [event_distances(getfield(result.visits, et.field)) for result in results, et in EVENT_TYPES]
+    per_seed = [result.events[et.field] for result in results, et in EVENT_TYPES]
+    events = map(pool, per_seed)
     max_distance = maximum(maximum(e.distances) for e in events if !isempty(e.distances))
     bins = 0:DISTANCE_BIN_WIDTH:(ceil(max_distance / DISTANCE_BIN_WIDTH)*DISTANCE_BIN_WIDTH)
 
-    println("Events by distance from the release point")
+    println("Events by distance from the release point, over $(length(SEEDS)) seeds")
     fig = Figure(; size=(1400, 1100))
     panel_axes = Matrix{Axis}(undef, size(events))
     for (row, (scenario, result)) in enumerate(zip(SCENARIOS, results))
@@ -140,20 +168,32 @@ function plot_event_distances(results)
             fig[row, col+1];
             title=row == 1 ? et.title : "",
             xlabel=row == length(SCENARIOS) ? "Distance from release point (m)" : "",
-            ylabel=col == 1 ? "Events" : "",
+            ylabel=col == 1 ? "Events per run" : "",
         )
         panel_axes[row, col] = ax
-        total = sum(e.counts; init=0)
+        n_runs = length(SEEDS)
+        mean_total = round(Int, sum(e.counts; init=0) / n_runs)
         median_text = ""
-        if total > 0
-            hist!(ax, e.distances; weights=e.counts, bins=bins, color=et.color, strokecolor=:white, strokewidth=0.5)
-            median_text = ", median $(round(Int, weighted_median(e.distances, e.counts))) m"
+        if mean_total > 0
+            hist!(
+                ax, e.distances;
+                weights=e.counts ./ n_runs, bins=bins, color=et.color, strokecolor=:white, strokewidth=0.5,
+            )
+            # Median over all seeds, and range of the medians of the single seeds.
+            seed_medians = filter(!isnan, map(event_median, per_seed[row, col]))
+            lo, hi = round.(Int, extrema(seed_medians))
+            median_text = "median $(round(Int, event_median(e))) m (seeds $(lo)–$(hi) m)"
         end
-        text!(ax, 1, 1; text="$total events$median_text", space=:relative, align=(:right, :top), offset=(-6, -6))
+        text!(
+            ax, 1, 1;
+            text="$mean_total events per run
+$median_text",
+            space=:relative, align=(:right, :top), justification=:right, offset=(-6, -6),
+        )
         row == length(SCENARIOS) || hidexdecorations!(ax; grid=false)
 
         col == 1 && println("  ", scenario.title)
-        println("    ", rpad(et.title * ":", 28), lpad(total, 9), " events", median_text)
+        println("    ", rpad(et.title * ":", 28), lpad(mean_total, 9), " events per run, ", median_text)
     end
     linkxaxes!(panel_axes...)
     for col in axes(panel_axes, 2)
@@ -165,6 +205,6 @@ function plot_event_distances(results)
 end
 
 let
-    results = [simulate(scenario) for scenario in SCENARIOS]
+    results = [simulate_seeds(scenario) for scenario in SCENARIOS]
     plot_event_distances(results)
 end

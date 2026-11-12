@@ -32,7 +32,12 @@ Distances are measured between the centers of the release cell and the tree's ce
 ### Scenarios
 
 The experiment runs four scenarios that differ only in `tree_probability`: 0.9, 0.75, 0.5 and 0.25.
-Everything else is the same, including the random seed.
+Everything else is the same.
+
+Each scenario runs 10 times, with random seeds 1 to 10, so with 10 different landscapes.
+The results are aggregated over these runs, as the distances to the nearest damaged trees
+vary a lot between landscapes.
+The seeds are the same for all scenarios.
 
 ## Running
 
@@ -49,9 +54,10 @@ Figures are written to `out/` as SVG (and PNG). They are not committed, but show
 ### Event distances
 
 Number of feeding events (left) and egg laying events (right) by distance from the release point,
-for all forest densities (rows), summed over the whole simulation. Bins are 50 m wide.
-Each panel gives the total number of events and their median distance.
-The maps on the left show the trees in a 200 m × 200 m section around the release point (star):
+for all forest densities (rows), summed over the whole simulation and averaged over the 10 runs. Bins are 50 m wide.
+Each panel gives the mean total number of events per run, the median distance over the events of all runs,
+and the range of the median distances of the single runs.
+The maps on the left show the trees of the first run in a 200 m × 200 m section around the release point (star):
 green cells are healthy trees, brown cells damaged trees.
 
 ![Event distances](out/event_distances.svg)
