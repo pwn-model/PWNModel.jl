@@ -33,6 +33,12 @@ jobs:
         with:
           version: '1'
       - uses: julia-actions/cache@v3
+        with:
+          # Start from a fresh cache when JULIA_CPU_TARGET changes (bump the suffix): Julia still
+          # accepts natively compiled package images from older caches on a matching host, so
+          # the multi-target images would otherwise never replace them.
+          # (The target string itself can't go into the key, as cache keys must not contain commas.)
+          cache-name: julia-cache;workflow=${{ github.workflow }};job=${{ github.job }};cpu-target=multi-v1
       - name: Instantiate environment
         run: julia --project=explore -e 'using Pkg; Pkg.instantiate()'
       - name: Run experiments
