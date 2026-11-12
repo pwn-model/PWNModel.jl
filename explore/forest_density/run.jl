@@ -157,7 +157,7 @@ function plot_event_distances(results)
     per_seed = [result.events[et.field] for result in results, et in EVENT_TYPES]
     events = map(pool, per_seed)
     max_distance = maximum(maximum(e.distances) for e in events if !isempty(e.distances))
-    bins = 0:DISTANCE_BIN_WIDTH:(ceil(max_distance / DISTANCE_BIN_WIDTH)*DISTANCE_BIN_WIDTH)
+    bins = 0:DISTANCE_BIN_WIDTH:(ceil(max_distance/DISTANCE_BIN_WIDTH)*DISTANCE_BIN_WIDTH)
 
     println("Events by distance from the release point, over $(length(SEEDS)) seeds")
     fig = Figure(; size=(1400, 1100))
@@ -189,8 +189,11 @@ function plot_event_distances(results)
                 lo, hi = round.(Int, extrema(seed_values))
                 "$name $(round(Int, event_quantile(e, q))) m (seeds $(lo)–$(hi) m)"
             end
-            quantile_text = join(texts, "
-")
+            quantile_text = join(
+                texts,
+                "
+",
+            )
             vlines!(ax, [event_quantile(e, UPPER_QUANTILE)]; color=:black, linestyle=:dash, linewidth=1)
         end
         text!(
@@ -202,8 +205,14 @@ $quantile_text",
         row == length(SCENARIOS) || hidexdecorations!(ax; grid=false)
 
         col == 1 && println("  ", scenario.title)
-        println("    ", rpad(et.title * ":", 28), lpad(mean_total, 9), " events per run, ", replace(quantile_text, "
-" => ", "))
+        println(
+            "    ",
+            rpad(et.title * ":", 28),
+            lpad(mean_total, 9),
+            " events per run, ",
+            replace(quantile_text, "
+" => ", "),
+        )
     end
     linkxaxes!(panel_axes...)
     for col in axes(panel_axes, 2)
