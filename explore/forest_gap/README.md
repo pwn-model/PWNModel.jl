@@ -61,8 +61,8 @@ Gray is outside the world, as smaller gaps give narrower worlds.
 
 ### Crossing probability
 
-Probability to cross the gap during maturation feeding and over the beetles' lifetime, by gap width
-(on a logarithmic axis), as a figure and as a table.
+Probability to cross the gap during maturation feeding and over the beetles' lifetime, by gap width,
+as a figure and as a table. Both axes of the figure are logarithmic, so zero probabilities are not shown there.
 
 ![Crossing probability](out/crossing_probability.svg)
 

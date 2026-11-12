@@ -132,6 +132,8 @@ function plot_landscapes(results)
     save_figure(OUT_DIR, "landscapes", fig; png=true)
 end
 
+const Y_TICKS = [0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0]
+
 function plot_crossing_probability(results)
     probabilities = [
         crossing_probability(result, phase.range, gap) for (gap, result) in zip(GAP_WIDTHS, results), phase in PHASES
@@ -146,16 +148,20 @@ function plot_crossing_probability(results)
     end
 
     fig = Figure(; size=(700, 450))
-    # Logarithmic x axis, as gap widths range over two orders of magnitude.
+    # Logarithmic axes, as gap widths and probabilities range over orders of magnitude.
     ax = Axis(
         fig[1, 1];
         xlabel="Gap width (m)", ylabel="Probability to cross the gap",
         xscale=log10, xticks=(GAP_WIDTHS, string.(GAP_WIDTHS)),
+        yscale=log10, yticks=(Y_TICKS, string.(Y_TICKS)),
     )
     for (j, phase) in enumerate(PHASES)
-        scatterlines!(ax, GAP_WIDTHS, probabilities[:, j]; color=phase.color, label=phase.title)
+        # Zero probabilities can't be shown on the log axis, and are left out.
+        p = [x > 0 ? x : NaN for x in probabilities[:, j]]
+        scatterlines!(ax, GAP_WIDTHS, p; color=phase.color, label=phase.title)
     end
-    ylims!(ax, 0, nothing)
+    # Keep all gap widths on the x axis, also those without crossings.
+    xlims!(ax, 0.8 * first(GAP_WIDTHS), 1.25 * last(GAP_WIDTHS))
     axislegend(ax; position=:rt)
     save_figure(OUT_DIR, "crossing_probability", fig; png=true)
 
