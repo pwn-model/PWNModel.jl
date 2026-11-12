@@ -32,14 +32,15 @@ function update!(s::BeetleEmergence, w::World)
 
     n = length(s._source_trees) * s.beetles_per_tree
     new_entities!(w, n,
-        (BeetlePosition, EmergenceTick, LifeExpectancy),
-    ) do (entities, beetle_positions, emergence_ticks, life_expectancies)
+        (BeetlePosition, EmergenceTick, LifeExpectancy, WalkDirection),
+    ) do (entities, beetle_positions, emergence_ticks, life_expectancies, walk_directions)
         for i in eachindex(entities)
             pos = s._source_trees[(i-1)÷s.beetles_per_tree+1]
             beetle_positions[i] = BeetlePosition(pos.x, pos.y)
             emergence_ticks[i] = EmergenceTick(tick)
             life_expectancies[i] =
                 LifeExpectancy(tick + min(floor(Int, randexp(rng.xoshiro) * s.life_expectancy), s.max_age))
+            walk_directions[i] = WalkDirection()
         end
     end
 
