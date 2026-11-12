@@ -4,6 +4,10 @@
 # Archived experiments (in `archive/`) are listed in a separate section.
 # Run the experiments first.
 #
+# A README line `<!-- include out/<file>.md -->` is replaced by the content of
+# that file, relative to the experiment folder, e.g. a table of results written
+# by the experiment. On GitHub, the line is an invisible comment.
+#
 # Run from the PWNModel.jl/ directory:
 #   julia --project=explore explore/make.jl
 #
@@ -16,6 +20,7 @@ const EXPERIMENTS = [
     "attraction_field" => "Attraction field",
     "beetle_trajectories" => "Beetle trajectories",
     "forest_density" => "Forest density",
+    "forest_gap" => "Forest gap",
     "attraction_half_distance" => "Attraction half distance",
 ]
 
@@ -25,12 +30,22 @@ const ARCHIVE = [
     "archive/beetle_trajectories_octants" => "Beetle trajectories (octants)",
 ]
 
+const INCLUDE = r"<!-- include (\S+) -->"
+
+# The README of the experiment in `dir`, with include lines replaced by the files' content.
+expand_includes(dir) =
+    replace(read(joinpath(dir, "README.md"), String), INCLUDE => m -> read(joinpath(dir, match(INCLUDE, m)[1]), String))
+
 src = mktempdir()
 cp(joinpath(@__DIR__, "index.md"), joinpath(src, "index.md"))
 for (dir, _) in [EXPERIMENTS; ARCHIVE]
     mkpath(joinpath(src, dir))
-    cp(joinpath(@__DIR__, dir, "README.md"), joinpath(src, dir, "index.md"))
+    write(joinpath(src, dir, "index.md"), expand_includes(joinpath(@__DIR__, dir)))
     cp(joinpath(@__DIR__, dir, "out"), joinpath(src, dir, "out"))
+    # Included Markdown files are not pages of their own.
+    for file in readdir(joinpath(src, dir, "out"); join=true)
+        endswith(file, ".md") && rm(file)
+    end
 end
 
 makedocs(;

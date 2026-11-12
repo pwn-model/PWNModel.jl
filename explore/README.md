@@ -31,6 +31,10 @@ julia --project=explore explore/make.jl
 
 The page is written to `explore/site/`. CI publishes it to GitHub Pages on `main`.
 Its landing page is [`index.md`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/index.md), written for domain experts. This README is for developers and is not part of the web page.
+Results that are not figures, like tables, can be written by an experiment to a Markdown file in `out/`
+and included in its README with a line `<!-- include out/<file>.md -->`.
+`make.jl` replaces that line with the file's content. On GitHub, the line is an invisible comment.
+
 Experiments are listed explicitly in `make.jl` and in the workflow `experiments.yml`: add new ones to both.
 
 ## Experiments
@@ -38,6 +42,7 @@ Experiments are listed explicitly in `make.jl` and in the workflow `experiments.
 - [`attraction_field`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/attraction_field): cross-sections of the attraction field around a single tree and a small forest.
 - [`beetle_trajectories`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/beetle_trajectories): movement of beetles during maturation feeding and egg laying.
 - [`forest_density`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/forest_density): how far from the release point beetles feed and lay eggs, for different forest densities.
+- [`forest_gap`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/forest_gap): how likely beetles cross a gap between two forests, depending on the gap width.
 - [`attraction_half_distance`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/attraction_half_distance): how `half_distance` affects the dominance of tree clusters.
 
 ## Archive
