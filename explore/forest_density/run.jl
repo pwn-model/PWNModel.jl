@@ -149,6 +149,17 @@ event_quantile(e, q) = isempty(e.counts) ? NaN : weighted_quantile(e.distances, 
 
 # Quantiles shown in the plots, besides the median.
 const UPPER_QUANTILE = 0.95
+# Quantiles shown in the table.
+const TABLE_QUANTILES = ((0.5, "Median"), (0.95, "95 %"), (0.99, "99 %"))
+
+# Quantile `q` of event distances over all seeds, and the range of the quantiles of the single seeds,
+# rounded to whole meters. `nothing` without events.
+function quantile_summary(per_seed, q)
+    seed_values = filter(!isnan, [event_quantile(s, q) for s in per_seed])
+    isempty(seed_values) && return nothing
+    lo, hi = round.(Int, extrema(seed_values))
+    return (; pooled=round(Int, event_quantile(pool(per_seed), q)), lo, hi)
+end
 
 # Histograms of event distances, pooled over all seeds and given as the mean per run:
 # one row per scenario, one column per event type, with a map of the landscape of the first seed
@@ -185,9 +196,8 @@ function plot_event_distances(results)
             )
             # Quantiles over all seeds, and range of the quantiles of the single seeds.
             texts = map(((0.5, "median"), (UPPER_QUANTILE, "$(round(Int, 100UPPER_QUANTILE)) %"))) do (q, name)
-                seed_values = filter(!isnan, [event_quantile(s, q) for s in per_seed[row, col]])
-                lo, hi = round.(Int, extrema(seed_values))
-                "$name $(round(Int, event_quantile(e, q))) m (seeds $(lo)–$(hi) m)"
+                (; pooled, lo, hi) = quantile_summary(per_seed[row, col], q)
+                "$name $pooled m (seeds $(lo)–$(hi) m)"
             end
             quantile_text = join(
                 texts,
@@ -223,7 +233,27 @@ $quantile_text",
     save_figure(OUT_DIR, "event_distances", fig; png=true)
 end
 
+# Quantiles of event distances as a Markdown table, included in the README:
+# one row per scenario, one column per event type and quantile.
+# Each cell gives the quantile over the events of all seeds.
+function write_quantile_table(results)
+    mkpath(OUT_DIR)
+    open(joinpath(OUT_DIR, "event_distances.md"), "w") do io
+        headers = ["$(first(split(et.title, " ("))): $name" for et in EVENT_TYPES for (_, name) in TABLE_QUANTILES]
+        println(io, "| Forest density | ", join(headers, " | "), " |")
+        println(io, "| :------------- | ", join(("-----:" for _ in headers), " | "), " |")
+        for (scenario, result) in zip(SCENARIOS, results)
+            cells = map(((et, q) for et in EVENT_TYPES for (q, _) in TABLE_QUANTILES)) do (et, q)
+                d = event_quantile(pool(result.events[et.field]), q)
+                isnan(d) ? "–" : "$(round(Int, d)) m"
+            end
+            println(io, "| $(scenario.title) | ", join(cells, " | "), " |")
+        end
+    end
+end
+
 let
     results = [simulate_seeds(scenario) for scenario in SCENARIOS]
     plot_event_distances(results)
+    write_quantile_table(results)
 end

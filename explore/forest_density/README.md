@@ -47,7 +47,8 @@ From the `PWNModel.jl/` directory:
 julia --project=explore explore/forest_density/run.jl
 ```
 
-Figures are written to `out/` as SVG (and PNG). They are not committed, but shown on the web page.
+Figures are written to `out/` as SVG (and PNG), and the table as Markdown.
+They are not committed, but shown on the web page.
 
 ## Figures
 
@@ -62,6 +63,13 @@ The maps on the left show the trees of the first run in a 200 m × 200 m section
 green cells are healthy trees, brown cells damaged trees.
 
 ![Event distances](out/event_distances.svg)
+
+### Distance quantiles
+
+Median, 95 % and 99 % quantiles of the distances of feeding and egg laying events from the release point,
+for all forest densities (rows), over the events of all runs.
+
+<!-- include out/event_distances.md -->
 
 ## Observations
 
