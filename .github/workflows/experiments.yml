@@ -15,6 +15,11 @@ jobs:
     name: Run experiments
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      # GitHub runners vary in CPU type (Intel/AMD). Without a fixed target, package
+      # images are compiled for the native CPU and rejected on a different one, which
+      # makes cached precompilation useless. Same multi-target as official Julia binaries.
+      JULIA_CPU_TARGET: "generic;sandybridge,-xsaveopt,clone_all;haswell,-rdrnd,base(1);x86-64-v4,-rdrnd,base(1)"
     permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
       actions: write
       contents: read
