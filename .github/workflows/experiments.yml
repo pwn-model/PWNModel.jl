@@ -34,6 +34,7 @@ jobs:
         run: |
           julia --project=explore explore/attraction_field/run.jl
           julia --project=explore explore/beetle_trajectories/run.jl
+          julia --project=explore explore/forest_density/run.jl
           julia --project=explore explore/attraction_half_distance/run.jl
       - name: Run archived experiments
         run: |
