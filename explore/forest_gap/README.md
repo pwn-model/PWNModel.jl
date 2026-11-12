@@ -4,6 +4,7 @@
 
 How likely do beetles carrying nematodes cross a gap between two forests,
 during maturation feeding and over their whole life?
+Which share of their feeding and egg laying happens on the other side of the gap?
 How does this depend on the width of the gap?
 
 ## Setup
@@ -26,13 +27,20 @@ All parameters are set where the systems are created, in [`run.jl`](https://gith
   `leave_tree_probability` 0.25, `emergence_flight_distance` 100 m.
 
 To record every single movement step, the model runs with one movement step per tick, and phase durations scaled by 7.
-As trees and attraction fields are static here, this gives the same movement behaviour as weekly ticks.
+As trees and attraction fields are static here, this gives the same movement behaviour as weekly ticks;
+only the order of random numbers differs.
 
 **Crossing**: a beetle has crossed the gap if any of its movement steps ends in the east forest,
 on a tree or not.
 The crossing probability is the share of all released beetles (of all runs) that crossed the gap
 during maturation feeding (the first 3 weeks), resp. at any time during their life.
 Beetles that die or leave the world before crossing count as not crossed.
+
+**Events**: a feeding or egg laying event is a movement step that ends on a tree of the type the beetle targets
+(as counted by `BeetleMovement` in the `FeedingInfectedBeetles` grid, so a beetle staying on a tree counts once per step).
+Events on damaged trees are egg laying, all others feeding.
+The event share is the share of events (of all runs) that are in the east forest,
+for feeding events during maturation feeding, resp. for egg laying events over the beetles' lifetime.
 
 ### Scenarios
 
@@ -50,7 +58,8 @@ From the `PWNModel.jl/` directory:
 julia --project=explore explore/forest_gap/run.jl
 ```
 
-Figures are written to `out/` as SVG (and PNG). They are not committed, but shown on the web page.
+Figures are written to `out/` as SVG (and PNG), and the table as Markdown.
+They are not committed, but shown on the web page.
 
 ## Figures
 
@@ -62,10 +71,17 @@ Gray is outside the world, as smaller gaps give narrower worlds.
 
 ![Landscapes](out/landscapes.svg)
 
-### Crossing probability
+### Crossing probability and events
 
-Probability to cross the gap during maturation feeding and over the beetles' lifetime, by gap width,
-as a figure and as a table. Both axes of the figure are logarithmic, so zero probabilities are not shown there.
+Crossing probabilities and event shares by gap width, as a figure and as a table
+(see [Setup](#setup) for definitions). Solid lines are per-beetle probabilities, dashed lines per-event shares:
+
+- **Probability immature**: probability that a beetle crosses the gap during maturation feeding (the first 3 weeks).
+- **Probability lifetime**: probability that a beetle crosses the gap at any time during its life.
+- **Feeding events**: share of maturation feeding events that are on the other side of the gap, in the east forest.
+- **Egg-laying events**: share of egg laying events, over the beetles' whole life, that are on the other side of the gap.
+
+Both axes of the figure are logarithmic.
 
 ![Crossing probability](out/crossing_probability.svg)
 
