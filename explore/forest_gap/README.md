@@ -30,14 +30,17 @@ As trees and attraction fields are static here, this gives the same movement beh
 
 **Crossing**: a beetle has crossed the gap if any of its movement steps ends in the east forest,
 on a tree or not.
-The crossing probability is the share of all released beetles that crossed the gap
+The crossing probability is the share of all released beetles (of all runs) that crossed the gap
 during maturation feeding (the first 3 weeks), resp. at any time during their life.
 Beetles that die or leave the world before crossing count as not crossed.
 
 ### Scenarios
 
 The experiment runs seven scenarios that differ only in the gap width: 100, 250, 500, 1000, 2500, 5000 and 10000 m.
-Everything else is the same, including the random seed. Each scenario runs once.
+Everything else is the same.
+
+Each scenario runs 10 times, with random seeds 1 to 10, so with 10 different landscapes and 100,000 beetles in total.
+The results are pooled over these runs. The seeds are the same for all scenarios.
 
 ## Running
 
@@ -53,7 +56,7 @@ Figures are written to `out/` as SVG (and PNG). They are not committed, but show
 
 ### Landscapes
 
-The landscapes of all gap widths (rows), on the same scale.
+The landscapes of all gap widths (rows) in the first run, on the same scale.
 Green cells are healthy trees, brown cells damaged trees, the star is the release point.
 Gray is outside the world, as smaller gaps give narrower worlds.
 

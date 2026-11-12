@@ -39,6 +39,10 @@ east_forest_start(gap) = WEST_FOREST_END + gap
 world_width(gap) = east_forest_start(gap) + EAST_FOREST_WIDTH
 const MAX_WIDTH = maximum(world_width, GAP_WIDTHS)
 
+# Each scenario runs with these seeds, and results are pooled over them.
+# Landscape maps show the first seed only.
+const SEEDS = 1:10
+
 # Release point, as a cell, in the easternmost column of cells of the west forest.
 const RELEASE_X, RELEASE_Y = 100, 100
 
@@ -53,10 +57,10 @@ const movement_kwargs = (;
     emergence_flight_distance=100.0,
 )
 
-# Runs the model for one gap width. Returns its world, and the beetle tracks, as cells.
-function simulate(gap)
+# Runs the model for one gap width and seed. Returns its world, and the beetle tracks, as cells.
+function simulate(gap, seed)
     width = world_width(gap)
-    world = new_world(; seed=1, width=width, height=HEIGHT, cell_size=10)
+    world = new_world(; seed=seed, width=width, height=HEIGHT, cell_size=10)
     trajectories = BeetleTrajectories()
 
     systems = (
@@ -84,8 +88,10 @@ function simulate(gap)
     return (; world, tracks=[trajectories.tracks[e] for e in trajectories.entities], cell_size=cs)
 end
 
-# ---------------------------------------------------------------------------
-# Analysis and plots
+const PHASES = (
+    (title="Maturation feeding", range=1:(duration_feeding+1), color=SERIES_COLORS[1]),
+    (title="Lifetime", range=1:(total_steps+1), color=SERIES_COLORS[2]),
+)
 
 # Whether any position of a track within the given range of steps is in the east forest,
 # i.e. in a cell entirely east of the gap. Tracks end early when beetles die.
@@ -94,14 +100,28 @@ function crossed(track, range, gap, cell_size)
     return any(p.x >= first_cell for p in track[first(range):min(last(range), length(track))])
 end
 
-# Probability of having crossed the gap, over all released beetles.
-crossing_probability(result, range, gap) =
-    count(t -> crossed(t, range, gap, result.cell_size), result.tracks) / length(result.tracks)
+# Runs the model for one gap width with all seeds. Returns the world of the first seed,
+# the number of released beetles, and per phase the number of beetles that crossed the gap,
+# summed over all seeds. Tracks are not kept, to save memory.
+function simulate_seeds(gap)
+    world, cell_size = nothing, 0
+    released, crossings = 0, zeros(Int, length(PHASES))
+    for seed in SEEDS
+        result = simulate(gap, seed)
+        seed == first(SEEDS) && ((world, cell_size) = (result.world, result.cell_size))
+        released += length(result.tracks)
+        for (j, phase) in enumerate(PHASES)
+            crossings[j] += count(t -> crossed(t, phase.range, gap, result.cell_size), result.tracks)
+        end
+    end
+    return (; world, cell_size, released, crossings)
+end
 
-const PHASES = (
-    (title="Maturation feeding", range=1:(duration_feeding+1), color=SERIES_COLORS[1]),
-    (title="Lifetime", range=1:(total_steps+1), color=SERIES_COLORS[2]),
-)
+# ---------------------------------------------------------------------------
+# Analysis and plots
+
+# Probability of having crossed the gap in a phase, over all released beetles of all seeds.
+crossing_probability(result, phase_index) = result.crossings[phase_index] / result.released
 
 # Landscapes of all gap widths (rows), on the same scale, with the release point (star).
 # The area beyond the east edge of a smaller world is gray.
@@ -135,11 +155,9 @@ end
 const Y_TICKS = [0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0]
 
 function plot_crossing_probability(results)
-    probabilities = [
-        crossing_probability(result, phase.range, gap) for (gap, result) in zip(GAP_WIDTHS, results), phase in PHASES
-    ]
+    probabilities = [crossing_probability(result, j) for result in results, j in eachindex(PHASES)]
 
-    println("Probability to cross the gap")
+    println("Probability to cross the gap, over $(first(results).released) beetles from $(length(SEEDS)) seeds")
     for (i, gap) in enumerate(GAP_WIDTHS)
         println(
             "  ", lpad(gap, 5), " m: ",
@@ -177,7 +195,7 @@ function plot_crossing_probability(results)
 end
 
 let
-    results = [simulate(gap) for gap in GAP_WIDTHS]
+    results = [simulate_seeds(gap) for gap in GAP_WIDTHS]
     plot_landscapes(results)
     plot_crossing_probability(results)
 end
