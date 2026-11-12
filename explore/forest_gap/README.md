@@ -70,8 +70,14 @@ Gray is outside the world, as smaller gaps give narrower worlds.
 
 ### Crossing probability
 
-Probability to cross the gap during maturation feeding and over the beetles' lifetime (solid lines),
-and share of maturation feeding and egg laying events across the gap (dashed lines), by gap width, as a figure and as a table.
+Crossing probabilities and event shares by gap width, as a figure and as a table
+(see [Setup](#setup) for definitions). Solid lines are per-beetle probabilities, dashed lines per-event shares:
+
+- **Probability immature**: probability that a beetle crosses the gap during maturation feeding (the first 3 weeks).
+- **Probability lifetime**: probability that a beetle crosses the gap at any time during its life.
+- **Feeding events**: share of maturation feeding events that are on the other side of the gap, in the east forest.
+- **Egg-laying events**: share of egg laying events, over the beetles' whole life, that are on the other side of the gap.
+
 Both axes of the figure are logarithmic, so zeros are not shown there.
 
 ![Crossing probability](out/crossing_probability.svg)

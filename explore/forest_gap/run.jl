@@ -128,8 +128,8 @@ function simulate(gap, seed)
 end
 
 const PHASES = (
-    (title="Maturation feeding", range=1:(duration_feeding+1), color=SERIES_COLORS[1]),
-    (title="Lifetime", range=1:(total_steps+1), color=SERIES_COLORS[2]),
+    (label="Probability immature", range=1:(duration_feeding+1), color=SERIES_COLORS[1]),
+    (label="Probability lifetime", range=1:(total_steps+1), color=SERIES_COLORS[2]),
 )
 
 # Whether any position of a track within the given range of steps is in the east forest,
@@ -142,8 +142,8 @@ end
 # Kinds of events counted, with the kind's index in `GapEvents` counts, and the range of track positions
 # (as in PHASES) to count them in. Feeding only during maturation feeding, egg laying over the whole life.
 const EVENTS = (
-    (title="Maturation feeding", kind=1, range=PHASES[1].range, color=SERIES_COLORS[1]),
-    (title="Egg laying", kind=2, range=PHASES[2].range, color=SERIES_COLORS[3]),
+    (label="Feeding events", kind=1, range=PHASES[1].range, color=SERIES_COLORS[1]),
+    (label="Egg-laying events", kind=2, range=PHASES[2].range, color=SERIES_COLORS[3]),
 )
 
 # Updates whose events belong to a range of track positions, as update k gives position k + 1.
@@ -219,11 +219,11 @@ const Y_TICKS = [
 # and the share of events of each kind in the east forest (dashed lines).
 const SERIES = (
     (
-        (; label="$(p.title), beetles crossed", value=r -> crossing_probability(r, j), color=p.color,
+        (; label=p.label, value=r -> crossing_probability(r, j), color=p.color,
             linestyle=:solid, marker=:circle) for (j, p) in enumerate(PHASES)
     )...,
     (
-        (; label="$(e.title), events across", value=r -> east_event_share(r, j), color=e.color,
+        (; label=e.label, value=r -> east_event_share(r, j), color=e.color,
             linestyle=:dash, marker=:rect) for (j, e) in enumerate(EVENTS)
     )...,
 )
@@ -248,7 +248,7 @@ function plot_crossing_probability(results)
     # Logarithmic axes, as gap widths and probabilities range over orders of magnitude.
     ax = Axis(
         fig[1, 1];
-        xlabel="Gap width (m)", ylabel="Probability / share across the gap",
+        xlabel="Gap width (m)", ylabel="Probability / event share",
         xscale=log10, xticks=(GAP_WIDTHS, string.(GAP_WIDTHS)),
         yscale=log10, yticks=(Y_TICKS, string.(Y_TICKS)),
     )
