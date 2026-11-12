@@ -31,6 +31,10 @@ julia --project=explore explore/make.jl
 
 The page is written to `explore/site/`. CI publishes it to GitHub Pages on `main`.
 Its landing page is [`index.md`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/index.md), written for domain experts. This README is for developers and is not part of the web page.
+Results that are not figures, like tables, can be written by an experiment to a Markdown file in `out/`
+and included in its README with a line `<!-- include out/<file>.md -->`.
+`make.jl` replaces that line with the file's content. On GitHub, the line is an invisible comment.
+
 Experiments are listed explicitly in `make.jl` and in the workflow `experiments.yml`: add new ones to both.
 
 ## Experiments

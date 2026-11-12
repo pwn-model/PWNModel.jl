@@ -59,9 +59,12 @@ Green cells are healthy trees, brown cells damaged trees, the star is the releas
 
 ### Crossing probability
 
-Probability to cross the gap during maturation feeding and over the beetles' lifetime, by gap width.
+Probability to cross the gap during maturation feeding and over the beetles' lifetime, by gap width,
+as a figure and as a table.
 
 ![Crossing probability](out/crossing_probability.svg)
+
+<!-- include out/crossing_probability.md -->
 
 ## Observations
 

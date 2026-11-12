@@ -142,6 +142,16 @@ function plot_crossing_probability(results)
     ylims!(ax, 0, nothing)
     axislegend(ax; position=:rt)
     save_figure(OUT_DIR, "crossing_probability", fig; png=true)
+
+    # The same as a Markdown table, included in the README.
+    open(joinpath(OUT_DIR, "crossing_probability.md"), "w") do io
+        println(io, "| Gap width | ", join((phase.title for phase in PHASES), " | "), " |")
+        println(io, "| --------: | ", join(("-----:" for _ in PHASES), " | "), " |")
+        for (i, gap) in enumerate(GAP_WIDTHS)
+            percent = ("$(round(100 * p; digits=2)) %" for p in probabilities[i, :])
+            println(io, "| $gap m | ", join(percent, " | "), " |")
+        end
+    end
 end
 
 let
