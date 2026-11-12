@@ -25,16 +25,19 @@ const duration_feeding = 3 * steps_per_tick
 const max_age = 18 * steps_per_tick
 const total_steps = max_age
 
-# Landscape: a dense forest in the west, a gap of varying width, and another dense forest
-# from the end of the gap to the east edge of the world.
-const WIDTH, HEIGHT = 3000, 2000
+# Landscape: a dense forest in the west, a gap of varying width, and another dense forest in the east.
+# Both forests are 1000 m wide, so the world's width adapts to the gap width.
+const HEIGHT = 2000
 const WEST_FOREST_END = 1000
-const GAP_WIDTHS = [100, 250, 500, 1000]
+const EAST_FOREST_WIDTH = 1000
+const GAP_WIDTHS = [100, 250, 500, 1000, 2500, 5000, 10000]
 forest(x_min, x_max) = TreeStand(;
     x_min=x_min, y_min=0, x_max=x_max, y_max=HEIGHT,
     tree_probability=0.9, damage_prevalence=0.03, beetle_prevalence=0.0,
 )
 east_forest_start(gap) = WEST_FOREST_END + gap
+world_width(gap) = east_forest_start(gap) + EAST_FOREST_WIDTH
+const MAX_WIDTH = maximum(world_width, GAP_WIDTHS)
 
 # Release point, as a cell, in the easternmost column of cells of the west forest.
 const RELEASE_X, RELEASE_Y = 100, 100
@@ -52,12 +55,13 @@ const movement_kwargs = (;
 
 # Runs the model for one gap width. Returns its world, and the beetle tracks, as cells.
 function simulate(gap)
-    world = new_world(; seed=1, width=WIDTH, height=HEIGHT, cell_size=10)
+    width = world_width(gap)
+    world = new_world(; seed=1, width=width, height=HEIGHT, cell_size=10)
     trajectories = BeetleTrajectories()
 
     systems = (
         InitGrids(),
-        InitTreeStands(; stands=[forest(0, WEST_FOREST_END), forest(east_forest_start(gap), WIDTH)]),
+        InitTreeStands(; stands=[forest(0, WEST_FOREST_END), forest(east_forest_start(gap), width)]),
         # The tree the beetles emerge from, at the release point.
         DamageTree(; x=RELEASE_X, y=RELEASE_Y),
         UpdateTime(; ticks_per_year=52*steps_per_tick),
@@ -65,7 +69,9 @@ function simulate(gap)
         TreeAttraction(; attraction_kwargs(false)...),
         TreeAttraction(; attraction_kwargs(true)...),
         # Life expectancy and maximum age are in ticks, i.e. movement steps here: 5 and 18 weeks.
-        ReleaseBeetles(; x=RELEASE_X, y=RELEASE_Y, count=10_000, life_expectancy=5.0 * steps_per_tick, max_age=max_age),
+        ReleaseBeetles(;
+            x=RELEASE_X, y=RELEASE_Y, count=10_000, life_expectancy=5.0 * steps_per_tick, max_age=max_age,
+        ),
         BeetleMovement(; movement_kwargs...),
         BeetleMortality(),
         trajectories,
@@ -97,26 +103,31 @@ const PHASES = (
     (title="Lifetime", range=1:(total_steps+1), color=SERIES_COLORS[2]),
 )
 
-# Landscapes of all gap widths (panels), with the release point (star).
+# Landscapes of all gap widths (rows), on the same scale, with the release point (star).
+# The area beyond the east edge of a smaller world is gray.
+const OUTSIDE_COLOR = "#e0e0e0"
+
 function plot_landscapes(results)
-    fig = Figure(; size=(1100, 800))
+    fig = Figure(; size=(1200, 1450))
+    xticks = 0:1000:MAX_WIDTH
     release = cell_center(RELEASE_X, RELEASE_Y, first(results).cell_size)
-    for (k, (gap, result)) in enumerate(zip(GAP_WIDTHS, results))
-        row, col = fldmod1(k, 2)
+    for (row, (gap, result)) in enumerate(zip(GAP_WIDTHS, results))
+        width = world_width(gap)
+        last_row = row == length(GAP_WIDTHS)
         ax = Axis(
-            fig[row, col];
+            fig[row, 1];
             title="Gap $gap m",
             aspect=DataAspect(),
-            # No tick at the east edge, where it would collide with the next panel's first tick.
-            xticks=0:1000:(WIDTH-1),
-            xlabel=row == 2 ? "x (m)" : "",
-            ylabel=col == 1 ? "y (m)" : "",
+            xticks=(xticks, string.(xticks)),
+            yticks=0:1000:HEIGHT,
+            xlabel=last_row ? "x (m)" : "",
+            ylabel="y (m)",
         )
-        image!(ax, tree_image(result.world; xlims=(0, WIDTH), ylims=(0, HEIGHT))...; interpolate=false, rasterize=2)
-        scatter!(ax, [Point2f(release...)]; color=:black, marker=:star5, markersize=14)
-        limits!(ax, 0, WIDTH, 0, HEIGHT)
-        row == 2 || hidexdecorations!(ax; grid=false)
-        col == 1 || hideydecorations!(ax; grid=false)
+        image!(ax, tree_image(result.world; xlims=(0, width), ylims=(0, HEIGHT))...; interpolate=false, rasterize=2)
+        width < MAX_WIDTH && poly!(ax, Rect2f(width, 0, MAX_WIDTH - width, HEIGHT); color=OUTSIDE_COLOR)
+        scatter!(ax, [Point2f(release...)]; color=:black, marker=:star5, markersize=12)
+        limits!(ax, 0, MAX_WIDTH, 0, HEIGHT)
+        last_row || hidexdecorations!(ax; grid=false)
     end
     save_figure(OUT_DIR, "landscapes", fig; png=true)
 end
@@ -129,13 +140,18 @@ function plot_crossing_probability(results)
     println("Probability to cross the gap")
     for (i, gap) in enumerate(GAP_WIDTHS)
         println(
-            "  ", lpad(gap, 4), " m: ",
+            "  ", lpad(gap, 5), " m: ",
             join(("$(phase.title) $(round(probabilities[i, j]; digits=4))" for (j, phase) in enumerate(PHASES)), ", "),
         )
     end
 
     fig = Figure(; size=(700, 450))
-    ax = Axis(fig[1, 1]; xlabel="Gap width (m)", ylabel="Probability to cross the gap", xticks=GAP_WIDTHS)
+    # Logarithmic x axis, as gap widths range over two orders of magnitude.
+    ax = Axis(
+        fig[1, 1];
+        xlabel="Gap width (m)", ylabel="Probability to cross the gap",
+        xscale=log10, xticks=(GAP_WIDTHS, string.(GAP_WIDTHS)),
+    )
     for (j, phase) in enumerate(PHASES)
         scatterlines!(ax, GAP_WIDTHS, probabilities[:, j]; color=phase.color, label=phase.title)
     end

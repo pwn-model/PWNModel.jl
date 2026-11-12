@@ -10,10 +10,11 @@ How does this depend on the width of the gap?
 
 All parameters are set where the systems are created, in [`run.jl`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/forest_gap/run.jl).
 
-- **Landscape**: 3 km × 2 km, 10 m cells, created by `InitTreeStands` with two stands,
-  both with `tree_probability` 0.9 and `damage_prevalence` 0.03:
-  a west forest from 0 to 1000 m, and an east forest from the end of the gap to the east edge of the world (3000 m).
+- **Landscape**: 2 km high, 10 m cells, created by `InitTreeStands` with two stands,
+  both 1000 m wide and with `tree_probability` 0.9 and `damage_prevalence` 0.03:
+  a west forest from 0 to 1000 m, and an east forest from the end of the gap to the east edge of the world.
   Between them is a gap without trees.
+  The world's width adapts to the gap: 1000 m + gap + 1000 m, from 2.1 km to 12 km.
 - **Attraction**: two `TreeAttraction` systems (healthy and damaged trees), `half_distance` 50 m, `density_radius` 20 m, `density_weight` 1.
 - **Beetles**: 10,000 beetles released at tick 0 from a damaged tree placed in the easternmost column of cells of the west forest,
   right at the edge of the gap (or an existing tree there made damaged).
@@ -35,7 +36,7 @@ Beetles that die or leave the world before crossing count as not crossed.
 
 ### Scenarios
 
-The experiment runs four scenarios that differ only in the gap width: 100, 250, 500 and 1000 m.
+The experiment runs seven scenarios that differ only in the gap width: 100, 250, 500, 1000, 2500, 5000 and 10000 m.
 Everything else is the same, including the random seed. Each scenario runs once.
 
 ## Running
@@ -52,15 +53,16 @@ Figures are written to `out/` as SVG (and PNG). They are not committed, but show
 
 ### Landscapes
 
-The landscapes of all gap widths (panels).
+The landscapes of all gap widths (rows), on the same scale.
 Green cells are healthy trees, brown cells damaged trees, the star is the release point.
+Gray is outside the world, as smaller gaps give narrower worlds.
 
 ![Landscapes](out/landscapes.svg)
 
 ### Crossing probability
 
-Probability to cross the gap during maturation feeding and over the beetles' lifetime, by gap width,
-as a figure and as a table.
+Probability to cross the gap during maturation feeding and over the beetles' lifetime, by gap width
+(on a logarithmic axis), as a figure and as a table.
 
 ![Crossing probability](out/crossing_probability.svg)
 
