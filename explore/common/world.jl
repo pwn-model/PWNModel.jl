@@ -12,7 +12,7 @@ an [`Rng`](@ref) resource seeded with `seed`, and a `WorldSize` resource
 function new_world(; seed::Integer, width::Int, height::Int, cell_size::Int)
     world = World(
         Position, Damaged, Infected, Colonized,
-        BeetlePosition, EmergenceTick, LifeExpectancy,
+        BeetlePosition, EmergenceTick, LifeExpectancy, WalkDirection,
     )
     add_resource!(world, Rng(seed))
     add_resource!(world, WorldSize(; width=width, height=height, cell_size=cell_size))
@@ -47,13 +47,14 @@ function PWNModel.initialize!(s::ReleaseBeetles, w::World)
     rng = get_resource(w, Rng)
 
     new_entities!(
-        w, s.count, (BeetlePosition, EmergenceTick, LifeExpectancy),
-    ) do (entities, positions, emergence_ticks, life_expectancies)
+        w, s.count, (BeetlePosition, EmergenceTick, LifeExpectancy, WalkDirection),
+    ) do (entities, positions, emergence_ticks, life_expectancies, walk_directions)
         for i in eachindex(entities)
             positions[i] = BeetlePosition(s.x, s.y)
             emergence_ticks[i] = EmergenceTick(tick)
             life_expectancies[i] =
                 LifeExpectancy(tick + min(floor(Int, randexp(rng.xoshiro) * s.life_expectancy), s.max_age))
+            walk_directions[i] = WalkDirection()
         end
     end
 end

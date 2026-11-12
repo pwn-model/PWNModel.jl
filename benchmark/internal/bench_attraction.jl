@@ -19,7 +19,7 @@ attraction_kwargs(damaged) =
 # A world with randomly placed trees, and the resources the attraction and
 # movement systems need. The current tick and tick of year are 0.
 function attraction_bench_world()
-    world = World(Position, Damaged, BeetlePosition, EmergenceTick)
+    world = World(Position, Damaged, BeetlePosition, EmergenceTick, WalkDirection)
     add_resource!(
         world,
         WorldSize(; width=10 * ATTRACTION_WORLD_CELLS, height=10 * ATTRACTION_WORLD_CELLS, cell_size=10),
@@ -81,10 +81,13 @@ function setup_movement(args)
 
     Random.seed!(get_resource(world, Rng).xoshiro, 1)
     rng = Random.Xoshiro(2)
-    new_entities!(world, MOVEMENT_BEETLES, (BeetlePosition, EmergenceTick)) do (_, positions, ticks)
+    new_entities!(
+        world, MOVEMENT_BEETLES, (BeetlePosition, EmergenceTick, WalkDirection),
+    ) do (_, positions, ticks, directions)
         for i in eachindex(positions)
             positions[i] = BeetlePosition(rand(rng, 1:ATTRACTION_WORLD_CELLS), rand(rng, 1:ATTRACTION_WORLD_CELLS))
             ticks[i] = EmergenceTick(-1)
+            directions[i] = WalkDirection()
         end
     end
     return (movement, world)

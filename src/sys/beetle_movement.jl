@@ -1,7 +1,9 @@
 # BeetleMovement system. Moves beetles straight towards the attraction
 # source of their current cell (see TreeAttraction), by up to
 # distance_per_step meters per step. Mirrors the sibling Go implementation's
-# `sys.BeetleMovement`.
+# `sys.BeetleMovement`, except for the movement state that beetles keep
+# while on the way (direction of a walk away from a tree, and mode; see
+# WalkDirection), which Go does not have yet.
 mutable struct BeetleMovement <: System
     const steps_per_tick::Int
     const distance_per_step::Float64
@@ -75,17 +77,25 @@ function update!(s::BeetleMovement, w::World)
 
     fill!(s._feeding_infected, UInt32(0))
 
-    for (entities, beetle_positions, emergence_ticks) in Query(w, (BeetlePosition, EmergenceTick))
+    for (entities, beetle_positions, emergence_ticks, walk_directions) in
+        Query(w, (BeetlePosition, EmergenceTick, WalkDirection))
         for i in eachindex(entities)
             et = emergence_ticks[i]
 
             pos = beetle_positions[i]
             x, y = pos.x, pos.y
+            wd = walk_directions[i]
 
             for step in 1:(s.steps_per_tick)
-                is_feeding = true
-                if tick >= et.tick_of_emergence + s.duration_feeding
-                    is_feeding = rand(rng) < s.feeding_probability
+                # A beetle still on the way keeps its mode.
+                walking = wd.dx != 0 || wd.dy != 0
+                if wd.on_the_way
+                    is_feeding = wd.feeding
+                else
+                    is_feeding = true
+                    if tick >= et.tick_of_emergence + s.duration_feeding
+                        is_feeding = rand(rng) < s.feeding_probability
+                    end
                 end
 
                 if is_feeding
@@ -110,9 +120,18 @@ function update!(s::BeetleMovement, w::World)
                         max_step -= flight
                         inside = checkbounds(Bool, nearest, x, y)
                     end
-                elseif presence[x, y] && rand(rng) < s.leave_tree_probability
-                    # Walk out of the area attracted by the tree the beetle leaves.
-                    x, y, max_step, inside = walk(rng, nearest, x, y, max_step)
+                elseif walking || (presence[x, y] && rand(rng) < s.leave_tree_probability)
+                    # Walk out of the area attracted by the tree the beetle leaves,
+                    # in a new random direction, or in the stored one if the beetle
+                    # is still walking away from a tree it left in an earlier step.
+                    dx, dy = walking ? (wd.dx, wd.dy) : random_direction(rng)
+                    x, y, max_step, inside, left_area = walk(nearest, x, y, max_step, dx, dy)
+                    if inside && !left_area
+                        # Out of budget before leaving the area. Continue in the next step.
+                        wd = WalkDirection(dx, dy, is_feeding, true)
+                        continue
+                    end
+                    wd = WalkDirection()
                 end
 
                 if !inside
@@ -123,6 +142,7 @@ function update!(s::BeetleMovement, w::World)
 
                 if presence[x, y]
                     s._feeding_infected[x, y] += UInt32(1)
+                    wd = WalkDirection()
                     continue
                 end
 
@@ -143,10 +163,15 @@ function update!(s::BeetleMovement, w::World)
 
                 if presence[x, y]
                     s._feeding_infected[x, y] += UInt32(1)
+                    wd = WalkDirection()
+                else
+                    # Out of budget before reaching the target. Continue in the next step.
+                    wd = WalkDirection(0.0, 0.0, is_feeding, true)
                 end
             end
 
             beetle_positions[i] = BeetlePosition(x, y)
+            walk_directions[i] = wd
         end
     end
 
@@ -156,16 +181,16 @@ function update!(s::BeetleMovement, w::World)
     empty!(s._to_remove)
 end
 
-# walk moves (x, y) along a straight line in a uniformly random direction,
-# out of the area of the source the beetle is in. It advances in steps of
-# one cell size of distance, each costing 1 of the budget, and stops as soon
-# as the cell's source differs, or the remaining budget (in cells) is below
-# 1. Returns the new position, the remaining budget, and false if the beetle
-# left the grid (the position is then outside of it). Mirrors the sibling Go
-# implementation's walk.
-function walk(rng::Rng, source::Grid{UInt32}, x::Int, y::Int, budget::Float64)
+# walk moves (x, y) along a straight line in direction (dx, dy), a unit
+# vector, out of the area of the source the beetle is in. It advances in
+# steps of one cell size of distance, each costing 1 of the budget, and stops
+# as soon as the cell's source differs, or the remaining budget (in cells) is
+# below 1. Returns the new position, the remaining budget, false if the
+# beetle left the grid (the position is then outside of it), and whether it
+# left the source's area. Based on the sibling Go implementation's walk,
+# which draws the direction itself and has no direction memory yet.
+function walk(source::Grid{UInt32}, x::Int, y::Int, budget::Float64, dx::Float64, dy::Float64)
     leaving = source[x, y]
-    dx, dy = random_direction(rng)
     x0, y0 = x, y
     k = 1
     while budget >= 1 && source[x, y] == leaving
@@ -173,9 +198,9 @@ function walk(rng::Rng, source::Grid{UInt32}, x::Int, y::Int, budget::Float64)
         y = y0 + round(Int, k * dy, RoundNearestTiesAway)
         budget -= 1
         if !checkbounds(Bool, source, x, y)
-            return x, y, budget, false
+            return x, y, budget, false, true
         end
         k += 1
     end
-    return x, y, budget, true
+    return x, y, budget, true, source[x, y] != leaving
 end

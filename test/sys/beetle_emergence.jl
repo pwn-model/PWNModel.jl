@@ -1,7 +1,7 @@
 function _new_beetle_emergence_world()
     return World(
         PWNModel.Position, PWNModel.Colonized, PWNModel.Infected,
-        PWNModel.BeetlePosition, PWNModel.EmergenceTick, PWNModel.LifeExpectancy,
+        PWNModel.BeetlePosition, PWNModel.EmergenceTick, PWNModel.LifeExpectancy, PWNModel.WalkDirection,
     )
 end
 
@@ -40,9 +40,10 @@ end
 
     counts = Dict{Tuple{Int,Int},Int}()
     total = 0
-    for (_, beetle_positions, emergence_ticks, life_expectancies) in
-        Query(world, (PWNModel.BeetlePosition, PWNModel.EmergenceTick, PWNModel.LifeExpectancy))
+    for (_, beetle_positions, emergence_ticks, life_expectancies, walk_directions) in
+        Query(world, (PWNModel.BeetlePosition, PWNModel.EmergenceTick, PWNModel.LifeExpectancy, PWNModel.WalkDirection))
         for i in eachindex(beetle_positions)
+            @test walk_directions[i] == PWNModel.WalkDirection()
             bp = beetle_positions[i]
             key = (bp.x, bp.y)
             counts[key] = get(counts, key, 0) + 1
