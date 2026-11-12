@@ -34,6 +34,11 @@ The crossing probability is the share of all released beetles (of all runs) that
 during maturation feeding (the first 3 weeks), resp. at any time during their life.
 Beetles that die or leave the world before crossing count as not crossed.
 
+**Events across the gap**: a feeding or egg laying event is a movement step that ends on a tree of the type the beetle targets
+(as counted by `BeetleMovement` in the `FeedingInfectedBeetles` grid, so a beetle staying on a tree counts once per step).
+The event share is the share of all events (of all runs) that are in the east forest,
+during maturation feeding (feeding only), resp. over the beetles' lifetime (feeding and egg laying).
+
 ### Scenarios
 
 The experiment runs seven scenarios that differ only in the gap width: 100, 250, 500, 1000, 2500, 5000 and 10000 m.
@@ -64,8 +69,9 @@ Gray is outside the world, as smaller gaps give narrower worlds.
 
 ### Crossing probability
 
-Probability to cross the gap during maturation feeding and over the beetles' lifetime, by gap width,
-as a figure and as a table. Both axes of the figure are logarithmic, so zero probabilities are not shown there.
+Probability to cross the gap (solid lines), and share of feeding and egg laying events across the gap (dashed lines),
+during maturation feeding and over the beetles' lifetime, by gap width, as a figure and as a table.
+Both axes of the figure are logarithmic, so zeros are not shown there.
 
 ![Crossing probability](out/crossing_probability.svg)
 
