@@ -15,6 +15,7 @@ using Documenter
 const EXPERIMENTS = [
     "attraction_field" => "Attraction field",
     "beetle_trajectories" => "Beetle trajectories",
+    "forest_density" => "Forest density",
     "attraction_half_distance" => "Attraction half distance",
 ]
 
