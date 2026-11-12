@@ -41,7 +41,7 @@ Experiments are listed explicitly in `make.jl` and in the workflow `experiments.
 
 - [`attraction_field`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/attraction_field): cross-sections of the attraction field around a single tree and a small forest.
 - [`beetle_trajectories`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/beetle_trajectories): movement of beetles during maturation feeding and egg laying.
-- [`forest_density`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/forest_density): how far from the release point beetles feed and lay eggs, for different forest densities.
+- [`forest_density`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/forest_density): how far from the release point beetles feed and lay eggs, and how far they get per phase, for different forest densities.
 - [`forest_gap`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/forest_gap): how likely beetles cross a gap between two forests, and which share of their feeding and egg laying happens beyond it, depending on the gap width.
 - [`attraction_half_distance`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/attraction_half_distance): how `half_distance` affects the dominance of tree clusters.
 
