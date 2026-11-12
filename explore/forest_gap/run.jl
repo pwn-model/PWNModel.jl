@@ -65,27 +65,32 @@ first_east_cell(gap, cell_size) = east_forest_start(gap) ÷ cell_size + 1
 
 System that counts the feeding and egg laying events of each update, in total and in the east forest
 (cell columns from `first_east_cell`). Like `TreeVisits` (see `../common/recorders.jl`), it reads the
-`FeedingInfectedBeetles` grid, so it must come after the movement system. Counts of update `k`
-are in `total[k]` and `east[k]`, i.e. they belong to track position `k + 1` of `BeetleTrajectories`.
+`FeedingInfectedBeetles` grid, so it must come after the movement system, and assigns cells to
+feeding or egg laying by the presence grid of the `DamagedTreeAttraction` resource.
+Counts of update `k` are in `total[k]` and `east[k]`, as tuples (feeding, egg laying),
+i.e. they belong to track position `k + 1` of `BeetleTrajectories`.
 """
 struct GapEvents <: PWNModel.System
     first_east_cell::Int
-    total::Vector{Int}
-    east::Vector{Int}
+    total::Vector{NTuple{2,Int}}
+    east::Vector{NTuple{2,Int}}
 end
 
-GapEvents(first_east_cell::Int) = GapEvents(first_east_cell, Int[], Int[])
+GapEvents(first_east_cell::Int) = GapEvents(first_east_cell, NTuple{2,Int}[], NTuple{2,Int}[])
 
 function PWNModel.update!(s::GapEvents, w::World)
     events = get_resource(w, FeedingInfectedBeetles).grid
-    total, east = 0, 0
+    damaged = get_resource(w, DamagedTreeAttraction).presence
+    total, east = [0, 0], [0, 0]
     for x in 1:events.width, y in 1:events.height
         n = Int(events[x, y])
-        total += n
-        x >= s.first_east_cell && (east += n)
+        n == 0 && continue
+        kind = damaged[x, y] ? 2 : 1
+        total[kind] += n
+        x >= s.first_east_cell && (east[kind] += n)
     end
-    push!(s.total, total)
-    push!(s.east, east)
+    push!(s.total, Tuple(total))
+    push!(s.east, Tuple(east))
 end
 
 # Runs the model for one gap width and seed. Returns its world, the beetle tracks, as cells,
@@ -134,26 +139,35 @@ function crossed(track, range, gap, cell_size)
     return any(p.x >= first_cell for p in track[first(range):min(last(range), length(track))])
 end
 
-# Updates whose events belong to a phase. Phase ranges are track positions, and update k gives position k + 1.
-phase_updates(range, events) = max(first(range) - 1, 1):min(last(range) - 1, length(events.total))
+# Kinds of events counted, with the kind's index in `GapEvents` counts, and the range of track positions
+# (as in PHASES) to count them in. Feeding only during maturation feeding, egg laying over the whole life.
+const EVENTS = (
+    (title="Maturation feeding", kind=1, range=PHASES[1].range, color=SERIES_COLORS[1]),
+    (title="Egg laying", kind=2, range=PHASES[2].range, color=SERIES_COLORS[3]),
+)
+
+# Updates whose events belong to a range of track positions, as update k gives position k + 1.
+range_updates(range, events) = max(first(range) - 1, 1):min(last(range) - 1, length(events.total))
 
 # Runs the model for one gap width with all seeds. Returns the world of the first seed,
-# the number of released beetles, and per phase the number of beetles that crossed the gap,
-# and the number of feeding and egg laying events in total and in the east forest,
+# the number of released beetles, per phase the number of beetles that crossed the gap,
+# and per kind of events (see EVENTS) their number in total and in the east forest,
 # summed over all seeds. Tracks are not kept, to save memory.
 function simulate_seeds(gap)
     world, cell_size = nothing, 0
     released, crossings = 0, zeros(Int, length(PHASES))
-    events_total, events_east = zeros(Int, length(PHASES)), zeros(Int, length(PHASES))
+    events_total, events_east = zeros(Int, length(EVENTS)), zeros(Int, length(EVENTS))
     for seed in SEEDS
         result = simulate(gap, seed)
         seed == first(SEEDS) && ((world, cell_size) = (result.world, result.cell_size))
         released += length(result.tracks)
         for (j, phase) in enumerate(PHASES)
             crossings[j] += count(t -> crossed(t, phase.range, gap, result.cell_size), result.tracks)
-            updates = phase_updates(phase.range, result.events)
-            events_total[j] += sum(result.events.total[updates])
-            events_east[j] += sum(result.events.east[updates])
+        end
+        for (j, ev) in enumerate(EVENTS)
+            updates = range_updates(ev.range, result.events)
+            events_total[j] += sum(c[ev.kind] for c in result.events.total[updates]; init=0)
+            events_east[j] += sum(c[ev.kind] for c in result.events.east[updates]; init=0)
         end
     end
     return (; world, cell_size, released, crossings, events_total, events_east)
@@ -165,8 +179,8 @@ end
 # Probability of having crossed the gap in a phase, over all released beetles of all seeds.
 crossing_probability(result, phase_index) = result.crossings[phase_index] / result.released
 
-# Share of feeding and egg laying events in a phase that are in the east forest, over all seeds.
-east_event_share(result, phase_index) = result.events_east[phase_index] / result.events_total[phase_index]
+# Share of events of a kind (see EVENTS) that are in the east forest, over all seeds.
+east_event_share(result, event_index) = result.events_east[event_index] / result.events_total[event_index]
 
 # Landscapes of all gap widths (rows), on the same scale, with the release point (star).
 # The area beyond the east edge of a smaller world is gray.
@@ -201,17 +215,23 @@ const Y_TICKS = [
     0.00001, 0.00002, 0.00005, 0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0,
 ]
 
-# Measures shown per phase: the per-beetle crossing probability (solid lines),
-# and the share of feeding and egg laying events in the east forest (dashed lines).
-const MEASURES = (
-    (title="beetles crossed", value=crossing_probability, linestyle=:solid, marker=:circle),
-    (title="events across", value=east_event_share, linestyle=:dash, marker=:rect),
+# Series shown: the per-beetle crossing probability per phase (solid lines),
+# and the share of events of each kind in the east forest (dashed lines).
+const SERIES = (
+    (
+        (; label="$(p.title), beetles crossed", value=r -> crossing_probability(r, j), color=p.color,
+            linestyle=:solid, marker=:circle) for (j, p) in enumerate(PHASES)
+    )...,
+    (
+        (; label="$(e.title), events across", value=r -> east_event_share(r, j), color=e.color,
+            linestyle=:dash, marker=:rect) for (j, e) in enumerate(EVENTS)
+    )...,
 )
 
 function plot_crossing_probability(results)
-    series = [(; phase, measure, j) for measure in MEASURES for (j, phase) in enumerate(PHASES)]
-    values = [s.measure.value(result, s.j) for result in results, s in series]
-    labels = ["$(s.phase.title), $(s.measure.title)" for s in series]
+    series = SERIES
+    values = [s.value(result) for result in results, s in series]
+    labels = [s.label for s in series]
 
     println(
         "Crossing the gap, over $(first(results).released) beetles from $(length(SEEDS)) seeds ",
@@ -237,7 +257,7 @@ function plot_crossing_probability(results)
         v = [x > 0 ? x : NaN for x in values[:, k]]
         scatterlines!(
             ax, GAP_WIDTHS, v;
-            color=s.phase.color, linestyle=s.measure.linestyle, marker=s.measure.marker, label=labels[k],
+            color=s.color, linestyle=s.linestyle, marker=s.marker, label=s.label,
         )
     end
     # Keep all gap widths on the x axis, also those without crossings.
