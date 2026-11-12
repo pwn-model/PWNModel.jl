@@ -51,6 +51,8 @@ Figures are written to `out/` as SVG (and PNG). They are not committed, but show
 Number of feeding events (left) and egg laying events (right) by distance from the release point,
 for all forest densities (rows), summed over the whole simulation. Bins are 50 m wide.
 Each panel gives the total number of events and their median distance.
+The maps on the left show the trees in a 200 m × 200 m section around the release point (star):
+green cells are healthy trees, brown cells damaged trees.
 
 ![Event distances](out/event_distances.svg)
 

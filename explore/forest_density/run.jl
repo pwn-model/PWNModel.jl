@@ -41,7 +41,7 @@ const movement_kwargs = (;
     emergence_flight_distance=100.0,
 )
 
-# Runs the model for one scenario. Returns the summed feeding and egg laying events per cell.
+# Runs the model for one scenario. Returns its world, and the summed feeding and egg laying events per cell.
 function simulate(scenario)
     world = new_world(; seed=1, width=2000, height=2000, cell_size=10)
     visits = TreeVisits()
@@ -66,7 +66,7 @@ function simulate(scenario)
 
     # One more tick than the maximum age, for BeetleMortality to remove beetles that reached it.
     run!(Scheduler(world, systems), max_age + 1)
-    return visits
+    return (; world, visits)
 end
 
 # ---------------------------------------------------------------------------
@@ -103,25 +103,46 @@ const EVENT_TYPES = (
 )
 const DISTANCE_BIN_WIDTH = 50.0
 
-# Histograms of event distances: one row per scenario, one column per event type.
+# Landscape maps show a small section of the world around the release point.
+const MAP_RADIUS = 100.0
+
+# Trees in a small section of the landscape around the release point (star), with one pixel per cell.
+function plot_landscape(pos, world; title)
+    cs = get_resource(world, WorldSize).cell_size
+    release = cell_center(RELEASE_X, RELEASE_Y, cs)
+    xlims = (release[1] - MAP_RADIUS, release[1] + MAP_RADIUS)
+    ylims = (release[2] - MAP_RADIUS, release[2] + MAP_RADIUS)
+    ax = Axis(pos; title=title, aspect=DataAspect())
+    hidedecorations!(ax)
+    image!(ax, tree_image(world; xlims=xlims, ylims=ylims)...; interpolate=false, rasterize=2)
+    scatter!(ax, [Point2f(release...)]; color=:black, marker=:star5, markersize=12)
+    limits!(ax, xlims..., ylims...)
+    return ax
+end
+
+# Histograms of event distances: one row per scenario, one column per event type,
+# with a map of the landscape in front of each row.
 function plot_event_distances(results)
-    events = [event_distances(getfield(result, et.field)) for result in results, et in EVENT_TYPES]
+    events = [event_distances(getfield(result.visits, et.field)) for result in results, et in EVENT_TYPES]
     max_distance = maximum(maximum(e.distances) for e in events if !isempty(e.distances))
     bins = 0:DISTANCE_BIN_WIDTH:(ceil(max_distance / DISTANCE_BIN_WIDTH)*DISTANCE_BIN_WIDTH)
 
     println("Events by distance from the release point")
-    fig = Figure(; size=(1200, 1100))
+    fig = Figure(; size=(1400, 1100))
     panel_axes = Matrix{Axis}(undef, size(events))
+    for (row, (scenario, result)) in enumerate(zip(SCENARIOS, results))
+        Label(fig[row, 0], scenario.title; rotation=pi / 2, font=:bold, tellheight=false)
+        plot_landscape(fig[row, 1], result.world; title=row == 1 ? "Landscape" : "")
+    end
     for (row, scenario) in enumerate(SCENARIOS), (col, et) in enumerate(EVENT_TYPES)
         e = events[row, col]
         ax = Axis(
-            fig[row, col];
+            fig[row, col+1];
             title=row == 1 ? et.title : "",
             xlabel=row == length(SCENARIOS) ? "Distance from release point (m)" : "",
             ylabel=col == 1 ? "Events" : "",
         )
         panel_axes[row, col] = ax
-        col == 1 && Label(fig[row, 0], scenario.title; rotation=pi / 2, font=:bold, tellheight=false)
         total = sum(e.counts; init=0)
         median_text = ""
         if total > 0
@@ -138,6 +159,8 @@ function plot_event_distances(results)
     for col in axes(panel_axes, 2)
         linkyaxes!(panel_axes[:, col]...)
     end
+    # Square landscape maps, as high as the rows.
+    colsize!(fig.layout, 1, Aspect(1, 1.0))
     save_figure(OUT_DIR, "event_distances", fig; png=true)
 end
 
