@@ -39,12 +39,16 @@ budget before arriving:
 
 All beetles have this component. `WalkDirection()` is the state of a beetle
 that is not on the way.
+
+The direction is stored as `Float32` to save memory, and converted back to
+`Float64` for all calculations. Both conversions are exact or round to
+nearest, the same in the sibling Go implementation.
 """
 struct WalkDirection
-    dx::Float64
-    dy::Float64
+    dx::Float32
+    dy::Float32
     feeding::Bool
     on_the_way::Bool
 end
 
-WalkDirection() = WalkDirection(0.0, 0.0, false, false)
+WalkDirection() = WalkDirection(0.0f0, 0.0f0, false, false)
