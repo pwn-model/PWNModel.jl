@@ -24,7 +24,7 @@ const max_age = 18
 # including the random seed.
 const DAMAGE_PREVALENCE = 0.03
 const SCENARIOS = [
-    (title="$(round(Int, 100p)) % trees", tree_probability=p) for p in (0.99, 0.75, 0.5, 0.25)
+    (title="$(round(Int, 100p)) % trees", tree_probability=p) for p in (0.9, 0.75, 0.5, 0.25)
 ]
 
 # Release point, as a cell, in the center of the world.

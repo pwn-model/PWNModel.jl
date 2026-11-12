@@ -31,7 +31,7 @@ Distances are measured between the centers of the release cell and the tree's ce
 
 ### Scenarios
 
-The experiment runs four scenarios that differ only in `tree_probability`: 0.99, 0.75, 0.5 and 0.25.
+The experiment runs four scenarios that differ only in `tree_probability`: 0.9, 0.75, 0.5 and 0.25.
 Everything else is the same, including the random seed.
 
 ## Running
