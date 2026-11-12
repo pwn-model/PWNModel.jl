@@ -29,6 +29,9 @@ Only the order of random numbers differs, and beetles die on the day their life 
 **Events**: a feeding event is a movement step that a beetle ends on a healthy tree while looking for healthy trees,
 an egg laying event is a step that a beetle ends on a damaged tree while looking for damaged trees.
 These are the events that `NematodeInfection` uses.
+Feeding events happen in both phases: during maturation feeding (the first 3 weeks), and afterwards in the steps
+in which a beetle feeds instead of laying eggs. Feeding events therefore reach further from the release point
+than the maximum distances of the maturation feeding phase.
 A beetle that stays on a tree for several steps causes one event per step.
 Distances are measured between the centers of the release cell and the tree's cell.
 
