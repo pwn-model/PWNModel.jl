@@ -52,6 +52,7 @@ Darker lines are the boundaries between catchments.
 The catchment of a whole cluster is shown as one, without the boundaries between its trees.
 Black circles are the clusters.
 Dots are scattered trees: filled if targeted, hollow if not targeted.
+The last panel shows the landscape itself, with one pixel per 10 m cell.
 
 ![Radial catchments](out/radial_catchments.svg)
 
