@@ -50,14 +50,15 @@ const CLUSTER_ID = [something(findfirst(c -> in_cluster(c, x, y), CLUSTERS), 0) 
 # ---------------------------------------------------------------------------
 # Simulation
 
-# Runs a single attraction system for one tick on the landscape. Returns the world.
-function attraction(system)
+# Runs the given attraction systems (none for just the landscape) for one
+# tick on the landscape. Returns the world.
+function attraction(systems...)
     world = new_world(; seed=1, width=WIDTH, height=HEIGHT, cell_size=CELL_SIZE)
     systems = (
         InitGrids(),
         PlaceTrees(; positions=[CLUSTER_TREES; SCATTERED_TREES]),
         UpdateTime(; ticks_per_year=52),
-        system,
+        systems...,
     )
     run!(Scheduler(world, systems), 1)
     return world
@@ -102,6 +103,7 @@ function radial(h)
 end
 
 radial_results = [radial(h) for h in HALF_DISTANCES]
+landscape = attraction()
 
 # ---------------------------------------------------------------------------
 # Plots
@@ -137,21 +139,27 @@ function draw_trees!(ax; untargeted)
     scatter!(ax, points(untargeted); color=:transparent, strokecolor=:black, strokewidth=0.8, markersize=6)
 end
 
-# Grid of map panels, one per half distance, in 2 rows x 3 columns. The
-# last slot is passed to `extra` (e.g. for a legend).
-function map_panels(draw!, extra, name)
-    fig = Figure(; size=(1400, 1000))
-    for (i, h) in enumerate(HALF_DISTANCES)
+# Grid of map panels in 2 rows x 3 columns: one per half distance, and the
+# landscape (trees, with one pixel per cell) in the last slot. The legend
+# from `legend` goes into a row below.
+function map_panels(draw!, legend, name)
+    fig = Figure(; size=(1400, 1060))
+    titles = [h_label.(HALF_DISTANCES); "Landscape"]
+    for (i, title) in enumerate(titles)
         row, col = fldmod1(i, 3)
         ax = Axis(
             fig[row, col];
-            title=h_label(h), aspect=DataAspect(),
+            title=title, aspect=DataAspect(),
             xlabel=row == 2 ? "x (m)" : "", ylabel=col == 1 ? "y (m)" : "",
         )
-        draw!(ax, i)
+        if i <= length(HALF_DISTANCES)
+            draw!(ax, i)
+        else
+            image!(ax, tree_image(landscape; xlims=(0, WIDTH), ylims=(0, HEIGHT))...; interpolate=false, rasterize=2)
+        end
         limits!(ax, 0, WIDTH, 0, HEIGHT)
     end
-    extra(fig[2, 3])
+    legend(fig[3, 1:3])
     save_figure(OUT_DIR, name, fig; png=true)
 end
 
@@ -192,9 +200,9 @@ map_panels(
             "Source is a scattered tree",
             "Cluster",
             "Scattered tree, targeted",
-            "Scattered tree, not targeted\n(source of no other cell)",
+            "Scattered tree, not targeted (source of no other cell)",
         ];
-        framevisible=false, tellwidth=false, tellheight=false,
+        orientation=:horizontal, nbanks=2, framevisible=false, tellwidth=false, tellheight=true,
     ),
     "radial_catchments",
 )
