@@ -26,10 +26,11 @@ const max_age = 18 * steps_per_tick
 const total_steps = max_age
 
 # Landscape: a dense forest in the west, a gap of varying width, and another dense forest in the east.
-# Both forests are 1000 m wide, so the world's width adapts to the gap width.
-const HEIGHT = 2000
-const WEST_FOREST_END = 1000
-const EAST_FOREST_WIDTH = 1000
+# Both forests are 2000 m wide, so the world's width adapts to the gap width.
+const HEIGHT = 4000
+const WEST_FOREST_END = 2000
+const EAST_FOREST_WIDTH = 2000
+const CELL_SIZE = 10
 const GAP_WIDTHS = [100, 250, 500, 1000, 2500, 5000, 10000]
 forest(x_min, x_max) = TreeStand(;
     x_min=x_min, y_min=0, x_max=x_max, y_max=HEIGHT,
@@ -43,8 +44,8 @@ const MAX_WIDTH = maximum(world_width, GAP_WIDTHS)
 # Landscape maps show the first seed only.
 const SEEDS = 1:10
 
-# Release point, as a cell, in the easternmost column of cells of the west forest.
-const RELEASE_X, RELEASE_Y = 100, 100
+# Release point, as a cell, in the easternmost column of cells of the west forest, vertically centered.
+const RELEASE_X, RELEASE_Y = WEST_FOREST_END ÷ CELL_SIZE, HEIGHT ÷ (2 * CELL_SIZE)
 
 attraction_kwargs(damaged) =
     (; tick_of_year=0, damaged_trees=damaged, half_distance=50.0, density_radius=20, density_weight=1.0)
@@ -97,7 +98,7 @@ end
 # and the feeding and egg laying events.
 function simulate(gap, seed)
     width = world_width(gap)
-    world = new_world(; seed=seed, width=width, height=HEIGHT, cell_size=10)
+    world = new_world(; seed=seed, width=width, height=HEIGHT, cell_size=CELL_SIZE)
     trajectories = BeetleTrajectories()
     events = GapEvents(first_east_cell(gap, get_resource(world, WorldSize).cell_size))
 
@@ -189,7 +190,7 @@ east_event_share(result, event_index) = result.events_east[event_index] / result
 const OUTSIDE_COLOR = "#e0e0e0"
 
 function plot_landscapes(results)
-    fig = Figure(; size=(1200, 1450))
+    fig = Figure(; size=(1200, 2400))
     xticks = 0:1000:MAX_WIDTH
     release = cell_center(RELEASE_X, RELEASE_Y, first(results).cell_size)
     for (row, (gap, result)) in enumerate(zip(GAP_WIDTHS, results))
