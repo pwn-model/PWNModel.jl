@@ -11,14 +11,14 @@ How does this depend on the width of the gap?
 
 All parameters are set where the systems are created, in [`run.jl`](https://github.com/pwn-model/PWNModel.jl/blob/main/explore/forest_gap/run.jl).
 
-- **Landscape**: 2 km high, 10 m cells, created by `InitTreeStands` with two stands,
-  both 1000 m wide and with `tree_probability` 0.9 and `damage_prevalence` 0.03:
-  a west forest from 0 to 1000 m, and an east forest from the end of the gap to the east edge of the world.
+- **Landscape**: 4 km high, 10 m cells, created by `InitTreeStands` with two stands,
+  both 2000 m wide and with `tree_probability` 0.9 and `damage_prevalence` 0.03:
+  a west forest from 0 to 2000 m, and an east forest from the end of the gap to the east edge of the world.
   Between them is a gap without trees.
-  The world's width adapts to the gap: 1000 m + gap + 1000 m, from 2.1 km to 12 km.
+  The world's width adapts to the gap: 2000 m + gap + 2000 m, from 4.1 km to 14 km.
 - **Attraction**: two `TreeAttraction` systems (healthy and damaged trees), `half_distance` 50 m, `density_radius` 20 m, `density_weight` 1.
 - **Beetles**: 10,000 beetles released at tick 0 from a damaged tree placed in the easternmost column of cells of the west forest,
-  right at the edge of the gap (or an existing tree there made damaged).
+  right at the edge of the gap and vertically centered (or an existing tree there made damaged).
 - **Mortality**: `BeetleMortality`, with life span drawn from an exponential distribution with a mean of 5 weeks,
   capped at a maximum age of 18 weeks (as in `BeetleEmergence`).
   The simulation runs for 18 weeks, until all beetles are dead.
